@@ -1,24 +1,28 @@
 {
-  "name": "movimood-frontend",
+  "name": "movimood",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://movimood.plandecine.com",
+  "engines": {
+    "node": ">=20 <21"
+  },
   "dependencies": {
-    "@testing-library/dom": "^10.4.1",
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.1",
-    "@testing-library/user-event": "^13.5.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
+    "react-easy-crop": "^5.5.6",
     "react-router-dom": "^7.11.0",
-    "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4"
+    "react-scripts": "5.0.1"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "watch-deploy": "chokidar \"src/**\" -c \"npm run build && python ftp_upload.py\" --initial",
+    "backup-build": "powershell -NoLogo -ExecutionPolicy Bypass -Command \"$ts=Get-Date -Format 'yyyyMMdd_HHmmss'; Compress-Archive -Path build\\* -DestinationPath build_snapshot_$ts.zip\"",
+    "deploy": "powershell -NoLogo -ExecutionPolicy Bypass -File deploy.ps1",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
+  "proxy": "http://localhost/movimood-frontend",
   "eslintConfig": {
     "extends": [
       "react-app",
@@ -36,5 +40,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "chokidar-cli": "^3.0.0"
   }
 }
