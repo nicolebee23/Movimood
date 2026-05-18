@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoviMood - Lavender Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0A0E1A;
+            color: #FFFFFF;
+            overflow-x: hidden;
+        }
+
+        /* Container principal */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 80px 40px;
+        }
+
+        /* Etiqueta superior */
+        .etiqueta {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: rgba(184, 169, 245, 0.1);
+            border: 1px solid rgba(184, 169, 245, 0.3);
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            color: #B8A9F5;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Hero section */
+        .hero {
+            min-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+        }
+
+        /* Título principal */
+        h1 {
+            font-size: 100px;
+            font-weight: 800;
+            margin-bottom: 25px;
+            letter-spacing: -3px;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease-out 0.2s forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+        }
+
+        .titulo-icono {
+            display: block;
+            font-size: 70px;
+            margin-bottom: 15px;
+            opacity: 0;
+            animation: fadeInScale 0.6s ease-out 0s forwards;
+        }
+
+        @keyframes fadeInScale {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+        }
+
+        .titulo-texto {
+            display: block;
+            background: linear-gradient(135deg, #FFFFFF 0%, #B8A9F5 50%, #D4E4FF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitulo {
+            font-size: 28px;
+            margin-bottom: 20px;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.85);
+            opacity: 0;
+            animation: fadeInUp 0.8s ease-out 0.4s forwards;
+        }
+
+        .descripcion {
+            font-size: 17px;
+            max-width: 650px;
+            line-height: 1.7;
+            margin: 0 auto 50px;
+            color: rgba(255, 255, 255, 0.65);
+            opacity: 0;
+            animation: fadeInUp 0.8s ease-out 0.6s forwards;
+        }
+
+        /* Botones elegantes */
+        .botones {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 70px;
+            flex-wrap: wrap;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease-out 0.8s forwards;
+        }
+
+        .btn {
+            padding: 18px 40px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-primario {
+            background: #B8A9F5;
+            color: #0A0E1A;
+        }
+
+        .btn-primario:hover {
+            background: #C9BCFF;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(184, 169, 245, 0.3);
+        }
+
+        .btn-secundario {
+            background: transparent;
+            color: #D4E4FF;
+            border: 2px solid rgba(212, 228, 255, 0.3);
+        }
+
+        .btn-secundario:hover {
+            border-color: #D4E4FF;
+            background: rgba(212, 228, 255, 0.05);
+            transform: translateY(-2px);
+        }
+
+        /* Stats minimalistas */
+        .stats {
+            display: flex;
+            gap: 70px;
+            justify-content: center;
+            flex-wrap: wrap;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease-out 1s forwards;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-numero {
+            font-size: 42px;
+            font-weight: 700;
+            display: block;
+            margin-bottom: 8px;
+            color: #B8A9F5;
+        }
+
+        .stat-texto {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 600;
+        }
+
+        /* Línea decorativa sutil */
+        .linea-decorativa {
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #B8A9F5, transparent);
+            margin: 80px auto;
+            opacity: 0.3;
+        }
+
+        /* Sección características */
+        .seccion {
+            padding: 80px 0;
+        }
+
+        .seccion-titulo {
+            font-size: 42px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 15px;
+            color: #FFFFFF;
+        }
+
+        .seccion-subtitulo {
+            font-size: 17px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 60px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Cards con glassmorphism suave */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 40px 30px;
+            transition: all 0.4s ease;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .card:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(184, 169, 245, 0.3);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-icono {
+            font-size: 48px;
+            margin-bottom: 20px;
+            display: block;
+            opacity: 0.9;
+        }
+
+        .card-titulo {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #B8A9F5;
+        }
+
+        .card-texto {
+            color: rgba(255, 255, 255, 0.65);
+            line-height: 1.7;
+            font-size: 14px;
+        }
+
+        /* CTA final elegante */
+        .cta-final {
+            text-align: center;
+            padding: 100px 40px;
+            background: linear-gradient(135deg, 
+                rgba(184, 169, 245, 0.05) 0%, 
+                rgba(212, 228, 255, 0.05) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            margin-top: 100px;
+        }
+
+        .cta-titulo {
+            font-size: 38px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #FFFFFF;
+        }
+
+        .cta-descripcion {
+            font-size: 17px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 35px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn-cta {
+            padding: 20px 50px;
+            font-size: 17px;
+            background: linear-gradient(135deg, #B8A9F5 0%, #C9BCFF 100%);
+            color: #0A0E1A;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-cta:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(184, 169, 245, 0.4);
+        }
+
+        /* Footer minimalista */
+        .footer {
+            text-align: center;
+            padding: 60px 40px 40px;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 13px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: 100px;
+            line-height: 1.8;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 { font-size: 56px; }
+            .titulo-icono { font-size: 50px; }
+            .subtitulo { font-size: 22px; }
+            .descripcion { font-size: 16px; }
+            .stats { gap: 40px; }
+            .stat-numero { font-size: 36px; }
+            .seccion-titulo { font-size: 32px; }
+            .cta-titulo { font-size: 28px; }
+            .cards-grid { grid-template-columns: 1fr; }
+            .botones { flex-direction: column; width: 100%; }
+            .btn { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="etiqueta">LAVENDER EDITION</div>
+
+    <div class="container">
+        <!-- HERO -->
+        <section class="hero">
+            <h1>
+                <span class="titulo-icono">🎬</span>
+                <span class="titulo-texto">MoviMood</span>
+            </h1>
+            <p class="subtitulo">Descubre películas perfectas para tu estado de ánimo</p>
+            <p class="descripcion">
+                Una experiencia cinematográfica personalizada. Responde un breve cuestionario 
+                y recibe recomendaciones adaptadas a cómo te sientes hoy.
+            </p>
+
+            <div class="botones">
+                <button class="btn btn-primario">✨ Regístrate Gratis</button>
+                <button class="btn btn-secundario">Iniciar Sesión</button>
+            </div>
+
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-numero">10,000+</span>
+                    <span class="stat-texto">Películas</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-numero">100%</span>
+                    <span class="stat-texto">Gratis</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-numero">2 min</span>
+                    <span class="stat-texto">Cuestionario</span>
+                </div>
+            </div>
+        </section>
+
+        <div class="linea-decorativa"></div>
+
+        <!-- CARACTERÍSTICAS -->
+        <section class="seccion">
+            <h2 class="seccion-titulo">¿Por qué elegir MoviMood?</h2>
+            <p class="seccion-subtitulo">
+                Encuentra la película perfecta en menos de 2 minutos
+            </p>
+            
+            <div class="cards-grid">
+                <div class="card">
+                    <span class="card-icono">🎯</span>
+                    <h3 class="card-titulo">Personalizado</h3>
+                    <p class="card-texto">
+                        Recomendaciones basadas en tu estado de ánimo actual, 
+                        no solo en tu historial de visualización
+                    </p>
+                </div>
+
+                <div class="card">
+                    <span class="card-icono">⚡</span>
+                    <h3 class="card-titulo">Rápido y Simple</h3>
+                    <p class="card-texto">
+                        Solo 2 minutos de cuestionario. Sin configuraciones 
+                        complicadas ni largas encuestas
+                    </p>
+                </div>
+
+                <div class="card">
+                    <span class="card-icono">🆓</span>
+                    <h3 class="card-titulo">100% Gratuito</h3>
+                    <p class="card-texto">
+                        Sin suscripciones, sin anuncios, sin tarifas ocultas. 
+                        Totalmente gratis para siempre
+                    </p>
+                </div>
+
+                <div class="card">
+                    <span class="card-icono">🌍</span>
+                    <h3 class="card-titulo">Catálogo Gigante</h3>
+                    <p class="card-texto">
+                        Acceso a más de 10,000 películas de todos los géneros, 
+                        épocas y países del mundo
+                    </p>
+                </div>
+
+                <div class="card">
+                    <span class="card-icono">❤️</span>
+                    <h3 class="card-titulo">Guarda Favoritos</h3>
+                    <p class="card-texto">
+                        Crea tu lista personal de películas favoritas 
+                        y accede a ellas cuando quieras
+                    </p>
+                </div>
+
+                <div class="card">
+                    <span class="card-icono">📱</span>
+                    <h3 class="card-titulo">Multiplataforma</h3>
+                    <p class="card-texto">
+                        Funciona en cualquier dispositivo: ordenador, 
+                        tablet o smartphone
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA FINAL -->
+        <div class="cta-final">
+            <h2 class="cta-titulo">¿Listo para descubrir tu próxima película favorita?</h2>
+            <p class="cta-descripcion">
+                Únete a MoviMood y encuentra películas que conecten con tu mood actual
+            </p>
+            <button class="btn-cta">Empezar Ahora - Es Gratis</button>
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            © 2025 MoviMood - Creado por Nicole Beeckmans<br>
+            Hecho con ❤️ en Madrid
+        </footer>
+    </div>
+
+    <script>
+        // Animación de scroll para las cards
+        const observerOptions = {
+            threshold: 0.15,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.classList.add('visible');
+                    }, index * 100);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.card').forEach(card => {
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html>

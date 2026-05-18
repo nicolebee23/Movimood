@@ -43,6 +43,41 @@ You don't have to ever use `eject`. The curated feature set is suitable for smal
 
 You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
+## Backend local para TMDB
+
+La app ya no consulta TMDB directamente desde React. Ahora usa un endpoint PHP en `api/tmdb-discover.php` para que la clave quede del lado del servidor.
+
+Configuración local:
+
+1. Deja la clave en `.env` como `TMDB_API_KEY`.
+2. Define `REACT_APP_API_BASE_URL=http://localhost/movimood-frontend/api` en local o `https://movimood.plandecine.com/api` en producción.
+3. Sirve la carpeta desde XAMPP para que el endpoint PHP responda.
+4. Si cambias `.env`, reinicia `npm start` o vuelve a ejecutar `npm run build`.
+
+Endpoint usado por el frontend:
+
+- `GET /api/tmdb-discover.php`
+
+El endpoint acepta solo los parámetros necesarios para `discover/movie` y añade la API key en el servidor.
+
+## Recuperacion de password por email
+
+La recuperacion de contrasena ya funciona en local, pero para envio real de emails debes configurar un proveedor.
+
+Configuracion recomendada (Resend):
+
+1. En tu `.env` agrega:
+	- `MAIL_FROM=MoviMood <onboarding@resend.dev>`
+	- `RESEND_API_KEY=re_xxxxxxxxx`
+2. Reinicia Apache (XAMPP).
+3. Prueba la recuperacion desde `/recuperar-password`.
+
+Notas:
+
+- Si `RESEND_API_KEY` existe, el backend envia por API de Resend.
+- Si no existe, hace fallback a `mail()` de PHP (normalmente no funcional en XAMPP sin SMTP).
+- La respuesta del endpoint incluye `mailSent` y `mailProvider` para diagnostico rapido.
+
 To learn React, check out the [React documentation](https://reactjs.org/).
 
 ### Code Splitting

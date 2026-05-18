@@ -1,0 +1,5 @@
+open ftp.plandecine.com
+u538166067
+Nic20bee@
+get bootstrap.php bootstrap_remote.php
+bye

@@ -1,0 +1,113 @@
+/* Contenedor del slider de años */
+.slider-anios {
+  width: 100%;
+  max-width: 500px;
+  margin: 30px auto;
+}
+
+/* Valores seleccionados (años) */
+.slider-valores {
+  text-align: center;
+  font-size: 32px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 30px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.slider-separador {
+  margin: 0 10px;
+  opacity: 0.5;
+}
+
+/* Contenedor de los sliders */
+.slider-contenedor {
+  position: relative;
+  height: 50px;
+  display: flex;
+  align-items: center;
+}
+
+/* Track de fondo */
+.slider-track {
+  position: absolute;
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+/* Rango seleccionado (barra morada) */
+.slider-range {
+  position: absolute;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 10px;
+}
+
+/* Sliders (input range) */
+.slider {
+  position: absolute;
+  width: 100%;
+  height: 8px;
+  background: transparent;
+  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+  pointer-events: all;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  border: 3px solid #667eea;
+  transition: transform 0.2s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+  pointer-events: all;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  border: 3px solid #667eea;
+  transition: transform 0.2s ease;
+}
+
+.slider::-moz-range-thumb:hover {
+  transform: scale(1.2);
+}
+
+/* Etiquetas de años (mín y máx) */
+.slider-etiquetas {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .slider-valores {
+    font-size: 28px;
+  }
+  
+  .slider-anios {
+    max-width: 90%;
+  }
+}

@@ -1,0 +1,3 @@
+<FilesMatch "^(\.env|\.env\..*)$">
+  Require all denied
+</FilesMatch>

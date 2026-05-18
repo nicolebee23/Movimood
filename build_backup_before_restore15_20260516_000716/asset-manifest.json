@@ -1,0 +1,25 @@
+{
+  "files": {
+    "main.css": "/static/css/main.b9d58317.css",
+    "main.js": "/static/js/main.46f22b8c.js",
+    "static/media/mockup-second-box-portrait-blue.png": "/static/media/mockup-second-box-portrait-blue.fbb7e60e727a6ccd4d03.png",
+    "static/media/mockup-third-box-hero-portrait.png": "/static/media/mockup-third-box-hero-portrait.1a39d2637793154c648e.png",
+    "static/media/mockup-first-box-aurora.png": "/static/media/mockup-first-box-aurora.f8682cc12bd622be5fcc.png",
+    "static/media/mockup-second-box-ember.png": "/static/media/mockup-second-box-ember.c207bcd05ec05724764c.png",
+    "static/media/mockup-fourth-box-portrait-green.png": "/static/media/mockup-fourth-box-portrait-green.24427ed690df843f3ae2.png",
+    "static/media/mockup-tablet.png": "/static/media/mockup-tablet.6ca318db700b482da5c4.png",
+    "static/media/login.bg.png": "/static/media/login.bg.5d14c5016a51a4ac34ef.png",
+    "static/media/mockup-computer.png": "/static/media/mockup-computer.bb8201787255c1134007.png",
+    "static/media/mockup-phone.png": "/static/media/mockup-phone.7f76e3585c4256d6effe.png",
+    "static/media/recuperar-password-bg.png": "/static/media/recuperar-password-bg.4226cb4f965484dbc3d3.png",
+    "static/media/registro-page-bg.png": "/static/media/registro-page-bg.98f18dc8c5b51fa50b5d.png",
+    "static/media/hero-bg.png": "/static/media/hero-bg.f29405316749ec0b5dd9.png",
+    "index.html": "/index.html",
+    "main.b9d58317.css.map": "/static/css/main.b9d58317.css.map",
+    "main.46f22b8c.js.map": "/static/js/main.46f22b8c.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.b9d58317.css",
+    "static/js/main.46f22b8c.js"
+  ]
+}

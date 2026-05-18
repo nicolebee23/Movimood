@@ -1,0 +1,7 @@
+u538166067
+Nic20bee@
+cd /domains/plandecine.com/public_html/movimood
+put build/index.html index.html
+put build/static/js/main.8e7767e8.js static/js/main.8e7767e8.js
+put build/static/css/main.c101be2c.css static/css/main.c101be2c.css
+quit

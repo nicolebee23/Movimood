@@ -1,0 +1,151 @@
+/* Página Home */
+.pagina-home {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+}
+
+.contenido-home {
+  max-width: 800px;
+  text-align: center;
+  animation: fadeIn 1s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Título principal */
+.titulo-home {
+  font-size: 80px;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 5px 30px rgba(0, 0, 0, 0.3);
+  margin-bottom: 20px;
+  letter-spacing: -2px;
+}
+
+.subtitulo-home {
+  font-size: 28px;
+  color: rgba(255, 255, 255, 0.95);
+  margin-bottom: 20px;
+  font-weight: 400;
+}
+
+.descripcion-home {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 50px;
+  line-height: 1.6;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Botones */
+.botones-home {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 60px;
+}
+
+.boton-principal,
+.boton-secundario {
+  padding: 18px 40px;
+  border-radius: 50px;
+  font-size: 20px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  display: inline-block;
+}
+
+.boton-principal {
+  background: white;
+  color: #667eea;
+}
+
+.boton-principal:hover {
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
+  background: #f0f0f0;
+}
+
+.boton-secundario {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid white;
+}
+
+.boton-secundario:hover {
+  transform: translateY(-5px) scale(1.05);
+  background: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 12px 35px rgba(255, 255, 255, 0.2);
+}
+
+/* Características */
+.caracteristicas-home {
+  display: flex;
+  gap: 50px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.caracteristica {
+  text-align: center;
+}
+
+.emoji-caracteristica {
+  font-size: 50px;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.caracteristica p {
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* Footer */
+.footer-home {
+  margin-top: auto;
+  padding-top: 40px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .titulo-home {
+    font-size: 56px;
+  }
+  
+  .subtitulo-home {
+    font-size: 22px;
+  }
+  
+  .botones-home {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .caracteristicas-home {
+    gap: 30px;
+  }
+}

@@ -1,0 +1,15 @@
+open ftp.plandecine.com
+u538166067
+Nic20bee@
+mkdir movimood
+cd movimood
+mkdir api
+cd api
+mkdir _lib
+put ../api/movimood.php movimood.php
+put ../api/_lib/bootstrap.php _lib/bootstrap.php
+put ../api/test_email.php test_email.php
+put ../api/tmdb-discover.php tmdb-discover.php
+put ../api/tmdb-movie.php tmdb-movie.php
+put ../api/tmdb-search.php tmdb-search.php
+bye

@@ -16,6 +16,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "build-validated": "react-scripts build && python validate_build.py",
     "watch-deploy": "chokidar \"src/**\" -c \"npm run build && python ftp_upload.py\" --initial",
     "backup-build": "powershell -NoLogo -ExecutionPolicy Bypass -Command \"$ts=Get-Date -Format 'yyyyMMdd_HHmmss'; Compress-Archive -Path build\\* -DestinationPath build_snapshot_$ts.zip\"",
     "deploy": "powershell -NoLogo -ExecutionPolicy Bypass -File deploy.ps1",

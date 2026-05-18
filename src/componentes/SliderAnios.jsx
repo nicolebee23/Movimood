@@ -3,10 +3,10 @@ import './SliderAnios.css';
 
 function SliderAnios({ onCambio, valoresIniciales }) {
   const [anioMin, setAnioMin] = useState(valoresIniciales?.min || 1980);
-  const [anioMax, setAnioMax] = useState(valoresIniciales?.max || 2025);
+  const [anioMax, setAnioMax] = useState(valoresIniciales?.max || 2026);
 
   const MIN_YEAR = 1950;
-  const MAX_YEAR = 2025;
+  const MAX_YEAR = 2026;
 
   // Actualizar estado cuando cambien los valores iniciales
   useEffect(() => {

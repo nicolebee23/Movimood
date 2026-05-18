@@ -1,0 +1,22 @@
+open ftp.plandecine.com
+u538166067
+Nic20bee@
+put build/index.html index.html
+put build/manifest.json manifest.json
+put build/robots.txt robots.txt
+put build/favicon.ico favicon.ico
+put build/logo192.png logo192.png
+put build/logo512.png logo512.png
+put build/asset-manifest.json asset-manifest.json
+mkdir static
+cd static
+mkdir js
+cd js
+put build/static/js/main.40221204.js main.40221204.js
+put build/static/js/main.40221204.js.map main.40221204.js.map
+cd ..
+mkdir css
+cd css
+put build/static/css/main.273ded5e.css main.273ded5e.css
+put build/static/css/main.273ded5e.css.map main.273ded5e.css.map
+bye

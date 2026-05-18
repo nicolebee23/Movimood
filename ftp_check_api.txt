@@ -1,0 +1,6 @@
+open ftp.plandecine.com
+u538166067
+Nic20bee@
+cd api
+ls
+bye

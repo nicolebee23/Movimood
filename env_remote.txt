@@ -1,0 +1,10 @@
+TMDB_API_KEY=b8d691fee87d8eca69d2c5ff309af037
+REACT_APP_API_BASE_URL=https://movimood.plandecine.com/api
+DB_HOST=mysql.hostinger.com
+DB_PORT=3306
+DB_NAME=u538166067_movimood
+DB_USER=u538166067
+DB_PASS=Nic20bee@
+DB_CHARSET=utf8mb4
+RESEND_API_KEY=re_TKz6bX23_J4Jv759fVqfdQk9JdUXGhFN6
+MAIL_FROM=MoviMood <no-reply@plandecine.com>
