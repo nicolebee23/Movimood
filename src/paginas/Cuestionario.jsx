@@ -1,6 +1,22 @@
 import '../App.css';
 import BotonMood from '../componentes/BotonMood';
 import SliderAnios from '../componentes/SliderAnios';
+// Imágenes de géneros
+import genAccion from '../assets/genero-accion.png';
+import genComedia from '../assets/genero-comedia.png';
+import genDrama from '../assets/genero-drama.png';
+import genTerror from '../assets/genero-terror.png';
+import genRomance from '../assets/genero-romance.png';
+import genFantasia from '../assets/genero-fantasia.png';
+// Imágenes de mood locales
+import moodAnsioso from '../assets/mood-ansioso-thriller.png';
+import moodEmocionado from '../assets/mood-emocionado-aventura.png';
+import moodEnfadado from '../assets/mood-enfadado-furia.png';
+import moodFeliz from '../assets/mood-feliz-musica.png';
+import moodMotivado from '../assets/mood-motivado-impulso.png';
+import moodNostalgico from '../assets/mood-nostalgico-noir.png';
+import moodRelajado from '../assets/mood-relajado-atardecer.png';
+import moodTriste from '../assets/mood-triste-joker.png';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -97,14 +113,14 @@ function Cuestionario() {
 
   // Datos de cada pregunta
   const listaMoods = [
-    { iconName: 'triste', texto: 'Triste', backgroundImage: MOOD_CARD_BACKGROUNDS.triste },
-    { iconName: 'nostalgico', texto: 'Nostálgico', backgroundImage: MOOD_CARD_BACKGROUNDS.nostalgico },
-    { iconName: 'relajado', texto: 'Relajado', backgroundImage: MOOD_CARD_BACKGROUNDS.relajado },
-    { iconName: 'ansioso', texto: 'Ansioso', backgroundImage: MOOD_CARD_BACKGROUNDS.ansioso },
-    { iconName: 'feliz', texto: 'Feliz', backgroundImage: MOOD_CARD_BACKGROUNDS.feliz },
-    { iconName: 'motivado', texto: 'Motivado', backgroundImage: MOOD_CARD_BACKGROUNDS.motivado },
-    { iconName: 'enojado', texto: 'Enojado', backgroundImage: MOOD_CARD_BACKGROUNDS.enojado },
-    { iconName: 'emocionado', texto: 'Emocionado', backgroundImage: MOOD_CARD_BACKGROUNDS.emocionado }
+    { iconName: 'triste', texto: 'Triste', backgroundImage: moodTriste },
+    { iconName: 'nostalgico', texto: 'Nostálgico', backgroundImage: moodNostalgico },
+    { iconName: 'relajado', texto: 'Relajado', backgroundImage: moodRelajado },
+    { iconName: 'ansioso', texto: 'Ansioso', backgroundImage: moodAnsioso },
+    { iconName: 'feliz', texto: 'Feliz', backgroundImage: moodFeliz },
+    { iconName: 'motivado', texto: 'Motivado', backgroundImage: moodMotivado },
+    { iconName: 'enojado', texto: 'Enojado', backgroundImage: moodEnfadado },
+    { iconName: 'emocionado', texto: 'Emocionado', backgroundImage: moodEmocionado }
   ];
 
   const listaDuraciones = [
@@ -121,22 +137,12 @@ function Cuestionario() {
   ];
 
   const listaGeneros = [
-    { iconName: 'accion', texto: 'Acción' },
-    { iconName: 'aventura', texto: 'Aventura' },
-    { iconName: 'animacion', texto: 'Animación' },
-    { iconName: 'comedia', texto: 'Comedia' },
-    { iconName: 'crimen', texto: 'Crimen' },
-    { iconName: 'drama', texto: 'Drama' },
-    { iconName: 'familia', texto: 'Familia' },
-    { iconName: 'fantasia', texto: 'Fantasía' },
-    { iconName: 'terror', texto: 'Terror' },
-    { iconName: 'musical', texto: 'Musical' },
-    { iconName: 'misterio', texto: 'Misterio' },
-    { iconName: 'romance', texto: 'Romance' },
-    { iconName: 'ciencia-ficcion', texto: 'Ciencia Ficción' },
-    { iconName: 'thriller', texto: 'Thriller' },
-    { iconName: 'belica', texto: 'Bélica' },
-    { iconName: 'western', texto: 'Western' }
+    { backgroundImage: genAccion, texto: 'Acción' },
+    { backgroundImage: genComedia, texto: 'Comedia' },
+    { backgroundImage: genDrama, texto: 'Drama' },
+    { backgroundImage: genTerror, texto: 'Terror' },
+    { backgroundImage: genRomance, texto: 'Romance' },
+    { backgroundImage: genFantasia, texto: 'Fantasía' }
   ];
 
   // Función para seleccionar/deseleccionar géneros (toggle)
@@ -400,14 +406,14 @@ function Cuestionario() {
 
             <div className="contenedor-botones generos-grid">
               {listaGeneros.map((genero) => (
-                <BotonMood 
-                  key={genero.texto}
-                  iconName={genero.iconName}
+                  <BotonMood 
+                    key={genero.texto}
+                    backgroundImage={genero.backgroundImage}
                   texto={genero.texto}
                   onClick={() => toggleGenero(genero.texto)}
                   seleccionado={generosSeleccionados.includes(genero.texto)}
-                />
-              ))}
+                  />
+                ))}
             </div>
 
             {/* Sugerencia */}

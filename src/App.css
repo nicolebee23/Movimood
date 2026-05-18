@@ -487,21 +487,23 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   justify-content: center;
-  gap: 10px;
-  width: min(960px, 100%);
-  margin: 4px auto 8px;
+  gap: 12px;
+  /* slightly narrower container to center cards like the target design */
+  width: min(860px, 100%);
+  margin: 8px auto 12px;
 }
 
 .moods-strip .boton-mood {
   min-width: 0;
   width: 100%;
-  height: 182px;
+  /* reduce height for a more compact card layout */
+  height: 168px;
   padding: 0;
-  border-radius: 16px;
+  border-radius: 18px;
   border: 1px solid rgba(133, 190, 255, 0.12);
   background: #08111c;
   color: #ffffff;
-  box-shadow: 0 16px 30px rgba(1, 6, 16, 0.35);
+  box-shadow: 0 14px 28px rgba(1, 6, 16, 0.32);
   display: flex;
   flex-direction: column-reverse;
   justify-content: flex-start;
@@ -569,9 +571,10 @@
   z-index: 1;
   width: 100%;
   margin-top: auto;
-  padding: 40px 14px 14px;
+  /* tightened padding so the label sits a bit higher and cards look like the target */
+  padding: 36px 12px 12px;
   font-size: 15px;
-  line-height: 1.15;
+  line-height: 1.12;
   font-weight: 700;
   letter-spacing: 0;
   white-space: normal;

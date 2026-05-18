@@ -20,6 +20,23 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
+# 2.5) Patch build/index.html to add cache-busting querystring to main JS/CSS
+$indexPath = Join-Path $PWD 'build\index.html'
+if (Test-Path $indexPath) {
+    try {
+        $ver = Get-Date -Format 'yyyyMMddHHmmss'
+        $raw = Get-Content -Path $indexPath -Raw
+        $raw = [regex]::Replace($raw, '(/static/js/main\.[a-z0-9]+\.js)(?!\?v=)', '$1?v=' + $ver, 'IgnoreCase')
+        $raw = [regex]::Replace($raw, '(/static/css/main\.[a-z0-9]+\.css)(?!\?v=)', '$1?v=' + $ver, 'IgnoreCase')
+        Set-Content -Path $indexPath -Value $raw -Encoding UTF8
+        Write-Output "Patched build/index.html with cache-bust ?v=$ver"
+    } catch {
+        Write-Warning "Failed to patch build/index.html: $_"
+    }
+} else {
+    Write-Output "No build/index.html to patch"
+}
+
 # 3) Load FTP_PASS from tmp_deploy_api_update.ps1 if not set
 $passFile = Join-Path $PWD 'tmp_deploy_api_update.ps1'
 if (-not $env:FTP_PASS -and (Test-Path $passFile)) {
