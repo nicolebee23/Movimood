@@ -2,7 +2,7 @@
   "name": "movimood",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://movimood.plandecine.com",
+  "homepage": "/",
   "engines": {
     "node": ">=20 <21"
   },

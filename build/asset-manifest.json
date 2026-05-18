@@ -1,14 +1,24 @@
 {
   "files": {
-    "main.css": "/static/css/main.e71879f9.css",
-    "main.js": "/static/js/main.3550e568.js",
+    "main.css": "/static/css/main.1704fa42.css",
+    "main.js": "/static/js/main.1cfe4bb4.js",
+    "static/media/genero-familia.png": "/static/media/genero-familia.19628b96d1c5f1490824.png",
+    "static/media/genero-animacion.png": "/static/media/genero-animacion.f139a3838371a0e01ec8.png",
     "static/media/genero-romance.png": "/static/media/genero-romance.5a99f63b7bcaeee2e161.png",
+    "static/media/genero-western.png": "/static/media/genero-western.0d8b44ce1d758f185a5a.png",
+    "static/media/genero-ciencia-ficcion.png": "/static/media/genero-ciencia-ficcion.b8953a883d897c3d15ba.png",
+    "static/media/genero-aventura.png": "/static/media/genero-aventura.3ca4c33956af6d993b6e.png",
+    "static/media/genero-musical.png": "/static/media/genero-musical.05da4dddaebe1e22a32e.png",
+    "static/media/genero-belica.png": "/static/media/genero-belica.23145020c8881f10e273.png",
     "static/media/genero-fantasia.png": "/static/media/genero-fantasia.ae04ece50246a5d2623a.png",
     "static/media/genero-accion.png": "/static/media/genero-accion.22d575f56fa66757e442.png",
     "static/media/mockup-second-box-portrait-blue.png": "/static/media/mockup-second-box-portrait-blue.fbb7e60e727a6ccd4d03.png",
+    "static/media/genero-crimen.png": "/static/media/genero-crimen.58e2e0f54d92e443b655.png",
     "static/media/mockup-third-box-hero-portrait.png": "/static/media/mockup-third-box-hero-portrait.1a39d2637793154c648e.png",
+    "static/media/genero-misterio.png": "/static/media/genero-misterio.f054a36a352e6ce7097f.png",
     "static/media/mockup-first-box-aurora.png": "/static/media/mockup-first-box-aurora.f8682cc12bd622be5fcc.png",
     "static/media/mockup-second-box-ember.png": "/static/media/mockup-second-box-ember.c207bcd05ec05724764c.png",
+    "static/media/genero-thriller.png": "/static/media/genero-thriller.8bf23e7da2eecca30616.png",
     "static/media/mockup-fourth-box-portrait-green.png": "/static/media/mockup-fourth-box-portrait-green.24427ed690df843f3ae2.png",
     "static/media/genero-terror.png": "/static/media/genero-terror.0f66cc68c87d58af9c45.png",
     "static/media/genero-drama.png": "/static/media/genero-drama.5f71b1dd953881caac1c.png",
@@ -29,11 +39,11 @@
     "static/media/mood-triste-joker.png": "/static/media/mood-triste-joker.7ee899bb64dc2cd0961f.png",
     "static/media/hero-bg.png": "/static/media/hero-bg.f29405316749ec0b5dd9.png",
     "index.html": "/index.html",
-    "main.e71879f9.css.map": "/static/css/main.e71879f9.css.map",
-    "main.3550e568.js.map": "/static/js/main.3550e568.js.map"
+    "main.1704fa42.css.map": "/static/css/main.1704fa42.css.map",
+    "main.1cfe4bb4.js.map": "/static/js/main.1cfe4bb4.js.map"
   },
   "entrypoints": [
-    "static/css/main.e71879f9.css",
-    "static/js/main.3550e568.js"
+    "static/css/main.1704fa42.css",
+    "static/js/main.1cfe4bb4.js"
   ]
 }

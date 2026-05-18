@@ -8,6 +8,16 @@ import genDrama from '../assets/genero-drama.png';
 import genTerror from '../assets/genero-terror.png';
 import genRomance from '../assets/genero-romance.png';
 import genFantasia from '../assets/genero-fantasia.png';
+import genAnimacion from '../assets/genero-animacion.png';
+import genAventura from '../assets/genero-aventura.png';
+import genBelica from '../assets/genero-belica.png';
+import genCienciaFiccion from '../assets/genero-ciencia-ficcion.png';
+import genCrimen from '../assets/genero-crimen.png';
+import genFamilia from '../assets/genero-familia.png';
+import genMisterio from '../assets/genero-misterio.png';
+import genMusical from '../assets/genero-musical.png';
+import genThriller from '../assets/genero-thriller.png';
+import genWestern from '../assets/genero-western.png';
 // Imágenes de mood locales
 import moodAnsioso from '../assets/mood-ansioso-thriller.png';
 import moodEmocionado from '../assets/mood-emocionado-aventura.png';
@@ -142,7 +152,17 @@ function Cuestionario() {
     { backgroundImage: genDrama, texto: 'Drama' },
     { backgroundImage: genTerror, texto: 'Terror' },
     { backgroundImage: genRomance, texto: 'Romance' },
-    { backgroundImage: genFantasia, texto: 'Fantasía' }
+    { backgroundImage: genFantasia, texto: 'Fantasía' },
+    { backgroundImage: genAnimacion, texto: 'Animación' },
+    { backgroundImage: genAventura, texto: 'Aventura' },
+    { backgroundImage: genBelica, texto: 'Bélica' },
+    { backgroundImage: genCienciaFiccion, texto: 'Ciencia Ficción' },
+    { backgroundImage: genCrimen, texto: 'Crimen' },
+    { backgroundImage: genFamilia, texto: 'Familia' },
+    { backgroundImage: genMisterio, texto: 'Misterio' },
+    { backgroundImage: genMusical, texto: 'Musical' },
+    { backgroundImage: genThriller, texto: 'Thriller' },
+    { backgroundImage: genWestern, texto: 'Western' }
   ];
 
   // Función para seleccionar/deseleccionar géneros (toggle)
@@ -334,7 +354,7 @@ function Cuestionario() {
         {/* PASO 2: AÑOS */}
         {pasoActual === 2 && (
           <div className="wizard-paso">
-            <h2>¿Qué epoca te apetece hoy?</h2>
+            <h2>¿Qué <span className="wizard-title-accent">época</span> te apetece hoy?</h2>
             <p className="wizard-subtitulo">Puedes mover el rango o usar un preset rapido</p>
 
             <div className="anios-presets" role="group" aria-label="Presets de años">
@@ -367,7 +387,7 @@ function Cuestionario() {
           <div className="wizard-paso">
             <h2>¿Cuánto quieres que dure la película?</h2>
             <p className="wizard-subtitulo">Elige la duracion que te apetece ver hoy</p>
-            <div className="contenedor-botones" role="group" aria-label="Opciones de duración">
+            <div className="contenedor-botones duracion-botones" role="group" aria-label="Opciones de duración">
               {listaDuraciones.map((duracion) => (
                 <BotonMood 
                   key={duracion.texto}

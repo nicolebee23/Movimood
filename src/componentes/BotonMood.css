@@ -116,3 +116,51 @@
 .boton-mood.seleccionado .detalle-mood {
   opacity: 1;
 }
+
+/* Paso 3: botones de duración con fondo transparente */
+.duracion-botones .boton-mood {
+  width: 100%;
+  min-width: auto;
+  max-width: none;
+  min-height: 250px;
+  padding: 40px 34px;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #f6fbff;
+  box-shadow: 0 26px 65px rgba(0, 0, 0, 0.22);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+}
+
+.duracion-botones .boton-mood:hover {
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 28px 72px rgba(0, 0, 0, 0.28);
+  transform: translateY(-4px);
+}
+
+.duracion-botones .boton-mood .emoji-mood {
+  font-size: 52px;
+  margin-bottom: 14px;
+}
+
+.duracion-botones .boton-mood .texto-mood {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.08;
+}
+
+.duracion-botones .boton-mood .detalle-mood {
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 6px;
+}
+
+.duracion-botones .boton-mood.seleccionado {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(88, 200, 255, 0.65);
+  box-shadow: 0 0 0 2px rgba(88, 200, 255, 0.2), 0 24px 60px rgba(0, 0, 0, 0.28);
+}
