@@ -383,42 +383,42 @@
 }
 
 .progreso-barra {
-  width: 65%; /* barra más corta */
-  height: 10px;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 12px;
+  width: 80%; /* barra más visible */
+  height: 14px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
   overflow: hidden;
-  margin-bottom: 4px;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+  margin-bottom: 8px;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.4);
 }
 
 .progreso-relleno {
   height: 100%;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  transition: width 0.4s ease, background 0.3s ease;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  transition: width 0.4s ease, background 0.25s ease;
+  border-radius: 14px;
+  box-shadow: 0 0 20px rgba(102, 126, 234, 0.8), inset 0 1px 2px rgba(255,255,255,0.3);
 }
 
 /* Colores diferentes por paso — siguiendo la paleta de diseño */
 .wizard-progreso.paso-1 .progreso-relleno {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+  box-shadow: 0 0 24px rgba(118, 75, 162, 0.9), 0 0 12px rgba(102, 126, 234, 0.6), inset 0 1px 2px rgba(255,255,255,0.3);
 }
 
 .wizard-progreso.paso-2 .progreso-relleno {
-  background: linear-gradient(135deg, #5a9ff5 0%, #3b82f6 100%);
-  box-shadow: 0 4px 12px rgba(58, 130, 246, 0.5);
+  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 50%, #3b82f6 100%);
+  box-shadow: 0 0 24px rgba(37, 99, 235, 0.9), 0 0 12px rgba(59, 130, 246, 0.6), inset 0 1px 2px rgba(255,255,255,0.3);
 }
 
 .wizard-progreso.paso-3 .progreso-relleno {
-  background: linear-gradient(135deg, #06b6d4 0%, #14b8a6 100%);
-  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.5);
+  background: linear-gradient(90deg, #06b6d4 0%, #0891b2 50%, #06b6d4 100%);
+  box-shadow: 0 0 24px rgba(8, 145, 178, 0.9), 0 0 12px rgba(6, 182, 212, 0.6), inset 0 1px 2px rgba(255,255,255,0.3);
 }
 
 .wizard-progreso.paso-4 .progreso-relleno {
-  background: linear-gradient(135deg, #06b6d4 0%, #14b8a6 100%);
-  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.5);
+  background: linear-gradient(90deg, #06b6d4 0%, #0891b2 50%, #06b6d4 100%);
+  box-shadow: 0 0 24px rgba(8, 145, 178, 0.9), 0 0 12px rgba(6, 182, 212, 0.6), inset 0 1px 2px rgba(255,255,255,0.3);
 }
 
 .progreso-texto {
