@@ -16,7 +16,7 @@
 }
 
 /* Remove wizard progress purple line on Resultados page */
-.cuestionario-page .wizard-progreso .progreso-relleno {
+.resultados-page .wizard-progreso .progreso-relleno {
   background: transparent !important;
 }
 
