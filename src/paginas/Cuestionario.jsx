@@ -406,7 +406,6 @@ function Cuestionario() {
         {pasoActual === 4 && (
           <div className="wizard-paso">
             <h2>¿Qué géneros te apetecen?</h2>
-            <p className="wizard-subtitulo">Elige los generos que te apetecen hoy</p>
             
             {/* Contador y botón deseleccionar */}
             <div className="generos-info">

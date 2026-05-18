@@ -472,14 +472,15 @@
   width: min(1280px, 96vw);
   border: 0;
   background: transparent;
-  padding: 4px 18px 16px;
+  /* reducir espacio superior para acercar contenido */
+  padding: 0 18px 12px;
   box-shadow: none;
   animation: fadeInSlide 0.4s ease-out;
 }
 
 .wizard-step-chip-wrap {
   text-align: center;
-  margin-bottom: 4px;
+  margin-bottom: 0px;
 }
 
 .wizard-step-chip {
@@ -512,7 +513,8 @@
   justify-content: center;
   align-items: center;
   text-align: center;
-  gap: 8px;
+  gap: 6px;
+  padding-top: 6px;
 }
 
 .moods-strip {
