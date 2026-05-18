@@ -927,23 +927,38 @@
   background-position: center;
 }
 
-/* usar la variable --boton-mood-bg para las cards tipo póster */
-.generos-grid .boton-mood--card {
-  background-image: var(--boton-mood-bg);
-}
-
-/* Capa desenfocada (fondo) — por defecto oculta, se activa al seleccionar */
-.generos-grid .boton-mood::after {
-  /* neutralizar pseudo-capa anterior — usamos otro enfoque */
-  display: none;
-}
-
-/* Efecto alternativo: cuando haya una selección, desenfocar y atenuar las no seleccionadas
-   y resaltar la seleccionada con escala, brillo ligero y un anillo sutil. */
+/* usar la variable --boton-mood-bg para las cards tipo póster pero renderizarla
+   en ::before para poder ajustar filtros sin afectar al texto */
 .generos-grid { --gen-filter-duration: 220ms; }
 .generos-grid .boton-mood {
   transition: box-shadow var(--gen-filter-duration) ease, opacity var(--gen-filter-duration) ease, border-color var(--gen-filter-duration) ease;
   will-change: box-shadow, opacity, border-color;
+}
+
+.generos-grid .boton-mood--card {
+  background-image: none; /* la imagen se muestra en ::before */
+}
+
+/* layer: imagen de fondo */
+.generos-grid .boton-mood--card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: var(--boton-mood-bg);
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+  transition: filter 220ms ease, transform 220ms ease, opacity 220ms ease;
+}
+
+/* layer: degradado oscuro para legibilidad del texto */
+.generos-grid .boton-mood--card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.45) 60%, rgba(0,0,0,0.6) 100%);
+  z-index: 1;
+  pointer-events: none;
 }
 
 /* Restaurar comportamiento: no desenfocar o cambiar layout de no seleccionadas */
@@ -962,18 +977,25 @@
 }
 
 /* overlay turquesa encima de la imagen pero debajo del texto */
+.generos-grid .boton-mood.seleccionado > .turq-overlay { }
 .generos-grid .boton-mood.seleccionado::after {
   content: '';
   position: absolute;
   inset: 0;
   background: rgba(47, 230, 216, 0.22); /* turquesa semitransparente */
   pointer-events: none;
-  z-index: 1;
+  z-index: 2;
   mix-blend-mode: overlay;
 }
 
+/* hacer la capa de imagen subyacente más nítida / viva sin afectar al texto */
+.generos-grid .boton-mood.seleccionado::before {
+  filter: contrast(1.08) saturate(1.12) brightness(1.04);
+  transform: scale(1.02);
+}
+
 /* Asegurar que el texto esté por encima del overlay */
-.generos-grid .texto-mood { z-index: 4; position: relative; }
+.generos-grid .texto-mood { z-index: 3; position: relative; }
 
 .generos-grid .boton-mood:hover {
   transform: translateY(-2px);
