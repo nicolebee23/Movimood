@@ -383,18 +383,36 @@
 }
 
 .progreso-barra {
-  width: 100%;
+  width: 65%; /* barra más corta */
   height: 8px;
   background: rgba(255, 255, 255, 0.2);
   border-radius: 10px;
   overflow: hidden;
+  margin-bottom: 4px;
 }
 
 .progreso-relleno {
   height: 100%;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  transition: width 0.4s ease;
+  transition: width 0.4s ease, background 0.3s ease;
   border-radius: 10px;
+}
+
+/* Colores diferentes por paso */
+.wizard-progreso.paso-1 .progreso-relleno {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8787 100%); /* rojo */
+}
+
+.wizard-progreso.paso-2 .progreso-relleno {
+  background: linear-gradient(135deg, #ffa502 0%, #ffb347 100%); /* naranja */
+}
+
+.wizard-progreso.paso-3 .progreso-relleno {
+  background: linear-gradient(135deg, #ffd700 0%, #ffeb3b 100%); /* amarillo */
+}
+
+.wizard-progreso.paso-4 .progreso-relleno {
+  background: linear-gradient(135deg, #2fff00 0%, #66ff00 100%); /* verde */
 }
 
 .progreso-texto {

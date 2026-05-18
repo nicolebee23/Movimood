@@ -294,7 +294,7 @@ function Cuestionario() {
 
       <main className="cuestionario-main">
         {/* Barra de progreso */}
-        <div className="wizard-progreso">
+        <div className={`wizard-progreso paso-${pasoActual}`}>
           <div className="progreso-barra">
             <div 
               className="progreso-relleno" 
