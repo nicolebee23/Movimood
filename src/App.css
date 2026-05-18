@@ -934,33 +934,34 @@
 
 /* Capa desenfocada (fondo) — por defecto oculta, se activa al seleccionar */
 .generos-grid .boton-mood::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: var(--boton-mood-bg);
-  background-size: cover;
-  background-position: center;
-  filter: blur(0px) brightness(1);
-  opacity: 0;
-  transform: scale(1);
-  transition: filter 260ms ease, opacity 260ms ease, transform 260ms ease;
-  z-index: 0;
-  pointer-events: none;
+  /* neutralizar pseudo-capa anterior — usamos otro enfoque */
+  display: none;
 }
 
-/* asegurar que el overlay oscuro quede encima del fondo desenfocado */
-.generos-grid .boton-mood::before {
-  z-index: 1;
+/* Efecto alternativo: cuando haya una selección, desenfocar y atenuar las no seleccionadas
+   y resaltar la seleccionada con escala, brillo ligero y un anillo sutil. */
+.generos-grid { --gen-filter-duration: 260ms; }
+.generos-grid .boton-mood {
+  transition: transform var(--gen-filter-duration) ease, box-shadow var(--gen-filter-duration) ease, filter var(--gen-filter-duration) ease, opacity var(--gen-filter-duration) ease;
+  will-change: transform, filter, opacity;
 }
 
-.generos-grid .boton-mood.seleccionado::after {
-  opacity: 1;
-  filter: blur(6px) brightness(0.64) saturate(0.9);
-  transform: scale(1.04);
+/* cuando hay al menos una selección, atenuar/borrosas las no seleccionadas */
+.generos-grid.has-selection .boton-mood:not(.seleccionado) {
+  filter: blur(4px) grayscale(30%) brightness(0.6);
+  transform: scale(0.985);
+  opacity: 0.92;
+  box-shadow: none;
 }
 
-/* texto por encima del desenfoque */
-.generos-grid .texto-mood { z-index: 2; }
+.generos-grid .boton-mood.seleccionado {
+  transform: translateY(-6px) scale(1.04);
+  box-shadow: 0 24px 48px rgba(6,18,45,0.45), 0 0 0 4px rgba(102,126,234,0.06);
+  border: 1px solid rgba(102,126,234,0.14);
+  z-index: 3;
+}
+
+.generos-grid .texto-mood { z-index: 4; }
 
 .generos-grid .boton-mood:hover {
   transform: translateY(-2px);

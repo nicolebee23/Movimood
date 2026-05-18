@@ -423,7 +423,7 @@ function Cuestionario() {
               )}
             </div>
 
-            <div className="contenedor-botones generos-grid">
+            <div className={`contenedor-botones generos-grid ${generosSeleccionados.length > 0 ? 'has-selection' : ''}`}>
               {listaGeneros.map((genero) => (
                   <BotonMood 
                     key={genero.texto}
