@@ -469,7 +469,7 @@
 
 /* Contenedor del wizard */
 .wizard-contenedor {
-  width: min(900px, 92vw);
+  width: min(1280px, 96vw);
   border: 0;
   background: transparent;
   padding: 4px 18px 16px;
@@ -898,9 +898,11 @@
 
 .generos-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
-  width: min(1100px, 100%);
+  /* 4 columnas con mínimo ancho para tarjetas más alargadas */
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
+  gap: 20px;
+  width: 100%;
+  max-width: 1280px;
   margin: 0 auto 18px;
 }
 
@@ -917,7 +919,8 @@
   text-align: center;
   transform: none;
   overflow: hidden;
-  height: 120px;
+  /* Más estrechas verticalmente */
+  height: 96px;
   background-size: cover;
   background-position: center;
 }
@@ -1195,7 +1198,7 @@
 
 .cuestionario-page .wizard-progreso,
 .cuestionario-page .wizard-contenedor {
-  width: min(900px, 92vw);
+  width: min(1280px, 96vw);
   border: 0;
   background: transparent;
   padding: 4px 18px 22px;
