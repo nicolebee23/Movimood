@@ -398,21 +398,21 @@
   border-radius: 10px;
 }
 
-/* Colores diferentes por paso */
+/* Colores diferentes por paso — siguiendo la paleta de diseño */
 .wizard-progreso.paso-1 .progreso-relleno {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ff8787 100%); /* rojo */
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* púrpura */
 }
 
 .wizard-progreso.paso-2 .progreso-relleno {
-  background: linear-gradient(135deg, #ffa502 0%, #ffb347 100%); /* naranja */
+  background: linear-gradient(135deg, #73b6ff 0%, #5a9ff5 100%); /* azul */
 }
 
 .wizard-progreso.paso-3 .progreso-relleno {
-  background: linear-gradient(135deg, #ffd700 0%, #ffeb3b 100%); /* amarillo */
+  background: linear-gradient(135deg, #2fe6d8 0%, #7df0ce 100%); /* turquesa/menta */
 }
 
 .wizard-progreso.paso-4 .progreso-relleno {
-  background: linear-gradient(135deg, #2fff00 0%, #66ff00 100%); /* verde */
+  background: linear-gradient(135deg, #2fe6d8 0%, #7df0ce 100%); /* turquesa/menta (mismo que paso 3) */
 }
 
 .progreso-texto {
