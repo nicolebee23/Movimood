@@ -384,35 +384,41 @@
 
 .progreso-barra {
   width: 65%; /* barra más corta */
-  height: 8px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
   overflow: hidden;
   margin-bottom: 4px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .progreso-relleno {
   height: 100%;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   transition: width 0.4s ease, background 0.3s ease;
-  border-radius: 10px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 /* Colores diferentes por paso — siguiendo la paleta de diseño */
 .wizard-progreso.paso-1 .progreso-relleno {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* púrpura */
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
 }
 
 .wizard-progreso.paso-2 .progreso-relleno {
-  background: linear-gradient(135deg, #73b6ff 0%, #5a9ff5 100%); /* azul */
+  background: linear-gradient(135deg, #5a9ff5 0%, #3b82f6 100%);
+  box-shadow: 0 4px 12px rgba(58, 130, 246, 0.5);
 }
 
 .wizard-progreso.paso-3 .progreso-relleno {
-  background: linear-gradient(135deg, #2fe6d8 0%, #7df0ce 100%); /* turquesa/menta */
+  background: linear-gradient(135deg, #06b6d4 0%, #14b8a6 100%);
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.5);
 }
 
 .wizard-progreso.paso-4 .progreso-relleno {
-  background: linear-gradient(135deg, #2fe6d8 0%, #7df0ce 100%); /* turquesa/menta (mismo que paso 3) */
+  background: linear-gradient(135deg, #06b6d4 0%, #14b8a6 100%);
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.5);
 }
 
 .progreso-texto {
