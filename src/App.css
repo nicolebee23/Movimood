@@ -1175,6 +1175,15 @@
   
   .boton-deseleccionar {
     width: 100%;
+
+  /* Remove selection ticks from cards (moods, generos, duracion) */
+  .moods-strip .boton-mood.seleccionado::after,
+  .generos-grid .boton-mood.seleccionado::after,
+  .duracion-card.seleccionada::after,
+  .duracion-card .seleccionada::after {
+    display: none !important;
+    content: none !important;
+  }
   }
 }
 
