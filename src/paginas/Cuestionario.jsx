@@ -295,31 +295,31 @@ function Cuestionario() {
       <main className="cuestionario-main">
         {/* Barra de progreso */}
         <div className={`wizard-progreso paso-${pasoActual}`}>
-          <div className="progreso-barra">
-            <div 
-              className="progreso-relleno" 
-              style={{ width: `${(pasoActual / 4) * 100}%` }}
-            ></div>
-          </div>
-          <div className="wizard-progreso-meta">
             <p className="progreso-texto">Paso {pasoActual} de 4</p>
-            {currentUser && (
-              <button
-                type="button"
-                className="wizard-user-chip"
-                onClick={() => navigate('/perfil')}
-                aria-label="Ir a mi perfil"
-              >
-                {currentUser.avatar ? (
-                  <img className="wizard-user-avatar" src={currentUser.avatar} alt={`Avatar de ${displayName}`} />
-                ) : (
-                  <span className="wizard-user-avatar wizard-user-avatar-fallback" aria-hidden="true">{avatarInitial}</span>
-                )}
-                <span className="wizard-user-name">{displayName}</span>
-                <span className="wizard-user-caret" aria-hidden="true">▾</span>
-              </button>
-            )}
-          </div>
+            <div className="progreso-barra">
+              <div 
+                className="progreso-relleno" 
+                style={{ width: `${(pasoActual / 4) * 100}%` }}
+              ></div>
+            </div>
+            <div className="wizard-progreso-meta">
+              {currentUser && (
+                <button
+                  type="button"
+                  className="wizard-user-chip"
+                  onClick={() => navigate('/perfil')}
+                  aria-label="Ir a mi perfil"
+                >
+                  {currentUser.avatar ? (
+                    <img className="wizard-user-avatar" src={currentUser.avatar} alt={`Avatar de ${displayName}`} />
+                  ) : (
+                    <span className="wizard-user-avatar wizard-user-avatar-fallback" aria-hidden="true">{avatarInitial}</span>
+                  )}
+                  <span className="wizard-user-name">{displayName}</span>
+                  <span className="wizard-user-caret" aria-hidden="true">▾</span>
+                </button>
+              )}
+            </div>
         </div>
 
         {/* Contenedor del paso actual con animación */}
