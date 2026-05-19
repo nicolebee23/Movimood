@@ -426,11 +426,11 @@
 }
 
 .progreso-texto {
-  /* ahora se posiciona sobre/izquierda de la barra */
+  /* colocado al lado izquierdo de la barra, centrado verticalmente */
   position: absolute;
-  top: -18px;
-  left: calc(50% - 30%); /* alinea con el inicio de la barra (barra width 60% -> 30% a cada lado) */
-  transform: translateX(-6px);
+  top: 50%;
+  left: calc(50% - 30% - 12px); /* punto a la izquierda del inicio de la barra */
+  transform: translate(-100%, -50%); /* desplaza el texto hacia la izquierda fuera del punto */
   text-align: left;
   color: white;
   font-size: 12px;
@@ -439,11 +439,14 @@
 }
 
 .wizard-progreso-meta {
+  /* posicionar el user-chip a la derecha de la barra */
+  position: absolute;
+  top: 50%;
+  left: calc(50% + 30% + 12px); /* justo a la derecha de la barra centrada */
+  transform: translateY(-50%);
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
-  margin-top: 8px;
 }
 
 .wizard-user-chip {
