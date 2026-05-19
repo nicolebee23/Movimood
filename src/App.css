@@ -383,6 +383,7 @@
   display: flex;
   flex-direction: column;
   align-items: center; /* centra la barra horizontalmente */
+  position: relative; /* para posicionar el texto de paso respecto a este contenedor */
 }
 
 .progreso-barra {
@@ -425,11 +426,16 @@
 }
 
 .progreso-texto {
-  text-align: right;
+  /* ahora se posiciona sobre/izquierda de la barra */
+  position: absolute;
+  top: -18px;
+  left: calc(50% - 30%); /* alinea con el inicio de la barra (barra width 60% -> 30% a cada lado) */
+  transform: translateX(-6px);
+  text-align: left;
   color: white;
-  margin-top: 8px;
   font-size: 12px;
   font-weight: 700;
+  background: transparent;
 }
 
 .wizard-progreso-meta {
