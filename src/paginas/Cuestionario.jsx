@@ -28,8 +28,9 @@ import moodNostalgico from '../assets/mood-nostalgico-noir.png';
 import moodRelajado from '../assets/mood-relajado-atardecer.png';
 import moodTriste from '../assets/mood-triste-joker.png';
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import UserMenu from '../componentes/UserMenu';
 
 const menuLinks = [
   { label: 'Inicio', to: '/', icon: '⌂' },
@@ -40,23 +41,13 @@ const menuLinks = [
   { label: 'Perfil', to: '/perfil', icon: '◯' },
 ];
 
-const MOOD_CARD_BACKGROUNDS = {
-  triste: 'https://images.unsplash.com/photo-1515693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80',
-  nostalgico: 'https://images.unsplash.com/photo-1482192596544-9eb780fc7f66?auto=format&fit=crop&w=1200&q=80',
-  relajado: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80',
-  ansioso: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80',
-  feliz: 'https://images.unsplash.com/photo-1518831955313-31d9f0ef8eb2?auto=format&fit=crop&w=1200&q=80',
-  motivado: 'https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?auto=format&fit=crop&w=1200&q=80',
-  enojado: 'https://images.unsplash.com/photo-1521119989659-a83eee488004?auto=format&fit=crop&w=1200&q=80',
-  emocionado: 'https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=1200&q=80'
-};
+// Removed unused MOOD_CARD_BACKGROUNDS constant (was causing lint warning)
 
 function Cuestionario() {
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
-  const displayName = (currentUser?.name || currentUser?.username || 'Perfil').split(' ')[0];
-  const avatarInitial = displayName.charAt(0).toUpperCase() || 'M';
+  const { currentUser, logout } = useAuth();
   const visibleMenuLinks = menuLinks.filter((link) => !['Mi lista', 'Mood', 'Perfil'].includes(link.label));
+  
   
   // Estado para controlar en qué paso estamos (1, 2, 3, 4)
   const [pasoActual, setPasoActual] = useState(1);
@@ -68,57 +59,16 @@ function Cuestionario() {
   const [duracionSeleccionada, setDuracionSeleccionada] = useState('');
   const [generosSeleccionados, setGenerosSeleccionados] = useState([]); // ← AHORA ES ARRAY
 
-  // Si no hay usuario autenticado, mostrar modal
+  // Si no hay usuario autenticado, redirigir al login (protección doble)
   if (!currentUser) {
-    return (
-      <div className="login-required-modal" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg, #050b14)' }}>
-        <div style={{ textAlign: 'center', color: '#f5f7fb', maxWidth: '400px', padding: '40px 20px' }}>
-          <h1 style={{ fontSize: '1.8rem', marginBottom: '16px' }}>Inicia sesión para continuar</h1>
-          <p style={{ color: 'rgba(202, 219, 232, 0.7)', fontSize: '1rem', lineHeight: '1.5', marginBottom: '28px' }}>
-            Para acceder al cuestionario de mood y obtener recomendaciones personalizadas, necesitas iniciar sesión.
-          </p>
-          <button
-            onClick={() => navigate('/login', { state: { from: '/cuestionario' } })}
-            style={{
-              background: 'linear-gradient(135deg, #34d7dc 0%, #1abcc7 100%)',
-              color: '#04141a',
-              border: 'none',
-              padding: '13px 28px',
-              borderRadius: '999px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              fontSize: '1rem',
-              marginRight: '12px'
-            }}
-          >
-            Iniciar sesión
-          </button>
-          <button
-            onClick={() => navigate('/')}
-            style={{
-              background: 'rgba(9, 16, 25, 0.5)',
-              color: '#f3f7fb',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
-              padding: '13px 28px',
-              borderRadius: '999px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              fontSize: '1rem',
-              backdropFilter: 'blur(8px)'
-            }}
-          >
-            Volver al inicio
-          </button>
-        </div>
-      </div>
-    );
+    return <Navigate to="/login" replace state={{ from: '/cuestionario' }} />;
   }
 
   const titulosPaso = {
     1: 'Mood',
-    2: 'Epoca',
-    3: 'Duracion',
-    4: 'Generos'
+    2: 'Época',
+    3: 'Duración',
+    4: 'Géneros'
   };
 
   // Datos de cada pregunta
@@ -140,10 +90,10 @@ function Cuestionario() {
   ];
 
   const presetsAnios = [
-    { label: 'Ultimos 5 años', min: 2020, max: 2025 },
+    { label: 'Últimos 5 años', min: 2020, max: 2025 },
     { label: '90s', min: 1990, max: 1999 },
     { label: '2000-2010', min: 2000, max: 2010 },
-    { label: 'Clasicos', min: 1950, max: 1985 }
+    { label: 'Clásicos', min: 1950, max: 1985 }
   ];
 
   const listaGeneros = [
@@ -212,7 +162,7 @@ function Cuestionario() {
       setMoodsSeleccionados([...moodsSeleccionados, mood]);
       setAvisoMood('');
     } else {
-      setAvisoMood('Puedes seleccionar como maximo 2 emociones.');
+      setAvisoMood('Puedes seleccionar como máximo 2 emociones.');
       return;
     }
   }
@@ -225,30 +175,30 @@ function Cuestionario() {
     const rango = aniosSeleccionados.max - aniosSeleccionados.min;
 
     if (rango <= 2) {
-      return `Rango muy especifico (${aniosSeleccionados.min}-${aniosSeleccionados.max}). Te mostraremos recomendaciones muy concretas.`;
+      return `Rango muy específico (${aniosSeleccionados.min}-${aniosSeleccionados.max}). Te mostraremos recomendaciones muy concretas.`;
     }
 
     if (rango <= 8) {
-      return `Rango definido (${aniosSeleccionados.min}-${aniosSeleccionados.max}). Buen equilibrio entre precision y variedad.`;
+      return `Rango definido (${aniosSeleccionados.min}-${aniosSeleccionados.max}). Buen equilibrio entre precisión y variedad.`;
     }
 
-    return `Te sugeriremos cine de ${aniosSeleccionados.min} a ${aniosSeleccionados.max} con una variedad amplia de titulos.`;
+    return `Te sugeriremos cine de ${aniosSeleccionados.min} a ${aniosSeleccionados.max} con una variedad amplia de títulos.`;
   }
 
   function getTextoGeneros() {
     if (generosSeleccionados.length === 0) {
-      return 'Elige al menos 1 genero para personalizar mejor tus recomendaciones.';
+      return 'Elige al menos 1 género para personalizar mejor tus recomendaciones.';
     }
 
     if (generosSeleccionados.length === 1) {
-      return 'Buen inicio. Si anades uno mas, afinaremos mejor el resultado.';
+      return 'Buen inicio. Si añades uno más, afinaremos mejor el resultado.';
     }
 
     if (generosSeleccionados.length <= 4) {
-      return 'Seleccion ideal: equilibrio perfecto entre precision y variedad.';
+      return 'Selección ideal: equilibrio perfecto entre precisión y variedad.';
     }
 
-    return 'Has elegido muchos generos. Priorizaremos los que mejor encajen con tu mood.';
+    return 'Has elegido muchos géneros. Priorizaremos los que mejor encajen con tu mood.';
   }
 
   // Verificar si puede avanzar (respuesta seleccionada)
@@ -304,20 +254,7 @@ function Cuestionario() {
             </div>
             <div className="wizard-progreso-meta">
               {currentUser && (
-                <button
-                  type="button"
-                  className="wizard-user-chip"
-                  onClick={() => navigate('/perfil')}
-                  aria-label="Ir a mi perfil"
-                >
-                  {currentUser.avatar ? (
-                    <img className="wizard-user-avatar" src={currentUser.avatar} alt={`Avatar de ${displayName}`} />
-                  ) : (
-                    <span className="wizard-user-avatar wizard-user-avatar-fallback" aria-hidden="true">{avatarInitial}</span>
-                  )}
-                  <span className="wizard-user-name">{displayName}</span>
-                  <span className="wizard-user-caret" aria-hidden="true">▾</span>
-                </button>
+                <UserMenu currentUser={currentUser} logout={logout} />
               )}
             </div>
         </div>
@@ -355,7 +292,7 @@ function Cuestionario() {
         {pasoActual === 2 && (
           <div className="wizard-paso">
             <h2>¿Qué <span className="wizard-title-accent">época</span> te apetece hoy?</h2>
-            <p className="wizard-subtitulo">Puedes mover el rango o usar un preset rapido</p>
+            <p className="wizard-subtitulo">Puedes mover el rango o usar un preset rápido</p>
 
             <div className="anios-presets" role="group" aria-label="Presets de años">
               {presetsAnios.map((preset) => {
@@ -386,7 +323,7 @@ function Cuestionario() {
         {pasoActual === 3 && (
           <div className="wizard-paso">
             <h2>¿Cuánto quieres que dure la película?</h2>
-            <p className="wizard-subtitulo">Elige la duracion que te apetece ver hoy</p>
+            <p className="wizard-subtitulo">Elige la duración que te apetece ver hoy</p>
             <div className="contenedor-botones duracion-botones" role="group" aria-label="Opciones de duración">
               {listaDuraciones.map((duracion) => (
                 <BotonMood 

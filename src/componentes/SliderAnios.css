@@ -23,19 +23,21 @@
 /* Contenedor de los sliders */
 .slider-contenedor {
   position: relative;
-  height: 50px;
+  height: 56px; /* mayor área táctil sin aumentar el pulgar visual */
   display: flex;
   align-items: center;
 }
 
-/* Track de fondo */
+/* Track de fondo (más delgado) */
 .slider-track {
   position: absolute;
   width: 100%;
-  height: 8px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
+  height: 6px; /* más fino */
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 6px;
   pointer-events: none;
+  top: 50%;
+  transform: translateY(-50%); /* centra verticalmente */
 }
 
 /* Rango seleccionado (barra morada) */
@@ -43,16 +45,17 @@
   position: absolute;
   height: 100%;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 10px;
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(118,75,162,0.06), inset 0 1px 0 rgba(255,255,255,0.06);
 }
 
 /* Sliders (input range) */
 .slider {
   position: absolute;
   width: 100%;
-  height: 8px;
+  height: 100%;
   background: transparent;
-  pointer-events: none;
+  pointer-events: none; /* permitimos interacción sólo en el thumb */
   -webkit-appearance: none;
   appearance: none;
 }
@@ -60,35 +63,50 @@
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 24px;
-  height: 24px;
+  width: 18px;   /* pulgar visual más pequeño */
+  height: 18px;
   border-radius: 50%;
-  background: white;
+  background: #ffffff;
   cursor: pointer;
-  pointer-events: all;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  border: 3px solid #667eea;
-  transition: transform 0.2s ease;
+  pointer-events: all; /* el thumb captura los eventos */
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.32);
+  border: 3px solid #2fe0d6; /* borde turquesa brillante */
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+  margin-top: 0; /* centrado gracias al track centrado */
 }
 
 .slider::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
+  transform: scale(1.14);
 }
 
 .slider::-moz-range-thumb {
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  background: white;
+  background: #ffffff;
   cursor: pointer;
   pointer-events: all;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  border: 3px solid #667eea;
-  transition: transform 0.2s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.32);
+  border: 3px solid #2fe0d6;
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
 }
 
 .slider::-moz-range-thumb:hover {
-  transform: scale(1.2);
+  transform: scale(1.14);
+}
+
+/* Focus visible: halo suave y accesible */
+.slider:focus-visible::-webkit-slider-thumb,
+.slider:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 8px rgba(47,224,214,0.12), 0 6px 18px rgba(0,0,0,0.28);
+}
+
+/* Respetar preferencia de movimiento reducido */
+@media (prefers-reduced-motion: reduce) {
+  .slider::-webkit-slider-thumb,
+  .slider::-moz-range-thumb {
+    transition: none;
+  }
 }
 
 /* Etiquetas de años (mín y máx) */

@@ -148,6 +148,13 @@
   margin-left: auto;
 }
 
+.navbar-user-menu {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
 .navbar-profile {
   position: relative;
   display: inline-flex;
@@ -1043,6 +1050,11 @@
     display: inline-flex;
   }
 
+  .navbar-user-menu {
+    order: 3;
+    margin-left: auto;
+  }
+
   .navbar-menu {
     position: absolute;
     top: calc(100% + 10px);
@@ -1195,6 +1207,11 @@
 
   .navbar-menu {
     order: 4;
+  }
+
+  .navbar-user-menu {
+    order: 3;
+    margin-left: auto;
   }
 
   .navbar-search-container {

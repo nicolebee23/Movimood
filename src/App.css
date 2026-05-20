@@ -99,8 +99,8 @@
   border: 1px solid rgba(197, 226, 255, 0.34);
   border-radius: 16px;
   background: linear-gradient(165deg, rgba(217, 236, 255, 0.2), rgba(195, 218, 255, 0.08));
-  min-height: 110px;
-  padding: 14px 12px;
+  min-height: 96px; /* reducido para parecer menos grande */
+  padding: 12px 10px;
   text-align: left;
   cursor: pointer;
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
@@ -272,10 +272,22 @@
   }
 
   .moods-strip .boton-mood {
-    min-width: 92px;
-    width: 92px;
-    height: 82px;
-  }
+  min-width: 0;
+  width: 100%;
+  height: 200px;
+  padding: 0;
+  border-radius: 18px;
+  border: 1px solid rgba(133, 190, 255, 0.12);
+  background: #08111c;
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(1, 6, 16, 0.32);
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-start;
+  align-items: stretch;
+  position: relative;
+  overflow: hidden;
+}
 
   .moods-strip .emoji-mood {
     font-size: 26px;
@@ -439,14 +451,13 @@
 }
 
 .wizard-progreso-meta {
-  /* posicionar el user-chip a la derecha de la barra */
-  position: absolute;
-  top: 50%;
-  left: calc(50% + 30% + 12px); /* justo a la derecha de la barra centrada */
-  transform: translateY(-50%);
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
+  margin-top: 8px;
+  position: relative;
+  z-index: 99999;
 }
 
 .wizard-user-chip {
@@ -501,6 +512,51 @@
 .wizard-user-caret {
   font-size: 0.8rem;
   color: rgba(231, 239, 251, 0.86);
+}
+
+/* Dropdown menu for user profile */
+.user-dropdown {  position: absolute;  top: calc(100% + 8px);  right: 0;  z-index: 99999;  min-width: 200px;  background: rgba(8, 15, 28, 0.98);  border: 1px solid rgba(255,255,255,0.12);  border-radius: 14px;  padding: 8px;  list-style: none;  margin: 0;  backdrop-filter: blur(12px);  box-shadow: 0 16px 40px rgba(0,0,0,0.7);}
+
+.user-dropdown-sep {
+  height: 1px;
+  margin: 8px 6px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+  border-radius: 2px;
+}
+
+.user-dropdown-item {
+  width: 100%;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  background: transparent;
+  color: #e6f6ff;
+  border: none;
+  text-align: left;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.user-dropdown-item:hover {
+  background: rgba(255,255,255,0.02);
+}
+
+.menu-icon {
+  width: 28px;
+  display: inline-grid;
+  place-items: center;
+  color: #cfefff;
+  font-size: 16px;
+}
+
+.user-dropdown-logout {
+  color: #ffb6b6;
+}
+
+.user-dropdown-logout .menu-icon {
+  color: #ff9b9b;
 }
 
 /* Contenedor del wizard */
@@ -565,13 +621,13 @@
 .moods-strip .boton-mood {
   min-width: 0;
   width: 100%;
-  height: 182px;
+  height: 200px;
   padding: 0;
-  border-radius: 16px;
+  border-radius: 18px;
   border: 1px solid rgba(133, 190, 255, 0.12);
   background: #08111c;
   color: #ffffff;
-  box-shadow: 0 16px 30px rgba(1, 6, 16, 0.35);
+  box-shadow: 0 14px 28px rgba(1, 6, 16, 0.32);
   display: flex;
   flex-direction: column-reverse;
   justify-content: flex-start;
@@ -589,22 +645,6 @@
   border-color: rgba(66, 245, 255, 0.95);
   box-shadow: 0 0 0 2px rgba(66, 245, 255, 0.38), 0 18px 34px rgba(1, 6, 16, 0.5);
   transform: translateY(-2px);
-}
-
-.moods-strip .boton-mood.seleccionado::after {
-  content: '✓';
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
-  background: rgba(16, 49, 80, 0.9);
-  color: #e9f7ff;
-  font-size: 12px;
-  font-weight: 700;
-  display: grid;
-  place-items: center;
 }
 
 .moods-strip .boton-mood--card {
@@ -639,9 +679,9 @@
   z-index: 1;
   width: 100%;
   margin-top: auto;
-  padding: 40px 14px 14px;
+  padding: 28px 12px 12px; /* menos padding superior para que el bloque ocupe menos */
   font-size: 15px;
-  line-height: 1.15;
+  line-height: 1.12;
   font-weight: 700;
   letter-spacing: 0;
   white-space: normal;
@@ -657,8 +697,8 @@
   height: 3px;
   margin: 8px auto 0;
   border-radius: 999px;
-  background: linear-gradient(90deg, rgba(66, 245, 255, 0.15), rgba(66, 245, 255, 1), rgba(66, 245, 255, 0.15));
-  box-shadow: 0 0 10px rgba(66, 245, 255, 0.45);
+  background: linear-gradient(90deg, rgba(66, 245, 255, 0.14), rgba(66, 245, 255, 1), rgba(66, 245, 255, 0.14));
+  box-shadow: 0 0 8px rgba(66, 245, 255, 0.36);
 }
 
 .moods-strip .boton-mood--card.seleccionado .texto-mood::after {
@@ -763,23 +803,27 @@
 .duracion-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: 24px;
   width: min(760px, 100%);
   margin: -6px auto 10px;
 }
 
 .duracion-card {
   position: relative;
-  border: 1px solid rgba(198, 225, 255, 0.38);
+  border: 1px solid rgba(100, 180, 255, 0.35);
   border-radius: 14px;
-  background: linear-gradient(165deg, rgba(233, 246, 255, 0.2), rgba(209, 232, 255, 0.08));
+  background: rgba(13, 30, 60, 0.6);
   color: #e8f4ff;
-  text-align: left;
-  padding: 12px 12px 13px;
-  min-height: 156px;
+  text-align: center;
+  padding: 12px 10px;
+  min-height: 84px;
+  max-width: 320px;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   cursor: pointer;
   transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
 }
@@ -813,13 +857,13 @@
 }
 
 .duracion-icon {
-  font-size: 24px;
+  font-size: 20px;
   line-height: 1;
   margin-bottom: 2px;
 }
 
 .duracion-title {
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 700;
   color: #eef8ff;
 }
@@ -847,12 +891,50 @@
   font-weight: 500;
 }
 
+/* Ajustes específicos para las opciones de duración (Paso 3) */
+.duracion-botones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  width: min(720px, 96%);
+  margin: 8px auto 0;
+  justify-items: center;
+}
+
+.duracion-botones .boton-mood {
+  height: 92px;
+  padding: 10px 8px;
+  border-radius: 12px;
+  background: rgba(8, 15, 24, 0.7);
+  border: 1px solid rgba(140, 185, 245, 0.08);
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.duracion-botones .boton-mood .texto-mood {
+  font-size: 15px;
+  padding: 6px 4px 0;
+}
+
+.duracion-botones .boton-mood .detalle-mood {
+  font-size: 12px;
+  opacity: 0.95;
+}
+
 /* Botones de navegación del wizard */
 .wizard-botones {
   display: flex;
   gap: 18px;
   justify-content: center;
   margin-top: 10px;
+}
+
+/* Mover los botones un poco hacia abajo únicamente en el Paso 3 */
+.wizard-progreso.paso-3 + .wizard-contenedor .wizard-botones {
+  margin-top: 34px;
 }
 
 .boton-wizard {
@@ -1105,10 +1187,12 @@
 /* Responsive para géneros */
 @media (max-width: 768px) {
   .duracion-grid {
-    grid-template-columns: 1fr;
-    width: min(360px, 100%);
-    gap: 10px;
-  }
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  width: min(760px, 100%);
+  margin: -6px auto 10px;
+}
 
   .duracion-card {
     min-height: auto;
@@ -1137,12 +1221,12 @@
   background: rgba(13, 30, 60, 0.6);
   color: #e8f5ff;
   border-radius: 16px;
-  padding: 28px 36px;
+    padding: 20px 28px; /* más pequeño para ocupar menos espacio */
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  min-width: 160px;
-  min-height: 90px;
+    min-width: 140px;
+    min-height: 72px; /* reducido */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1410,12 +1494,22 @@
   }
 
   .cuestionario-page .moods-strip .boton-mood {
-    width: 100%;
-    min-width: 0;
-    height: 176px;
-    padding: 0;
-    border-radius: 18px;
-  }
+  min-width: 0;
+  width: 100%;
+  height: 200px;
+  padding: 0;
+  border-radius: 18px;
+  border: 1px solid rgba(133, 190, 255, 0.12);
+  background: #08111c;
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(1, 6, 16, 0.32);
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-start;
+  align-items: stretch;
+  position: relative;
+  overflow: hidden;
+}
 
   .cuestionario-page .moods-strip .texto-mood {
     font-size: 14px;
@@ -1492,8 +1586,22 @@
   }
 
   .cuestionario-page .moods-strip .boton-mood {
-    height: 168px;
-  }
+  min-width: 0;
+  width: 100%;
+  height: 200px;
+  padding: 0;
+  border-radius: 18px;
+  border: 1px solid rgba(133, 190, 255, 0.12);
+  background: #08111c;
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(1, 6, 16, 0.32);
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-start;
+  align-items: stretch;
+  position: relative;
+  overflow: hidden;
+}
 
   .cuestionario-page .moods-strip .texto-mood {
     font-size: 14px;

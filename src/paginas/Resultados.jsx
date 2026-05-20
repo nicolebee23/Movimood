@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import WizardSidebar from '../componentes/WizardSidebar';
+import UserMenu from '../componentes/UserMenu';
 import './Resultados.css';
 import '../App.css';
 import { fetchRecommendedMovies, genreIdToName, getRecommendationReasons } from '../utils/recommendations';
@@ -23,7 +24,7 @@ function getStoredQuestionnaire() {
 function Resultados() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
+  const { currentUser, logout } = useAuth();
   const questionnaire = location.state?.questionnaire || getStoredQuestionnaire();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -34,9 +35,6 @@ function Resultados() {
   const batchTransitionTimeoutRef = useRef(null);
   const { favoritos, setLista, getLista, getNoInteresaIds, getMovieState, toggleEssential } = useFavoritos();
   const [openMenuId, setOpenMenuId] = useState(null);
-
-  const displayName = (currentUser?.name || currentUser?.username || 'Perfil').split(' ')[0];
-  const avatarInitial = displayName.charAt(0).toUpperCase() || 'M';
 
   const noInteresaIds = getNoInteresaIds();
   const yaVistaIds = new Set(
@@ -52,7 +50,7 @@ function Resultados() {
     (batchIndex + 1) * MOVIES_PER_BATCH
   );
   const totalBatches = Math.ceil(filteredMovies.length / MOVIES_PER_BATCH);
-  const currentBatch = totalBatches > 0 ? batchIndex + 1 : 0;
+  // currentBatch removed (unused) to satisfy linter
   const batchStart = filteredMovies.length > 0 ? (batchIndex * MOVIES_PER_BATCH) + 1 : 0;
   const batchEnd = filteredMovies.length > 0 ? batchStart + visibleMovies.length - 1 : 0;
 
@@ -157,20 +155,9 @@ function Resultados() {
       <main className="cuestionario-main">
         {/* User profile chip */}
         {currentUser && (
-          <button
-            type="button"
-            className="wizard-user-chip-fixed"
-            onClick={() => navigate('/perfil')}
-            aria-label="Ir a mi perfil"
-          >
-            {currentUser.avatar ? (
-              <img className="wizard-user-avatar" src={currentUser.avatar} alt={`Avatar de ${displayName}`} />
-            ) : (
-              <span className="wizard-user-avatar wizard-user-avatar-fallback" aria-hidden="true">{avatarInitial}</span>
-            )}
-            <span className="wizard-user-name">{displayName}</span>
-            <span className="wizard-user-caret" aria-hidden="true">▾</span>
-          </button>
+          <div className="wizard-user-chip-fixed">
+            <UserMenu currentUser={currentUser} logout={logout} />
+          </div>
         )}
 
         {/* Main content area */}

@@ -2,16 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import UserMenu from './UserMenu';
 import './Navbar.css';
-
-function getInitials(name) {
-  return (name || 'MM')
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((chunk) => chunk[0]?.toUpperCase())
-    .join('') || 'MM';
-}
 
 function normalizeNotificationItem(item, index = 0) {
   if (!item || typeof item !== 'object') {
@@ -48,7 +40,6 @@ function getNotificationIcon(type) {
 function Navbar() {
   const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
-  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isAccessModalOpen, setIsAccessModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -58,20 +49,18 @@ function Navbar() {
   const profileMenuRef = useRef(null);
 
   useEffect(() => {
-    if (!isProfileMenuOpen && !isNotificationsOpen) {
+    if (!isNotificationsOpen) {
       return undefined;
     }
 
     function handleClickOutside(event) {
       if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
-        setIsProfileMenuOpen(false);
         setIsNotificationsOpen(false);
       }
     }
 
     function handleEscape(event) {
       if (event.key === 'Escape') {
-        setIsProfileMenuOpen(false);
         setIsNotificationsOpen(false);
       }
     }
@@ -83,7 +72,7 @@ function Navbar() {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEscape);
     };
-  }, [isProfileMenuOpen, isNotificationsOpen]);
+  }, [isNotificationsOpen]);
 
   useEffect(() => {
     if (!isAccessModalOpen) {
@@ -121,39 +110,17 @@ function Navbar() {
     }
   }
 
-  function closeProfileMenu() {
-    setIsProfileMenuOpen(false);
-  }
-
   function closeMobileMenu() {
     setIsMobileMenuOpen(false);
   }
 
-  function closeNotificationsPanel() {
-    setIsNotificationsOpen(false);
-  }
-
-  function toggleProfileMenu() {
-    setIsNotificationsOpen(false);
-    setIsProfileMenuOpen((prevState) => !prevState);
-  }
-
   function toggleNotificationsPanel() {
-    setIsProfileMenuOpen(false);
     setIsNotificationsOpen((prevState) => !prevState);
   }
 
   function toggleMobileMenu() {
-    setIsProfileMenuOpen(false);
     setIsNotificationsOpen(false);
     setIsMobileMenuOpen((prevState) => !prevState);
-  }
-
-  function handleLogout() {
-    closeProfileMenu();
-    closeNotificationsPanel();
-    closeMobileMenu();
-    logout();
   }
 
   function handleQuestionnaireClick(event) {
@@ -330,31 +297,6 @@ function Navbar() {
                   )}
                 </button>
 
-                <button
-                  type="button"
-                  className="navbar-profile-trigger"
-                  onClick={toggleProfileMenu}
-                  aria-haspopup="menu"
-                  aria-expanded={isProfileMenuOpen}
-                  aria-label="Abrir menú de perfil"
-                >
-                  <span className="navbar-welcome">
-                    {currentUser.avatar ? (
-                      <img
-                        className="navbar-avatar"
-                        src={currentUser.avatar}
-                        alt={`Avatar de ${currentUser.name}`}
-                      />
-                    ) : (
-                      <span className="navbar-avatar navbar-avatar-fallback" aria-hidden="true">
-                        {getInitials(currentUser.name)}
-                      </span>
-                    )}
-                    <span>Hola, {currentUser.name}</span>
-                  </span>
-                  <span className={`navbar-profile-caret${isProfileMenuOpen ? ' abierto' : ''}`} aria-hidden="true">▾</span>
-                </button>
-
                 {isNotificationsOpen && (
                   <div
                     id="navbar-notifications-dropdown"
@@ -396,44 +338,18 @@ function Navbar() {
                   </div>
                 )}
 
-                {isProfileMenuOpen && (
-                  <div className="navbar-profile-dropdown" role="menu">
-                    <div className="navbar-profile-header">
-                      <strong>{currentUser.name}</strong>
-                      <span>@{currentUser.username}</span>
-                    </div>
-
-                    <Link to="/perfil" className="navbar-profile-item" role="menuitem" onClick={() => { closeProfileMenu(); closeMobileMenu(); }}>
-                      Mi perfil
-                    </Link>
-                    <Link to="/configuracion" className="navbar-profile-item" role="menuitem" onClick={() => { closeProfileMenu(); closeMobileMenu(); }}>
-                      Configuración
-                    </Link>
-                    <Link to="/videoteca" className="navbar-profile-item" role="menuitem" onClick={() => { closeProfileMenu(); closeMobileMenu(); }}>
-                      Mi videoteca
-                    </Link>
-                    <Link to="/cuestionario" className="navbar-profile-item" role="menuitem" onClick={() => { closeProfileMenu(); closeMobileMenu(); }}>
-                      Descubrir película
-                    </Link>
-
-                    <div className="navbar-profile-separator" />
-
-                    <button
-                      type="button"
-                      className="navbar-profile-item navbar-profile-item-danger"
-                      role="menuitem"
-                      onClick={handleLogout}
-                    >
-                      Cerrar sesión
-                    </button>
-                  </div>
-                )}
               </div>
             )}
             {!currentUser && (
               <Link to="/login" state={{ from: '/perfil' }} className="navbar-link-boton" onClick={closeMobileMenu}>Iniciar Sesión</Link>
             )}
           </div>
+
+          {currentUser && (
+            <div className="navbar-user-menu">
+              <UserMenu currentUser={currentUser} logout={logout} />
+            </div>
+          )}
         </div>
       </nav>
       {typeof document !== 'undefined' ? createPortal(accessModal, document.body) : null}

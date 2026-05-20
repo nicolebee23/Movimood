@@ -3,12 +3,36 @@ from ftplib import FTP_TLS
 import socket
 import os
 import time
+import re
 
 HOST = os.getenv('FTP_HOST', '147.93.92.142')
 USER = os.getenv('FTP_USER', 'u538166067')
 PASS = os.getenv('FTP_PASS', '')
 LOCAL_ROOT = 'C:/xampp/htdocs/movimood-frontend'
 REMOTE_ROOT = '/domains/plandecine.com/public_html'
+
+
+def load_ps1_credentials(path='tmp_deploy_api_update.ps1'):
+    try:
+        with open(path, 'r', encoding='utf-8', errors='ignore') as handle:
+            content = handle.read()
+    except Exception:
+        return None
+
+    host_match = re.search(r'\$ftpHost\s*=\s*"([^"]+)"', content)
+    user_match = re.search(r'\$ftpUser\s*=\s*"([^"]+)"', content)
+    pass_match = re.search(r'\$ftpPass\s*=\s*"([^"]+)"', content)
+
+    if not (host_match and user_match and pass_match):
+        return None
+
+    return host_match.group(1), user_match.group(1), pass_match.group(1)
+
+
+if not PASS:
+    fallback = load_ps1_credentials()
+    if fallback:
+        HOST, USER, PASS = fallback
 
 # Optional: only upload files modified since this date (YYYY-MM-DD). Empty = upload all.
 UPLOAD_SINCE = os.getenv('UPLOAD_SINCE', '')
@@ -162,3 +186,6 @@ try:
     print('\n✓ ¡Despliegue completado!')
 finally:
     uploader.close()
+# Nota: las siguientes líneas eran instrucciones para el navegador
+# (borrar localStorage) y estaban incrustadas por error en este
+# script Python. Se han eliminado para evitar errores de sintaxis.

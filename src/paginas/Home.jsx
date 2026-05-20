@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import UserMenu from '../componentes/UserMenu';
 import mockupPhone from '../assets/mockup-phone.png';
 import mockupComputer from '../assets/mockup-computer.png';
 import mockupTablet from '../assets/mockup-tablet.png';
@@ -166,7 +167,7 @@ function Home() {
   const [query, setQuery] = useState('');
   const [openFaqIndex, setOpenFaqIndex] = useState(-1);
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
+  const { currentUser, logout } = useAuth();
 
   const visibleMenuLinks = menuLinks.filter(
     (link) => !['Mi lista', 'Mood', 'Perfil'].includes(link.label)
@@ -178,9 +179,6 @@ function Home() {
       navigate(`/buscar?q=${encodeURIComponent(query.trim())}`);
     }
   }
-
-  const displayName = (currentUser?.name || currentUser?.username || 'Perfil').split(' ')[0];
-  const avatarInitial = displayName.charAt(0).toUpperCase() || 'M';
 
   return (
     <div className="home-page">
@@ -231,15 +229,7 @@ function Home() {
             </form>
             <div className="navbar-auth">
               {currentUser ? (
-                <Link to="/perfil" className="home-user-chip" aria-label="Ir a mi perfil">
-                  {currentUser.avatar ? (
-                    <img className="home-user-avatar" src={currentUser.avatar} alt={`Avatar de ${displayName}`} />
-                  ) : (
-                    <span className="home-user-avatar home-user-avatar-fallback" aria-hidden="true">{avatarInitial}</span>
-                  )}
-                  <span className="home-user-name">{displayName}</span>
-                  <span className="home-user-caret" aria-hidden="true">▾</span>
-                </Link>
+                <UserMenu currentUser={currentUser} logout={logout} />
               ) : (
                 <>
                   <Link to="/login" state={{ from: '/perfil' }} className="btn-auth btn-auth--login">Iniciar sesión</Link>

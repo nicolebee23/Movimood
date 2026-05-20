@@ -110,10 +110,10 @@ function Videoteca() {
   const [isCompactTabs, setIsCompactTabs] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 700);
   const [activeMood, setActiveMood] = useState('Todos');
   const [searchQuery, setSearchQuery] = useState('');
-  const [reviewStatusFilter, setReviewStatusFilter] = useState('todos');
-  const [sortMode, setSortMode] = useState('recientes');
-  const [viewMode, setViewMode] = useState('grid');
-  const [hidePosters, setHidePosters] = useState(false);
+  const [reviewStatusFilter] = useState('todos');
+  const [sortMode] = useState('recientes');
+  const [viewMode] = useState('grid');
+  const [hidePosters] = useState(false);
   const [ignoradasOpen, setIgnoradasOpen] = useState(false);
   const [openMoveMenuMovieId, setOpenMoveMenuMovieId] = useState(null);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
@@ -168,8 +168,7 @@ function Videoteca() {
   const myReviews = getReviewsByProfile();
   const reviewsByMovieId = new Map(myReviews.map((review) => [String(review.movieId), review]));
   const favoritosByMovieId = new Map(favoritos.map((fav) => [fav.movie.id, fav]));
-  const uniqueMoodsRated = new Set(myReviews.map((review) => review.mood).filter(Boolean)).size;
-  const moodCoveragePercent = Math.round((uniqueMoodsRated / Object.keys(MOOD_EMOJIS).length) * 100);
+  // moodCoveragePercent removed (unused) to satisfy linter
 
   const availableMoods = Array.from(
     new Set(tabMovies.flatMap((fav) => fav.questionnaire?.moods || []))
@@ -238,18 +237,7 @@ function Videoteca() {
       return new Date(right.savedAt) - new Date(left.savedAt);
     });
 
-  const hasActiveFilters =
-    Boolean(searchQuery.trim()) ||
-    reviewStatusFilter !== 'todos' ||
-    sortMode !== 'recientes' ||
-    activeMood !== 'Todos';
-
-  function clearAllFilters() {
-    setSearchQuery('');
-    setReviewStatusFilter('todos');
-    setSortMode('recientes');
-    setActiveMood('Todos');
-  }
+  // hasActiveFilters / clearAllFilters removed (unused)
 
   useEffect(() => {
     if (activeMood !== 'Todos' && !availableMoods.includes(activeMood)) {
@@ -331,9 +319,7 @@ function Videoteca() {
     (link) => !link.authOnly || currentUser
   );
 
-  const displayName = (currentUser?.name || currentUser?.username || 'Perfil').split(' ')[0];
-  const avatarInitial = displayName.charAt(0).toUpperCase() || 'M';
-
+  
   const activeTabMeta = TABS.find((t) => t.id === activeTab);
   function openReviewModal({ movie, questionnaire, sourceTab, existingReview }) {
     const normalizedMovie = movie || existingReview?.movie || (existingReview?.movieId ? { id: existingReview.movieId } : null);
