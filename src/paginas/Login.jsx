@@ -36,7 +36,11 @@ function Login() {
       localStorage.setItem(LAST_IDENTIFIER_KEY, identifier.trim());
       navigate(redirectTo, { replace: true });
     } catch (loginError) {
-      setError(loginError.message || 'No se pudo iniciar sesión.');
+      // Log full error for debugging and show server message when available
+      // eslint-disable-next-line no-console
+      console.error('Login failed:', loginError);
+      const serverMessage = loginError?.payload?.message || loginError?.message;
+      setError(serverMessage || 'No se pudo iniciar sesión.');
     }
   }
 

@@ -16,7 +16,7 @@
 }
 
 /* Remove wizard progress purple line on Resultados page */
-.resultados-page .wizard-progreso .progreso-relleno {
+.cuestionario-page .wizard-progreso .progreso-relleno {
   background: transparent !important;
 }
 
@@ -884,7 +884,10 @@
   align-items: stretch;
   width: 100%;
   position: relative;
-  padding-left: 20px; /* space for timeline */
+  /* space for timeline */
+  --resultados-numbers-width: 72px;
+  --resultados-numbers-padding: 20px;
+  padding-left: var(--resultados-numbers-padding);
 }
 
 .resultados-list-numbers {
@@ -892,23 +895,15 @@
   flex-direction: column;
   gap: 14px;
   padding-top: 0;
-  width: 72px;
+  width: var(--resultados-numbers-width);
   align-items: center;
   position: relative;
-  flex: 0 0 72px;
+  flex: 0 0 var(--resultados-numbers-width);
 }
 
+/* hide the local numbers column line to avoid double-lines; use the global .resultados-list::before centered below */
 .resultados-list-numbers::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: linear-gradient(180deg, rgba(11,60,70,0.35), rgba(15,180,170,0.5));
-  border-radius: 2px;
-  z-index: 0;
+  display: none;
 }
 
 .result-number {
@@ -952,7 +947,9 @@
 .resultados-list::before {
   content: '';
   position: absolute;
-  left: 36px; /* center of number column */
+  /* center the timeline exactly through the centers of the numbered circles */
+  left: calc(var(--resultados-numbers-padding) + (var(--resultados-numbers-width) / 2));
+  transform: translateX(-50%);
   top: 0;
   bottom: 0;
   width: 2px;
@@ -1085,3 +1082,162 @@
 
 /* Ensure action column stays inside card */
 .resultado-row-actions { flex: 0 0 auto; }
+
+/* Afternoon follow-up fixes (Resultados only): keep old look but match current JSX structure */
+.resultado-row {
+  align-items: stretch;
+}
+
+.resultado-row-poster {
+  flex: 0 0 240px;
+  width: 240px;
+  height: 135px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+}
+
+.resultado-row-content {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.resultado-row-titlecol {
+  flex: 0 0 280px;
+  min-width: 0;
+}
+
+.resultado-row-titlecol h2 {
+  margin: 0 0 6px;
+  font-size: 18px;
+}
+
+.resultado-row-detailcol {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-left: 22px;
+  border-left: 1px solid rgba(84, 154, 206, 0.22);
+}
+
+.resultado-row-actions {
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+  min-width: 190px;
+  gap: 10px;
+  position: relative;
+  z-index: 3;
+}
+
+.resultado-lista-wrapper {
+  width: 100%;
+  position: relative;
+  z-index: 4;
+}
+
+.resultado-lista-btn {
+  width: 100%;
+}
+
+.resultado-lista-menu {
+  z-index: 2000;
+}
+
+@media (max-width: 900px) {
+  .resultado-row-poster {
+    flex-basis: 160px;
+    width: 160px;
+    height: 90px;
+  }
+
+  .resultado-row-content {
+    gap: 12px;
+  }
+
+  .resultado-row-titlecol {
+    flex-basis: 220px;
+  }
+
+  .resultado-row-actions {
+    min-width: 165px;
+  }
+}
+
+@media (max-width: 768px) {
+  .resultados-filtros-wrapper {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .resultados-edit-btn {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .resultados-list::before,
+  .resultado-number-col {
+    display: none;
+  }
+
+  .resultados-list {
+    padding-left: 0;
+  }
+
+  .resultado-item {
+    gap: 0;
+  }
+
+  .resultado-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .resultado-row-poster {
+    width: 100%;
+    max-width: 320px;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    margin: 0 auto;
+  }
+
+  .resultado-row-content {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  .resultado-row-titlecol,
+  .resultado-row-detailcol {
+    flex: 0 0 auto;
+  }
+
+  .resultado-row-titlecol {
+    text-align: center;
+  }
+
+  .resultado-stars {
+    justify-content: center;
+  }
+
+  .resultado-row-detailcol {
+    border-left: 0;
+    padding-left: 0;
+    text-align: center;
+  }
+
+  .resultado-row-actions {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .resultado-lista-menu {
+    left: 0;
+    right: 0;
+    min-width: 0;
+    width: 100%;
+  }
+}

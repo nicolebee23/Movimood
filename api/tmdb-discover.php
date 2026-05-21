@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+header("Content-Encoding: identity");
 
 function sendJson(int $statusCode, array $payload): never
 {

@@ -1,3 +1,5 @@
+import pako from 'pako';
+
 const DEFAULT_API_BASE_URL = typeof window !== 'undefined' ? `${window.location.origin}/api` : '/api';
 const API_BASE_URL = (process.env.REACT_APP_API_BASE_URL || DEFAULT_API_BASE_URL).replace(/\/$/, '');
 
@@ -32,7 +34,7 @@ function buildApiUrl(endpoint, params = {}) {
   return url.toString();
 }
 
-async function requestJson(endpoint, { method = 'GET', params = {}, body = null, credentials = 'include' } = {}) {
+async function requestJson(endpoint, { method = 'GET', params = {}, body = null, credentials = 'include', signal = undefined } = {}) {
   const normalizedMethod = String(method || 'GET').toUpperCase();
   let requestBody = body;
 
@@ -47,13 +49,77 @@ async function requestJson(endpoint, { method = 'GET', params = {}, body = null,
   const response = await fetch(buildApiUrl(endpoint, params), {
     method: normalizedMethod,
     credentials,
+    signal,
     headers: requestBody ? { 'Content-Type': 'application/json' } : undefined,
     body: requestBody ? JSON.stringify(requestBody) : undefined,
   });
 
-  const text = await response.text();
-  let payload = null;
+  // Read raw bytes so we can detect/decompress gzipped bodies even if the
+  // server doesn't set Content-Encoding correctly.
+  let buffer;
+  try {
+    buffer = await response.arrayBuffer();
+  } catch (e) {
+    // Fallback to text if arrayBuffer not available
+    const txt = await response.text();
+    try {
+      const parsed = txt ? JSON.parse(txt) : null;
+      if (!response.ok) {
+        const message = parsed?.message || `Request failed with status ${response.status}`;
+        const error = new Error(message);
+        error.status = response.status;
+        error.payload = parsed;
+        throw error;
+      }
+      return parsed;
+    } catch {
+      if (!response.ok) {
+        const error = new Error(`Request failed with status ${response.status}`);
+        error.status = response.status;
+        throw error;
+      }
+      return txt ? { raw: txt } : null;
+    }
+  }
 
+  const view = new Uint8Array(buffer);
+  let text = '';
+
+  const isGzip = view.length >= 2 && view[0] === 0x1f && view[1] === 0x8b;
+  if (isGzip) {
+    // Try native DecompressionStream
+    if (typeof DecompressionStream !== 'undefined') {
+      try {
+        const ds = new DecompressionStream('gzip');
+        const decompressed = await new Response(buffer).body.pipeThrough(ds).arrayBuffer();
+        text = new TextDecoder().decode(decompressed);
+      } catch {
+        // ignore and fallback to pako
+      }
+    }
+
+    if (!text) {
+      try {
+        const inflated = pako.inflate(view);
+        text = new TextDecoder().decode(inflated);
+      } catch {
+        // final fallback: try to decode raw buffer
+        try {
+          text = new TextDecoder().decode(buffer);
+        } catch {
+          text = '';
+        }
+      }
+    }
+  } else {
+    try {
+      text = new TextDecoder().decode(buffer);
+    } catch {
+      text = '';
+    }
+  }
+
+  let payload = null;
   if (text) {
     try {
       payload = JSON.parse(text);

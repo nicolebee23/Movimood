@@ -1,3 +1,5 @@
+import { requestJson } from './movimoodApi';
+
 const API_BASE_URL = (process.env.REACT_APP_API_BASE_URL || '').replace(/\/$/, '');
 
 export const genreNameToId = {
@@ -149,13 +151,9 @@ function uniqueMovies(movies) {
 }
 
 async function fetchDiscoverPage(questionnaire, page, includeGenres) {
-  const response = await fetch(buildDiscoverUrl(questionnaire, page, includeGenres));
-
-  if (!response.ok) {
-    throw new Error('No se pudo consultar TMDB para generar recomendaciones.');
-  }
-
-  const data = await response.json();
+  const discoverUrl = new URL(buildDiscoverUrl(questionnaire, page, includeGenres));
+  const params = Object.fromEntries(discoverUrl.searchParams.entries());
+  const data = await requestJson('/tmdb-discover.php', { params });
   return data.results || [];
 }
 

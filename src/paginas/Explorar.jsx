@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useFavoritos, LISTAS } from '../hooks/useFavoritos';
+import { requestJson } from '../utils/movimoodApi';
 import './Explorar.css';
 
 const API_BASE_URL = (process.env.REACT_APP_API_BASE_URL || '').replace(/\/$/, '');
@@ -50,16 +51,16 @@ const MOOD_GENRE_MAP = {
 
 const YEARS = Array.from({ length: 40 }, (_, i) => new Date().getFullYear() - i);
 const DURATIONS = [
-  { label: '0-60 min', min: 0, max: 60 },
-  { label: '60-120 min', min: 60, max: 120 },
-  { label: '120+ min', min: 120, max: 9999 },
+  { label: 'Hasta 60 min', min: 0, max: 60 },
+  { label: '61-120 min', min: 61, max: 120 },
+  { label: 'Más de 120 min', min: 121, max: 9999 },
 ];
 
 const menuLinks = [
   { label: 'Inicio', to: '/', icon: '⌂', active: false },
   { label: 'Explorar', to: '/explorar', icon: '◎', active: true },
   { label: 'Cuestionario', to: '/cuestionario', icon: '✦', active: false },
-  { label: 'Mi lista', to: '/mi-lista', icon: '☰', active: false },
+  { label: 'Mi videoteca', to: '/videoteca', icon: '☰', active: false },
   { label: 'Mood', to: '/mood', icon: '◌', active: false },
   { label: 'Perfil', to: '/perfil', icon: '◯', active: false },
 ];
@@ -113,8 +114,8 @@ function Explorar() {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const { getMovieState, setLista } = useFavoritos();
-  const runtimeCacheRef = useRef(new Map());
   const filtersRef = useRef(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [section, setSection] = useState('tendencias');
   const [genre, setGenre] = useState(null);
   const [year, setYear] = useState(null);
@@ -135,9 +136,17 @@ function Explorar() {
   const yearLabel = year ? String(year) : '';
   const durationLabel = duration ? duration.label : '';
   const moodLabel = mood ? `${(MOODS.find((item) => item.id === mood)?.emoji || '')} ${MOODS.find((item) => item.id === mood)?.label || ''}`.trim() : '';
-  const visibleMenuLinks = menuLinks.filter(
-    (link) => !['Mi lista', 'Mood', 'Perfil'].includes(link.label)
-  );
+  const visibleMenuLinks = menuLinks.filter((link) => {
+    if (['Mood'].includes(link.label)) {
+      return false;
+    }
+
+    if (!currentUser && ['Mi videoteca', 'Perfil'].includes(link.label)) {
+      return false;
+    }
+
+    return true;
+  });
 
   useEffect(() => {
     const handleOutsideClick = (event) => {
@@ -204,74 +213,17 @@ function Explorar() {
 
         console.log('Fetching from:', `${API_BASE_URL}/tmdb-discover.php?${params.toString()}`);
 
-        const url = `${API_BASE_URL}/tmdb-discover.php?${params.toString()}`;
-        const response = await fetch(url, { signal });
-
-        if (!response.ok) {
-          throw new Error('Error al cargar películas');
-        }
-
-        const data = await response.json();
+        const data = await requestJson('/tmdb-discover.php', {
+          params: Object.fromEntries(params.entries()),
+          signal,
+        });
         const baseMovies = Array.isArray(data?.results)
           ? data.results.filter((movie) => movie?.id && movie?.poster_path)
           : [];
 
-        if (!duration || baseMovies.length === 0) {
-          setMovies((prev) => (append ? [...prev, ...baseMovies] : baseMovies));
-          setHasMore((data?.page || 0) < (data?.total_pages || 1));
-          setPage(pageNum);
-          return;
-        }
-
         setMovies((prev) => (append ? [...prev, ...baseMovies] : baseMovies));
         setHasMore((data?.page || 0) < (data?.total_pages || 1));
         setPage(pageNum);
-
-        const runtimeChecks = await Promise.all(
-          baseMovies.map(async (movie) => {
-            if (runtimeCacheRef.current.has(movie.id)) {
-              return runtimeCacheRef.current.get(movie.id);
-            }
-
-            try {
-              const runtimeResponse = await fetch(
-                `${API_BASE_URL}/tmdb-movie.php?id=${movie.id}&language=es-ES`,
-                { signal }
-              );
-
-              if (!runtimeResponse.ok) {
-                return null;
-              }
-
-              const runtimeData = await runtimeResponse.json();
-              const runtime = typeof runtimeData?.runtime === 'number' ? runtimeData.runtime : null;
-              runtimeCacheRef.current.set(movie.id, runtime);
-              return runtime;
-            } catch (runtimeError) {
-              if (runtimeError.name === 'AbortError') {
-                throw runtimeError;
-              }
-              return null;
-            }
-          })
-        );
-
-        const filteredMovies = baseMovies.filter((movie, index) => {
-          const runtime = runtimeChecks[index];
-          if (typeof runtime !== 'number') {
-            return false;
-          }
-
-          return runtime >= duration.min && runtime <= duration.max;
-        });
-
-        setMovies((prev) => {
-          if (append) {
-            return [...prev.filter((movie) => !baseMovies.some((candidate) => candidate.id === movie.id)), ...filteredMovies];
-          }
-
-          return filteredMovies;
-        });
       } catch (err) {
         if (err.name === 'AbortError') {
           return;
@@ -366,31 +318,48 @@ function Explorar() {
 
   return (
     <div className="explorar-page">
-      <aside className="explorar-sidebar">
-        <div>
-          <div className="sidebar-brand">
-            <div className="brand-mark">M</div>
-            <div>
-              <p className="brand-title">MoviMood</p>
-              <p className="brand-subtitle">Tu cine personalizado</p>
+      <aside className={`explorar-sidebar${isSidebarOpen ? ' open' : ''}`}>
+        <div className="sidebar-shell">
+          <div className="sidebar-top">
+            <div className="explorar-header-row">
+              <div className="sidebar-brand">
+                <div className="brand-mark">M</div>
+                <div>
+                  <p className="brand-title">MoviMood</p>
+                  <p className="brand-subtitle">Tu cine personalizado</p>
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              className="sidebar-toggle"
+              aria-expanded={isSidebarOpen}
+              aria-controls="explorar-sidebar-panel"
+              onClick={() => setIsSidebarOpen((value) => !value)}
+            >
+              <span className="sidebar-toggle-icon" aria-hidden="true">☰</span>
+              <span className="sidebar-toggle-text">Menú</span>
+            </button>
+          </div>
+          <div id="explorar-sidebar-panel" className={`sidebar-panel${isSidebarOpen ? ' open' : ''}`}>
+            <nav className="sidebar-nav" aria-label="Navegación principal">
+              {visibleMenuLinks.map((link) => (
+                <Link
+                  key={link.label}
+                  to={link.to}
+                  className={`sidebar-link${link.active ? ' active' : ''}`}
+                  aria-current={link.active ? 'page' : undefined}
+                  onClick={() => setIsSidebarOpen(false)}
+                >
+                  <span className="sidebar-link-icon" aria-hidden="true">{link.icon}</span>
+                  <span>{link.label}</span>
+                </Link>
+              ))}
+            </nav>
+            <div className="sidebar-footer">
+              <p>Recomendaciones basadas en tu mood y preferencias.</p>
             </div>
           </div>
-          <nav className="sidebar-nav" aria-label="Navegación principal">
-            {visibleMenuLinks.map((link) => (
-              <Link
-                key={link.label}
-                to={link.to}
-                className={`sidebar-link${link.active ? ' active' : ''}`}
-                aria-current={link.active ? 'page' : undefined}
-              >
-                <span className="sidebar-link-icon" aria-hidden="true">{link.icon}</span>
-                <span>{link.label}</span>
-              </Link>
-            ))}
-          </nav>
-        </div>
-        <div className="sidebar-footer">
-          <p>Recomendaciones basadas en tu mood y preferencias.</p>
         </div>
       </aside>
 

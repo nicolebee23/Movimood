@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Footer from './componentes/Footer';
 import CookieBanner from './componentes/CookieBanner';
+import UserMenu from './componentes/UserMenu';
 import ProtectedRoute from './componentes/ProtectedRoute';
 import Home from './paginas/Home';
 import Cuestionario from './paginas/Cuestionario';
@@ -16,13 +18,32 @@ import Explorar from './paginas/Explorar';
 import Pelicula from './paginas/Pelicula';
 import Privacidad from './paginas/Privacidad';
 import AvisoLegal from './paginas/AvisoLegal';
+import { useAuth } from './hooks/useAuth';
 import './App.css';
 
-function App() {
-  const basename = process.env.REACT_APP_BASENAME || '';
+function AppContent({ currentUser, logout }) {
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    function handleScroll() {
+      setIsScrolled(window.scrollY > 24);
+    }
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
   return (
-    <BrowserRouter basename={basename}>
+    <>
+      {currentUser && (
+        <div className={`app-user-menu-floating${isScrolled ? ' hidden-on-scroll' : ''}`}>
+          <UserMenu currentUser={currentUser} logout={logout} />
+        </div>
+      )}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/cuestionario" element={<ProtectedRoute><Cuestionario /></ProtectedRoute>} />
@@ -42,6 +63,17 @@ function App() {
       </Routes>
       <Footer />
       <CookieBanner />
+    </>
+  );
+}
+
+function App() {
+  const basename = process.env.REACT_APP_BASENAME || '';
+  const { currentUser, logout } = useAuth();
+
+  return (
+    <BrowserRouter basename={basename}>
+      <AppContent currentUser={currentUser} logout={logout} />
     </BrowserRouter>
   );
 }

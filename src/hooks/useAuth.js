@@ -318,11 +318,14 @@ function buildUserId() {
 function useAuthState() {
   const [currentUser, setCurrentUser] = useState(loadSessionUser);
   const [users, setUsers] = useState(loadUsers);
+  const [isInitializing, setIsInitializing] = useState(true);
   const hasHydratedBackendRef = useRef(false);
   const currentPasswordRef = useRef(null); // Guardar contraseña en memoria durante la sesión
 
   useEffect(() => {
     if (hasHydratedBackendRef.current) {
+      // If we've already attempted hydration, make sure initialization flag is cleared
+      setIsInitializing(false);
       return;
     }
 
@@ -384,6 +387,7 @@ function useAuthState() {
             persistSession(null);
             setCurrentUser(null);
             setUsers(loadUsers());
+            setIsInitializing(false);
           }
           return;
         }
@@ -394,6 +398,7 @@ function useAuthState() {
       } finally {
         if (!cancelled) {
           // Keep currentUser as the local session fallback when backend sync is unavailable.
+          setIsInitializing(false);
         }
       }
     }
@@ -498,7 +503,10 @@ function useAuthState() {
 
         const backendUser = normalizeBackendUser(loginResponse?.user);
         if (!backendUser) {
-          throw new Error('No se pudo iniciar sesión.');
+          const err = new Error('No se pudo iniciar sesión.');
+          // Attach server payload for debugging (non-sensitive fields)
+          err.payload = loginResponse;
+          throw err;
         }
 
         const mergedUsers = mergeUsersByIdentity(loadUsers(), [backendUser]).map(normalizeUserRecord).filter(Boolean);
@@ -803,6 +811,7 @@ function useAuthState() {
   }, [currentUser]);
 
   return {
+    isInitializing,
     currentUser,
     isAuthenticated: Boolean(currentUser),
     register,

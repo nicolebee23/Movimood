@@ -30,3 +30,9 @@
       Header set Cache-Control "public, max-age=0, must-revalidate"
     </FilesMatch>
   </IfModule>
+
+# Desactivar compresion para API
+<FilesMatch "\.(php)$">
+    SetEnv no-gzip 1
+    Header set Content-Encoding identity
+</FilesMatch>

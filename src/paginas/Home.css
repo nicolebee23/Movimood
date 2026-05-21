@@ -23,7 +23,7 @@ body {
 .home-page {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 210px minmax(0, 1fr);
+  grid-template-columns: minmax(190px, 210px) minmax(0, 1fr);
   gap: 0;
   padding: 0;
   margin: 0;
@@ -114,7 +114,7 @@ body {
   line-height: 1.55;
 }
 
-.home-main { display: flex; flex-direction: column; gap: 0; min-width: 0; margin: 0; padding: 0 12px 0 0; }
+.home-main { display: flex; flex-direction: column; gap: 0; min-width: 0; margin: 0; padding: 0 clamp(10px, 1.2vw, 12px) 0 0; }
 
 /* ── HERO ── */
 .hero-section {
@@ -960,7 +960,7 @@ body {
 @media (max-width: 1120px) {
   .home-page { grid-template-columns: 1fr; }
   .home-sidebar { position: relative; top: auto; min-height: auto; width: 100%; }
-  .hero-section { min-height: 520px; padding-bottom: 138px; }
+  .hero-section { min-height: 520px; padding: 0 16px 138px; }
   .recommendations-section { width: 100%; margin-left: 0; margin-top: 46px; }
   .recommendation-card { flex-basis: 156px; min-height: 228px; }
 }
@@ -985,8 +985,26 @@ body {
 }
 
 @media (max-width: 768px) {
-  .home-page { padding: 16px; }
-  .home-sidebar { padding: 20px 16px 16px; border-radius: 24px; }
+  .home-page { padding: 12px; }
+  .home-sidebar {
+    padding: 14px 12px;
+    border-radius: 24px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .home-sidebar .sidebar-toggle {
+    display: inline-flex;
+    width: 100%;
+    justify-content: center;
+    margin-top: 2px;
+  }
+  .home-sidebar .sidebar-panel {
+    display: none;
+    padding-top: 10px;
+  }
+  .home-sidebar.open .sidebar-panel {
+    display: flex;
+  }
   .hero-section { min-height: 490px; padding: 20px 16px 140px; border-radius: 24px; }
   .hero-title { font-size: 1.4rem; }
   .hero-stats { flex-wrap: wrap; gap: 16px 22px; margin-top: 8px; padding-top: 10px; }
@@ -1001,7 +1019,10 @@ body {
 }
 
 @media (max-width: 520px) {
+  .home-page { padding: 8px; }
   .sidebar-link { padding: 12px 12px; }
   .hero-actions { gap: 12px; }
   .btn { min-width: 128px; padding: 13px 18px; }
+  .home-sidebar .brand-subtitle,
+  .home-sidebar .sidebar-footer { font-size: 0.72rem; }
 }

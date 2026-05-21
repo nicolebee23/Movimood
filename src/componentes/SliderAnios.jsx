@@ -48,6 +48,7 @@ function SliderAnios({ onCambio, valoresIniciales }) {
           value={anioMin}
           onChange={handleMinChange}
           className="slider slider-min"
+          aria-label="Año mínimo"
         />
         <input
           type="range"
@@ -56,6 +57,7 @@ function SliderAnios({ onCambio, valoresIniciales }) {
           value={anioMax}
           onChange={handleMaxChange}
           className="slider slider-max"
+          aria-label="Año máximo"
         />
         <div className="slider-track">
           <div 

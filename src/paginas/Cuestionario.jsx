@@ -1,7 +1,7 @@
 import '../App.css';
 import BotonMood from '../componentes/BotonMood';
 import SliderAnios from '../componentes/SliderAnios';
-// Imágenes de géneros
+// ImÃ¡genes de gÃ©neros
 import genAccion from '../assets/genero-accion.png';
 import genComedia from '../assets/genero-comedia.png';
 import genDrama from '../assets/genero-drama.png';
@@ -18,7 +18,7 @@ import genMisterio from '../assets/genero-misterio.png';
 import genMusical from '../assets/genero-musical.png';
 import genThriller from '../assets/genero-thriller.png';
 import genWestern from '../assets/genero-western.png';
-// Imágenes de mood locales
+// ImÃ¡genes de mood locales
 import moodAnsioso from '../assets/mood-ansioso-thriller.png';
 import moodEmocionado from '../assets/mood-emocionado-aventura.png';
 import moodEnfadado from '../assets/mood-enfadado-furia.png';
@@ -30,13 +30,12 @@ import moodTriste from '../assets/mood-triste-joker.png';
 import { useState } from 'react';
 import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import UserMenu from '../componentes/UserMenu';
 
 const menuLinks = [
   { label: 'Inicio', to: '/', icon: '⌂' },
   { label: 'Explorar', to: '/explorar', icon: '◎' },
   { label: 'Cuestionario', to: '/cuestionario', icon: '✦', active: true },
-  { label: 'Mi lista', to: '/mi-lista', icon: '☰' },
+  { label: 'Mi videoteca', to: '/videoteca', icon: '☰' },
   { label: 'Mood', to: '/mood', icon: '◌' },
   { label: 'Perfil', to: '/perfil', icon: '◯' },
 ];
@@ -45,8 +44,19 @@ const menuLinks = [
 
 function Cuestionario() {
   const navigate = useNavigate();
-  const { currentUser, logout } = useAuth();
-  const visibleMenuLinks = menuLinks.filter((link) => !['Mi lista', 'Mood', 'Perfil'].includes(link.label));
+  const { currentUser } = useAuth();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const visibleMenuLinks = menuLinks.filter((link) => {
+    if (['Mood'].includes(link.label)) {
+      return false;
+    }
+
+    if (!currentUser && ['Mi videoteca', 'Perfil'].includes(link.label)) {
+      return false;
+    }
+
+    return true;
+  });
   
   
   // Estado para controlar en qué paso estamos (1, 2, 3, 4)
@@ -57,7 +67,7 @@ function Cuestionario() {
   const [avisoMood, setAvisoMood] = useState('');
   const [aniosSeleccionados, setAniosSeleccionados] = useState({ min: 1980, max: 2025 });
   const [duracionSeleccionada, setDuracionSeleccionada] = useState('');
-  const [generosSeleccionados, setGenerosSeleccionados] = useState([]); // ← AHORA ES ARRAY
+  const [generosSeleccionados, setGenerosSeleccionados] = useState([]); // â† AHORA ES ARRAY
 
   // Si no hay usuario autenticado, redirigir al login (protección doble)
   if (!currentUser) {
@@ -118,10 +128,10 @@ function Cuestionario() {
   // Función para seleccionar/deseleccionar géneros (toggle)
   function toggleGenero(genero) {
     if (generosSeleccionados.includes(genero)) {
-      // Ya está seleccionado → deseleccionar
+      // Ya está seleccionado -> deseleccionar
       setGenerosSeleccionados(generosSeleccionados.filter(g => g !== genero));
     } else {
-      // No está seleccionado → seleccionar
+      // No está seleccionado -> seleccionar
       setGenerosSeleccionados([...generosSeleccionados, genero]);
     }
   }
@@ -214,31 +224,46 @@ function Cuestionario() {
 
   return (
     <div className="cuestionario-page">
-      <aside className="cuestionario-sidebar">
-        <div>
-          <div className="sidebar-brand">
-            <div className="brand-mark">M</div>
-            <div>
-              <p className="brand-title">MoviMood</p>
-              <p className="brand-subtitle">Tu cine personalizado</p>
+      <aside className={`cuestionario-sidebar${isSidebarOpen ? ' open' : ''}`}>
+        <div className="sidebar-shell">
+          <div className="sidebar-top">
+            <div className="sidebar-brand">
+              <div className="brand-mark">M</div>
+              <div>
+                <p className="brand-title">MoviMood</p>
+                <p className="brand-subtitle">Tu cine personalizado</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              className="sidebar-toggle"
+              aria-expanded={isSidebarOpen}
+              aria-controls="cuestionario-sidebar-panel"
+              onClick={() => setIsSidebarOpen((value) => !value)}
+            >
+              <span className="sidebar-toggle-icon" aria-hidden="true">☰</span>
+              <span className="sidebar-toggle-text">Menú</span>
+            </button>
+          </div>
+          <div id="cuestionario-sidebar-panel" className={`sidebar-panel${isSidebarOpen ? ' open' : ''}`}>
+            <nav className="sidebar-nav" aria-label="Navegación principal">
+              {visibleMenuLinks.map((link) => (
+                <Link
+                  key={link.label}
+                  to={link.to}
+                  className={`sidebar-link${link.active ? ' active' : ''}`}
+                  aria-current={link.active ? 'page' : undefined}
+                  onClick={() => setIsSidebarOpen(false)}
+                >
+                  <span className="sidebar-link-icon" aria-hidden="true">{link.icon}</span>
+                  <span>{link.label}</span>
+                </Link>
+              ))}
+            </nav>
+            <div className="sidebar-footer">
+              <p>Responde el cuestionario y te damos películas hechas para tu mood.</p>
             </div>
           </div>
-          <nav className="sidebar-nav" aria-label="Navegación principal">
-            {visibleMenuLinks.map((link) => (
-              <Link
-                key={link.label}
-                to={link.to}
-                className={`sidebar-link${link.active ? ' active' : ''}`}
-                aria-current={link.active ? 'page' : undefined}
-              >
-                <span className="sidebar-link-icon" aria-hidden="true">{link.icon}</span>
-                <span>{link.label}</span>
-              </Link>
-            ))}
-          </nav>
-        </div>
-        <div className="sidebar-footer">
-          <p>Responde el cuestionario y te damos películas hechas para tu mood.</p>
         </div>
       </aside>
 
@@ -252,11 +277,7 @@ function Cuestionario() {
                 style={{ width: `${(pasoActual / 4) * 100}%` }}
               ></div>
             </div>
-            <div className="wizard-progreso-meta">
-              {currentUser && (
-                <UserMenu currentUser={currentUser} logout={logout} />
-              )}
-            </div>
+            <div className="wizard-progreso-meta"></div>
         </div>
 
         {/* Contenedor del paso actual con animación */}
@@ -397,7 +418,6 @@ function Cuestionario() {
         </div>
         </div>
         
-        <p className="nombre-autora">Por Nicole Beeckmans</p>
       </main>
     </div>
   );

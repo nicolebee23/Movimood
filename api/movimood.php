@@ -3,6 +3,9 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/_lib/bootstrap.php';
+// Ensure API responses are sent without implicit gzip encoding from the server
+// to avoid clients receiving compressed bytes without the proper header.
+header("Content-Encoding: identity");
 
 allowCors();
 

@@ -474,13 +474,14 @@ function Videoteca() {
             <p className="videoteca-subtitle">Tu colección organizada por emociones, gustos y momentos.</p>
           </div>
           <div className="videoteca-hero-right">
-            <form className="search-form videoteca-search" onSubmit={(e) => e.preventDefault()}>
+              <form className="search-form videoteca-search" onSubmit={(e) => e.preventDefault()}>
               <span className="search-icon" aria-hidden="true">🔍</span>
               <input
                 className="search-input"
                 placeholder="Buscar películas..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                aria-label="Buscar en mi videoteca"
               />
             </form>
           </div>

@@ -246,7 +246,12 @@ function BotonMood(props) {
       className={buttonClassName}
       style={buttonStyle}
       onClick={props.onClick}
+      type="button"
+      aria-pressed={Boolean(props.seleccionado)}
     >
+      {props.seleccionado && (
+        <span className="boton-mood-check" aria-hidden="true">✓</span>
+      )}
       {props.backgroundImage ? null : props.iconName ? (
         <span className="emoji-mood mood-icon-wrapper">
           <IconoMood iconName={props.iconName} />
