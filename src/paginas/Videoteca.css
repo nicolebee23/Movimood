@@ -23,7 +23,7 @@
   width: min(1120px, 92vw);
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
   gap: 20px;
   margin-bottom: 10px;
 }
@@ -146,12 +146,12 @@
 }
 .videoteca-hero-right {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 12px;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
 }
 
-.videoteca-hero-right .videoteca-search { order: 1; }
+.videoteca-hero-right .videoteca-search { order: 0; }
 .videoteca-titulo {
   margin-bottom: 12px;
   font-size: clamp(1.6rem, 2.6vw, 2.6rem);
