@@ -1,7 +1,7 @@
 import '../App.css';
 import BotonMood from '../componentes/BotonMood';
 import SliderAnios from '../componentes/SliderAnios';
-// ImÃ¡genes de gÃ©neros
+// Imágenes de géneros
 import genAccion from '../assets/genero-accion.png';
 import genComedia from '../assets/genero-comedia.png';
 import genDrama from '../assets/genero-drama.png';
@@ -18,7 +18,7 @@ import genMisterio from '../assets/genero-misterio.png';
 import genMusical from '../assets/genero-musical.png';
 import genThriller from '../assets/genero-thriller.png';
 import genWestern from '../assets/genero-western.png';
-// ImÃ¡genes de mood locales
+// Imágenes de mood locales
 import moodAnsioso from '../assets/mood-ansioso-thriller.png';
 import moodEmocionado from '../assets/mood-emocionado-aventura.png';
 import moodEnfadado from '../assets/mood-enfadado-furia.png';
@@ -28,35 +28,17 @@ import moodNostalgico from '../assets/mood-nostalgico-noir.png';
 import moodRelajado from '../assets/mood-relajado-atardecer.png';
 import moodTriste from '../assets/mood-triste-joker.png';
 import { useState } from 'react';
-import { Link, useNavigate, Navigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import WizardSidebar from '../componentes/WizardSidebar';
 
-const menuLinks = [
-  { label: 'Inicio', to: '/', icon: '⌂' },
-  { label: 'Explorar', to: '/explorar', icon: '◎' },
-  { label: 'Cuestionario', to: '/cuestionario', icon: '✦', active: true },
-  { label: 'Mi videoteca', to: '/videoteca', icon: '☰' },
-  { label: 'Mood', to: '/mood', icon: '◌' },
-  { label: 'Perfil', to: '/perfil', icon: '◯' },
-];
+// Menu is provided by `WizardSidebar`; no local menuLinks required here.
 
 // Removed unused MOOD_CARD_BACKGROUNDS constant (was causing lint warning)
 
 function Cuestionario() {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const visibleMenuLinks = menuLinks.filter((link) => {
-    if (['Mood'].includes(link.label)) {
-      return false;
-    }
-
-    if (!currentUser && ['Mi videoteca', 'Perfil'].includes(link.label)) {
-      return false;
-    }
-
-    return true;
-  });
   
   
   // Estado para controlar en qué paso estamos (1, 2, 3, 4)
@@ -67,7 +49,7 @@ function Cuestionario() {
   const [avisoMood, setAvisoMood] = useState('');
   const [aniosSeleccionados, setAniosSeleccionados] = useState({ min: 1980, max: 2025 });
   const [duracionSeleccionada, setDuracionSeleccionada] = useState('');
-  const [generosSeleccionados, setGenerosSeleccionados] = useState([]); // â† AHORA ES ARRAY
+  const [generosSeleccionados, setGenerosSeleccionados] = useState([]); // ← AHORA ES ARRAY
 
   // Si no hay usuario autenticado, redirigir al login (protección doble)
   if (!currentUser) {
@@ -99,12 +81,6 @@ function Cuestionario() {
     { iconName: 'larga', texto: 'Larga', detalle: '> 120 min' }
   ];
 
-  const presetsAnios = [
-    { label: 'Últimos 5 años', min: 2020, max: 2025 },
-    { label: '90s', min: 1990, max: 1999 },
-    { label: '2000-2010', min: 2000, max: 2010 },
-    { label: 'Clásicos', min: 1950, max: 1985 }
-  ];
 
   const listaGeneros = [
     { backgroundImage: genAccion, texto: 'Acción' },
@@ -128,10 +104,10 @@ function Cuestionario() {
   // Función para seleccionar/deseleccionar géneros (toggle)
   function toggleGenero(genero) {
     if (generosSeleccionados.includes(genero)) {
-      // Ya está seleccionado -> deseleccionar
+      // Ya está seleccionado → deseleccionar
       setGenerosSeleccionados(generosSeleccionados.filter(g => g !== genero));
     } else {
-      // No está seleccionado -> seleccionar
+      // No está seleccionado → seleccionar
       setGenerosSeleccionados([...generosSeleccionados, genero]);
     }
   }
@@ -177,9 +153,7 @@ function Cuestionario() {
     }
   }
 
-  function aplicarPresetAnios(min, max) {
-    setAniosSeleccionados({ min, max });
-  }
+  // Presets removed — currently unused. Use the slider directly to select year range.
 
   function getTextoRangoAnios() {
     const rango = aniosSeleccionados.max - aniosSeleccionados.min;
@@ -224,48 +198,11 @@ function Cuestionario() {
 
   return (
     <div className="cuestionario-page">
-      <aside className={`cuestionario-sidebar${isSidebarOpen ? ' open' : ''}`}>
-        <div className="sidebar-shell">
-          <div className="sidebar-top">
-            <div className="sidebar-brand">
-              <div className="brand-mark">M</div>
-              <div>
-                <p className="brand-title">MoviMood</p>
-                <p className="brand-subtitle">Tu cine personalizado</p>
-              </div>
-            </div>
-            <button
-              type="button"
-              className="sidebar-toggle"
-              aria-expanded={isSidebarOpen}
-              aria-controls="cuestionario-sidebar-panel"
-              onClick={() => setIsSidebarOpen((value) => !value)}
-            >
-              <span className="sidebar-toggle-icon" aria-hidden="true">☰</span>
-              <span className="sidebar-toggle-text">Menú</span>
-            </button>
-          </div>
-          <div id="cuestionario-sidebar-panel" className={`sidebar-panel${isSidebarOpen ? ' open' : ''}`}>
-            <nav className="sidebar-nav" aria-label="Navegación principal">
-              {visibleMenuLinks.map((link) => (
-                <Link
-                  key={link.label}
-                  to={link.to}
-                  className={`sidebar-link${link.active ? ' active' : ''}`}
-                  aria-current={link.active ? 'page' : undefined}
-                  onClick={() => setIsSidebarOpen(false)}
-                >
-                  <span className="sidebar-link-icon" aria-hidden="true">{link.icon}</span>
-                  <span>{link.label}</span>
-                </Link>
-              ))}
-            </nav>
-            <div className="sidebar-footer">
-              <p>Responde el cuestionario y te damos películas hechas para tu mood.</p>
-            </div>
-          </div>
-        </div>
-      </aside>
+      <WizardSidebar
+        activeLabel="Cuestionario"
+        footerText="Responde el cuestionario y te damos películas hechas para tu mood."
+        hideLinks={["Mi lista", "Mood"]}
+      />
 
       <main className="cuestionario-main">
         {/* Barra de progreso */}
@@ -277,7 +214,7 @@ function Cuestionario() {
                 style={{ width: `${(pasoActual / 4) * 100}%` }}
               ></div>
             </div>
-            <div className="wizard-progreso-meta"></div>
+            
         </div>
 
         {/* Contenedor del paso actual con animación */}
@@ -292,50 +229,31 @@ function Cuestionario() {
             <h2>¿Cómo te sientes <span className="wizard-title-accent">hoy?</span></h2>
             <p className="wizard-subtitulo">Selecciona 1 o 2 emociones</p>
             <p className="mood-selector-meta">Seleccionadas: {moodsSeleccionados.length}/2</p>
-           
+
             {avisoMood && <p className="mood-selector-warning">{avisoMood}</p>}
             <div className="contenedor-botones moods-strip">
-              {listaMoods.map((mood) => (
-                <BotonMood 
-                  key={mood.texto}
-                  iconName={mood.iconName}
-                  texto={mood.texto}
-                  backgroundImage={mood.backgroundImage}
-                  onClick={() => toggleMood(mood.texto)}
-                  seleccionado={moodsSeleccionados.includes(mood.texto)}
+              {listaMoods.map((m) => (
+                <BotonMood
+                  key={m.iconName}
+                  backgroundImage={m.backgroundImage}
+                  texto={m.texto}
+                  onClick={() => toggleMood(m.texto)}
+                  seleccionado={moodsSeleccionados.includes(m.texto)}
                 />
               ))}
             </div>
           </div>
         )}
 
-        {/* PASO 2: AÑOS */}
+        {/* PASO 2: ÉPOCA */}
         {pasoActual === 2 && (
           <div className="wizard-paso">
-            <h2>¿Qué <span className="wizard-title-accent">época</span> te apetece hoy?</h2>
-            <p className="wizard-subtitulo">Puedes mover el rango o usar un preset rápido</p>
-
-            <div className="anios-presets" role="group" aria-label="Presets de años">
-              {presetsAnios.map((preset) => {
-                const activo = aniosSeleccionados.min === preset.min && aniosSeleccionados.max === preset.max;
-                return (
-                  <button
-                    key={preset.label}
-                    type="button"
-                    className={`anio-preset-btn ${activo ? 'activo' : ''}`}
-                    onClick={() => aplicarPresetAnios(preset.min, preset.max)}
-                  >
-                    {preset.label}
-                  </button>
-                );
-              })}
-            </div>
-
+            <h2>¿En qué época buscas películas?</h2>
+            <p className="wizard-subtitulo">Selecciona un rango de años</p>
             <SliderAnios 
               onCambio={setAniosSeleccionados} 
               valoresIniciales={aniosSeleccionados}
             />
-
             <p className="anios-contexto">{getTextoRangoAnios()}</p>
           </div>
         )}
@@ -417,7 +335,6 @@ function Cuestionario() {
           </button>
         </div>
         </div>
-        
       </main>
     </div>
   );

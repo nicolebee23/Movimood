@@ -1,0 +1,392 @@
+/* Likes page styles - reuse Perfil hero classes for exact parity.
+   Avoid overriding `.perfil-v3-page-cover`, `.perfil-v3-page-cover-image`,
+   `.perfil-v3-page-cover-shade` or ` .perfil-v3-content` here. */
+
+.likes-hero-copy{
+  position: absolute;
+  top: 125px; /* adjusted to 125px per latest request */
+  left: 28px;
+  z-index: 3;
+  padding: 24px 28px;
+  max-width: 760px;
+}
+
+@media (max-width: 800px) {
+  .likes-hero-copy{ top: 100px; left: 18px; }
+}
+
+/* Ensure the nested perfil 'Reseñas' hero used inside Perfil.activity matches
+   the same spacing and visual rules as the standalone Likes/Vistas pages. */
+.perfil-resenas-hero-wrap .perfil-v3-page-cover.likes-hero {
+  background: transparent;
+  padding-bottom: 8px;
+}
+
+.perfil-resenas-hero-wrap .likes-hero-copy{
+  position: absolute;
+  top: 100px;
+  left: 18px;
+  z-index: 3;
+  padding: 18px 18px;
+  max-width: 760px;
+}
+
+.perfil-resenas-hero-wrap .perfil-v3-page-cover-image{
+  object-position: center 36%;
+}
+
+.perfil-resenas-hero-wrap .perfil-v3-page-cover-shade{
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* push down the section below the nested hero so sidebar and top layout stay visible */
+.perfil-resenas-hero-wrap + .likes-section,
+.perfil-resenas-hero-wrap .likes-section {
+  margin-top: 18px;
+}
+
+.likes-title{
+  font-size: 28px;
+  margin: 0 0 6px 0;
+}
+.likes-neon-heart{display:inline-flex;align-items:center;margin-right:10px;vertical-align:middle}
+.likes-neon-heart svg{display:block;filter:drop-shadow(0 6px 12px rgba(66,230,255,0.18)) drop-shadow(0 2px 6px rgba(66,230,255,0.12));}
+.likes-neon-heart svg path{fill:transparent}
+.likes-subtitle{
+  margin: 0;
+  color: #b9e8ef;
+  opacity: 0.9;
+}
+
+.likes-tabs{
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  z-index: 4;
+}
+
+.likes-tab{
+  background: transparent;
+  color: #cdeff5;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.04);
+  cursor: pointer;
+}
+
+.likes-tab.activo{
+  background: #00b8d6; /* turquesa */
+  color: #001219;
+  border-color: rgba(0,0,0,0.08);
+  box-shadow: 0 6px 18px rgba(0,184,214,0.12);
+}
+
+.likes-hero-actions-bottom{
+  margin-top:12px;
+}
+
+.volver-perfil{
+  display:inline-block;
+  padding:8px 12px;
+  border-radius:10px;
+  background: rgba(255,255,255,0.03);
+  color: #dff8ff;
+  text-decoration:none;
+  font-weight:700;
+  border:1px solid rgba(255,255,255,0.04);
+}
+
+.volver-perfil:hover{ background: rgba(255,255,255,0.06); }
+
+.likes-section{
+  /* add more vertical breathing room under the hero */
+  margin: 40px 0;
+}
+
+.section-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+}
+
+.section-header h2{
+  margin:0;
+  color:#e9fbff;
+}
+
+.ver-todas{
+  color:#78f0ff;
+  text-decoration:none;
+  font-size:14px;
+}
+
+/* Movies row */
+.likes-movies-row{
+  display:flex;
+  gap:14px;
+  overflow-x:auto;
+  padding-bottom:8px;
+}
+
+.likes-movie-card{
+  min-width:150px;
+  width:150px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius:8px;
+  padding:8px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+}
+
+.likes-movie-poster{
+  position:relative;
+  height:220px;
+  border-radius:6px;
+  overflow:hidden;
+  background:#0b1114;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.likes-movie-poster img{width:100%;height:100%;object-fit:cover}
+
+.likes-heart{
+  position:absolute;
+  top:8px;
+  right:8px;
+  background:rgba(0,180,214,0.95);
+  color:#001219;
+  width:28px;height:28px;border-radius:999px;
+  display:inline-flex;align-items:center;justify-content:center;font-weight:700;
+  box-shadow:0 6px 14px rgba(0,184,214,0.14);
+}
+
+.likes-movie-body{padding:8px 2px}
+.likes-movie-title{font-size:14px;margin:0 0 6px 0;color:#e7fbff}
+.likes-movie-meta{font-size:12px;color:#9fdfe9}
+
+/* Reviews list */
+.likes-reviews-list{display:flex;flex-direction:column;gap:12px}
+
+.likes-review-row{
+  display:flex;
+  gap:12px;
+  padding:12px;
+  border-radius:10px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));
+  box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+  align-items:center;
+}
+
+/* Compact row layout for reviews (poster | content | meta) */
+.likes-review-row {
+  display: grid;
+  grid-template-columns: 72px 1fr 160px;
+  gap: 16px;
+  align-items: center;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.12));
+  border: 1px solid rgba(255,255,255,0.03);
+  border-radius: 10px;
+  padding: 14px 18px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+}
+
+.likes-review-poster img {
+  width: 64px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+}
+
+.likes-review-row .likes-review-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.likes-review-row .likes-review-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.likes-review-row .likes-review-title h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #e6eef3;
+}
+
+.likes-review-row .likes-review-sub {
+  color: #7fbfc9;
+  font-size: 13px;
+}
+
+.likes-review-row .likes-review-text {
+  margin: 0;
+  color: #d6e6ea;
+  line-height: 1.4;
+}
+
+.likes-review-row .likes-review-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.likes-review-row .likes-review-date {
+  color: #8fbfc9;
+  font-size: 13px;
+}
+
+.likes-review-row .likes-review-actions {
+  color: #c6d6da;
+}
+
+/* Top meta row inside each review: genres, year and stars */
+.likes-review-meta-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+.likes-review-genres,
+.likes-review-year {
+  color: #7fbfc9;
+  font-size: 13px;
+}
+.likes-review-stars {
+  color: #42e6ff; /* blue neon stars */
+  font-size: 14px;
+  margin-left: 6px;
+}
+
+/* Subline under title: year and genres */
+.likes-review-subline {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 6px;
+}
+.likes-review-title-block .likes-review-movie {
+  display: block;
+  font-weight: 700;
+  color: #e6eef3;
+  font-size: 16px;
+}
+.likes-review-year {
+  color: #9fd7dd;
+  font-size: 13px;
+}
+.likes-review-genres {
+  color: #7fbfc9;
+  font-size: 13px;
+}
+
+/* Small poster shown in review rows (instead of circular avatar) */
+.likes-review-poster{ width:64px; height:92px; border-radius:6px; overflow:hidden; background:#071015; flex:0 0 64px; display:flex; align-items:center; justify-content:center }
+.likes-review-poster img{ width:100%; height:100%; object-fit:cover; display:block }
+.poster-placeholder-small{ width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:#9fdfe9; font-size:12px }
+
+/* Right-aligned meta for list rows */
+.likes-review-row .likes-review-meta{ flex:0 0 auto; display:flex; flex-direction:column; align-items:flex-end; gap:6px }
+
+.likes-review-avatar{
+  width:52px;height:52px;border-radius:999px;background:#072029;color:#bff6ff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;
+}
+
+.likes-review-body{flex:1}
+.likes-review-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.likes-review-author{color:#e6fbff}
+.likes-review-movie{color:#9fdfe9;font-size:14px}
+.likes-review-rating{margin-left:auto;color:#ffd66b}
+
+.likes-review-text{color:#cfeef5;margin:0 0 8px 0}
+.likes-review-meta{display:flex;align-items:center;gap:12px}
+.videoteca-review-like-btn{background:transparent;border:none;color:#ff6b6b;display:flex;align-items:center;gap:6px;cursor:pointer}
+.likes-review-time{color:#9fdfe9;font-size:13px}
+
+/* Responsive tweaks */
+@media (max-width:800px){
+  /* keep Perfil responsive hero rules; only adjust likes-specific copy */
+
+  .likes-hero-copy{
+    padding: 18px 18px;
+  }
+
+  .likes-movie-card{min-width:120px;width:120px}
+  .likes-movie-poster{height:180px}
+  .likes-title{font-size:22px}
+}
+
+/* Do not override `.perfil-v3-content` padding; Perfil's rules apply for exact parity. */
+
+/* Move only the hero image crop upward on Likes so a different area is visible. */
+.likes-page .perfil-v3-page-cover-image{
+  object-position: center 36%;
+}
+
+/* Also enforce background-position on the cover in case a fallback background-image is used */
+.likes-page.perfil-v3-page-cover {
+  background-position: center 36% !important;
+}
+
+/* Hide scroll bar but keep scrolling */
+.likes-movies-row::-webkit-scrollbar{height:8px}
+.likes-movies-row::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.06);border-radius:999px}
+
+/* Apply soft left-side shade on the existing shade layer so it is visible
+   above the image and below the copy (reliable stacking). */
+.likes-page .perfil-v3-page-cover-shade{
+  pointer-events: none;
+  z-index: 1;
+  background:
+    /* narrower left-side darkening: strong until ~25% then fade out */
+    linear-gradient(90deg, rgba(6,10,18,0.96) 0%, rgba(6,10,18,0.72) 29%, rgba(6,10,18,0) 100%),
+    radial-gradient(920px 320px at 54% -2%, rgba(43, 211, 255, 0.18), transparent 60%),
+    linear-gradient(180deg, rgba(6, 10, 18, 0.02) 0%, rgba(6, 10, 18, 0.42) 72%, rgba(6, 10, 18, 0.7) 100%);
+}
+
+/* On the Likes page push the main content further down so tabs and sections
+   appear lower under the hero. Adds 40px extra spacing to Perfil's clamp(). */
+.likes-page.perfil-v3-content{
+  padding-top: calc(clamp(360px, 56vh, 720px) + 40px);
+}
+
+/* Ensure volver-perfil is visible inside perfil heroes (force position over shade) */
+.perfil-v3-page-cover .volver-perfil {
+  position: absolute;
+  left: 28px;
+  top: 160px; /* aligns near likes-hero-copy */
+  z-index: 40;
+  display: inline-block;
+  padding: 8px 12px;
+}
+
+@media (max-width: 800px) {
+  .perfil-v3-page-cover .volver-perfil { left: 16px; top: 120px; }
+}
+
+/* When the volver link is inside the hero copy, render it inline under the subtitle */
+.likes-hero-copy .volver-perfil {
+  position: static;
+  left: auto;
+  top: auto;
+  z-index: auto;
+  display: inline-block;
+  margin-top: 12px;
+}
+
+/* Add a small left margin so content isn't flush against the sidebar */
+.likes-page.home-main {
+  padding-left: 20px; /* small offset from the sidebar */
+}
+
+@media (max-width: 800px) {
+  .likes-page.home-main { padding-left: 12px; }
+}
+

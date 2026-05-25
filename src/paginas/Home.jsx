@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import WizardSidebar from '../componentes/WizardSidebar';
 import mockupPhone from '../assets/mockup-phone.png';
 import mockupComputer from '../assets/mockup-computer.png';
 import mockupTablet from '../assets/mockup-tablet.png';
@@ -11,14 +12,7 @@ import mockupThirdBoxHeroPortrait from '../assets/mockup-third-box-hero-portrait
 import mockupFourthBoxPortraitGreen from '../assets/mockup-fourth-box-portrait-green.png';
 import './Home.css';
 
-const menuLinks = [
-  { label: 'Inicio', to: '/', icon: '⌂', active: true },
-  { label: 'Explorar', to: '/explorar', icon: '◎' },
-  { label: 'Cuestionario', to: '/cuestionario', icon: '✦' },
-  { label: 'Mi videoteca', to: '/videoteca', icon: '☰' },
-  { label: 'Mood', to: '/mood', icon: '◌' },
-  { label: 'Perfil', to: '/perfil', icon: '◯' },
-];
+
 
 const stats = [
   { value: '10K+', label: 'Películas' },
@@ -165,21 +159,11 @@ function createPosterArtwork(title, year, genre, theme) {
 function Home() {
   const [query, setQuery] = useState('');
   const [openFaqIndex, setOpenFaqIndex] = useState(-1);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const { currentUser } = useAuth();
 
-  const visibleMenuLinks = menuLinks.filter((link) => {
-    if (['Mood'].includes(link.label)) {
-      return false;
-    }
+  
 
-    if (!currentUser && ['Mi videoteca', 'Perfil'].includes(link.label)) {
-      return false;
-    }
-
-    return true;
-  });
 
   function handleSearch(e) {
     e.preventDefault();
@@ -190,48 +174,7 @@ function Home() {
 
   return (
     <div className="home-page">
-      <aside className={`home-sidebar${isSidebarOpen ? ' open' : ''}`}>
-        <div className="sidebar-shell">
-          <div className="sidebar-top">
-            <div className="sidebar-brand">
-              <div className="brand-mark">M</div>
-              <div>
-                <p className="brand-title">MoviMood</p>
-                <p className="brand-subtitle">Tu cine personalizado</p>
-              </div>
-            </div>
-            <button
-              type="button"
-              className="sidebar-toggle"
-              aria-expanded={isSidebarOpen}
-              aria-controls="home-sidebar-panel"
-              onClick={() => setIsSidebarOpen((value) => !value)}
-            >
-              <span className="sidebar-toggle-icon" aria-hidden="true">☰</span>
-              <span className="sidebar-toggle-text">Menú</span>
-            </button>
-          </div>
-          <div id="home-sidebar-panel" className={`sidebar-panel${isSidebarOpen ? ' open' : ''}`}>
-            <nav className="sidebar-nav" aria-label="Navegación principal">
-              {visibleMenuLinks.map((link) => (
-                <Link
-                  key={link.label}
-                  to={link.to}
-                  className={`sidebar-link${link.active ? ' active' : ''}`}
-                  aria-current={link.active ? 'page' : undefined}
-                  onClick={() => setIsSidebarOpen(false)}
-                >
-                  <span className="sidebar-link-icon" aria-hidden="true">{link.icon}</span>
-                  <span>{link.label}</span>
-                </Link>
-              ))}
-            </nav>
-            <div className="sidebar-footer">
-              <p>Recomendaciones basadas en tu mood y preferencias.</p>
-            </div>
-          </div>
-        </div>
-      </aside>
+      <WizardSidebar activeLabel="Inicio" />
 
       <main className="home-main">
 

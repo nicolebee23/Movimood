@@ -1,0 +1,118 @@
+/* Colecciones page styles (dark theme, grid like design) */
+.colecciones-page { display: flex; }
+.colecciones-main { flex: 1; padding: 28px 40px; background: linear-gradient(180deg,#071217 0%, #031018 100%); min-height: 100vh; }
+.colecciones-hero { border-radius: 14px; padding: 28px; color: #e6f8ff; margin-bottom: 20px; position:relative; overflow:hidden;
+  background: linear-gradient(135deg, #06282b 0%, #042026 60%, #021018 100%);
+}
+.colecciones-hero::before { content: ''; position:absolute; inset:0; background: radial-gradient(circle at 20% 20%, rgba(44,207,209,0.06), transparent 12%), radial-gradient(circle at 80% 80%, rgba(59,220,239,0.04), transparent 18%); mix-blend-mode: overlay; pointer-events:none; }
+.colecciones-hero-inner { max-width: 1100px; position:relative; z-index:1; }
+.colecciones-title { font-size: 1.9rem; margin: 0 0 6px; }
+.colecciones-subtitle { color: #9fbfcf; margin: 0 0 16px; }
+.colecciones-actions { display: flex; gap: 12px; align-items: center; }
+.colecciones-sort select { background: rgba(255,255,255,0.04); color: #d9f6ff; border: 1px solid rgba(255,255,255,0.05); padding: 8px 10px; border-radius: 8px; }
+
+.colecciones-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin: 18px 0 28px; }
+.stat-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.03); padding: 16px; border-radius: 12px; color: #cfeffb; display:flex; flex-direction:column; gap:6px; }
+.stat-card strong { font-size: 0.7rem; color:#86d1e6; }
+.stat-card span { font-size: 1.15rem; font-weight:700; }
+.colecciones-controls .colecciones-search { max-width: 420px; }
+.colecciones-view-toggle button { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.03); color:#cfeffb; padding:8px 10px; margin-left:6px; border-radius:8px; }
+.colecciones-view-toggle button[aria-pressed="true"] { background: linear-gradient(90deg, rgba(86,206,213,0.12), rgba(86,206,213,0.06)); border-color: rgba(86,206,213,0.25); }
+
+.colecciones-grid-wrap { max-width: 1100px; }
+.colecciones-search-row { display:flex; gap:12px; align-items:center; margin-bottom: 16px; }
+.colecciones-search { flex:1; background: rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04); padding: 10px 12px; border-radius: 10px; color:#e6f8ff; }
+.colecciones-view-toggle button { background: rgba(255,255,255,0.02); border: none; color:#cfeffb; padding:8px 10px; margin-left:6px; border-radius:8px; }
+
+.colecciones-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.coleccion-card { background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius: 12px; overflow: hidden; display:flex; flex-direction:column; min-height: 180px; }
+.coleccion-poster { background-size:cover; background-position:center; height:140px; }
+.coleccion-poster.has-thumbs { display: none; }
+.coleccion-meta { padding: 10px 12px; color:#e6f8ff; display:flex; justify-content:space-between; align-items:flex-start; }
+.coleccion-meta h3 { margin:0; font-size:1.15rem; line-height:1.1; }
+.coleccion-meta p { margin:0; color:#9fbfcf; font-size:0.85rem; }
+.coleccion-poster--placeholder { background: linear-gradient(90deg, rgba(0,0,0,0.2), rgba(0,0,0,0.35)); height:120px; }
+.coleccion-actions { display:flex; gap:8px; align-items:center; flex-shrink:0; margin-left:8px; }
+
+/* Left meta block stacks its contents with spacing so the count doesn't stick to the buttons */
+.coleccion-meta > div:first-child { min-width: 0; display:flex; flex-direction:column; gap:8px; }
+.coleccion-meta h3 { margin:0; font-size:1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.coleccion-meta p { margin:0; color:#9fbfcf; font-size:0.85rem; overflow: hidden; text-overflow: ellipsis; }
+
+.coleccion-stats-row { display:flex; gap:10px; align-items:center; margin-top:8px; }
+.coleccion-count { color:#cfeffb; font-size:0.9rem; }
+.coleccion-progress { flex:1; }
+.coleccion-progress-bar { background: rgba(255,255,255,0.03); height:8px; border-radius:6px; overflow:hidden; }
+.coleccion-progress-bar > div { background: linear-gradient(90deg,#56ced5,#2ec4d6); height:100%; }
+
+/* Small count below title */
+.coleccion-meta small { display:block; margin-top:4px; color:#cfeffb; }
+
+/* Override global .btn min-width inside collection cards so buttons don't overflow */
+.coleccion-card .btn { min-width: 0; padding: 8px 12px; font-size: 0.9rem; border-radius: 10px; }
+
+/* Allow actions to wrap on very small widths instead of being cut off */
+.coleccion-actions { flex-wrap: wrap; }
+.btn-small { padding:6px 8px; font-size:0.85rem; border-radius:8px; background:rgba(255,255,255,0.03); color:#e6f8ff; border:1px solid rgba(255,255,255,0.04); }
+.btn-danger { background: rgba(255,80,80,0.12); border-color: rgba(255,80,80,0.18); }
+
+.colecciones-empty-state { max-width:700px; padding:28px 0; }
+.colecciones-empty-title { font-size:1.1rem; color:#e6f8ff; }
+.colecciones-empty-desc { color:#9fbfcf; margin:8px 0 18px; }
+
+.modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:60; }
+.colecciones-modal { background:#041014; padding:20px; border-radius:12px; width:420px; border:1px solid rgba(255,255,255,0.04); }
+.colecciones-modal h2 { margin:0 0 12px; }
+.colecciones-modal label { display:block; margin-bottom:10px; color:#cfeffb; }
+.colecciones-modal input, .colecciones-modal textarea { width:100%; padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.04); background:rgba(255,255,255,0.02); color:#e6f8ff; }
+.modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:12px; }
+
+.coleccion-detail-modal { background:#041014; padding:18px; border-radius:12px; width:880px; max-width:95%; color:#e6f8ff; border:1px solid rgba(255,255,255,0.04); }
+.coleccion-detail-modal { background:#041014; padding:18px; border-radius:12px; width:880px; max-width:95%; color:#e6f8ff; border:1px solid rgba(255,255,255,0.04); max-height: 84vh; overflow: auto; }
+.coleccion-detail-body { display:flex; gap:18px; margin-top:12px; }
+.coleccion-posters-grid { display:grid; grid-template-columns: repeat(4,1fr); gap:12px; flex:1; max-height: 52vh; overflow: auto; padding-right: 6px; }
+.movie-thumb { background:#021213; border-radius:8px; padding:6px; display:flex; flex-direction:column; gap:6px; align-items:center; }
+.movie-thumb img { width:100%; border-radius:6px; display:block; }
+.movie-thumb img { order: 0; }
+.movie-thumb .btn { order: 1; margin-top:8px; width:100%; }
+.coleccion-posters-grid { align-items: start; }
+.coleccion-empty-posters { color:#9fbfcf; padding:18px; border:1px dashed rgba(255,255,255,0.03); border-radius:8px; }
+.coleccion-add-movie { width:360px; }
+.search-results { margin-top:10px; max-height:360px; overflow:auto; display:flex; flex-direction:column; gap:8px; }
+.search-result-item { display:flex; gap:10px; align-items:center; padding:6px; border-radius:8px; background:rgba(255,255,255,0.02); }
+.search-result-item img { width:48px; border-radius:4px; }
+.sr-meta { flex:1; }
+.search-result-item .btn { margin-left:8px; }
+.error { color:#ff9b9b; }
+.colecciones-no-results { color:#9fbfcf; padding:8px 6px; }
+
+/* Thumbnail strip inside collection card */
+.coleccion-preview-thumbs { display:flex; gap:8px; padding:8px 12px 12px; align-items:center; }
+.coleccion-preview-thumbs img { width:52px; height:76px; object-fit:cover; border-radius:6px; display:block; box-shadow: 0 6px 18px rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.03); }
+.coleccion-preview-empty { color:#9fbfcf; font-size:0.85rem; }
+
+@media (max-width: 900px){
+  .coleccion-preview-thumbs img { width:44px; height:64px; }
+}
+
+@media (max-width: 900px){
+  .colecciones-grid { grid-template-columns: repeat(2,1fr); }
+  .colecciones-stats { grid-template-columns: repeat(2,1fr); }
+}
+
+/* List view adjustments */
+.colecciones-grid.list { display:flex; flex-direction:column; gap:12px; }
+.colecciones-grid.list .coleccion-card { flex-direction:row; align-items:stretch; min-height: 120px; }
+.colecciones-grid.list .coleccion-poster { width:150px; height:100%; flex-shrink:0; }
+.colecciones-grid.list .coleccion-meta { padding:12px; display:flex; justify-content:space-between; align-items:center; }
+
+@media (max-width: 600px){
+  .colecciones-controls { flex-direction:column; align-items:stretch; }
+  .colecciones-view-toggle { margin-left:0; }
+}
+
+@media (max-width: 600px){
+  .colecciones-page { flex-direction: column; }
+  .colecciones-grid { grid-template-columns: 1fr; }
+  .colecciones-stats { grid-template-columns: 1fr; }
+}

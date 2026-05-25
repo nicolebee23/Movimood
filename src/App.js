@@ -12,6 +12,11 @@ import RecuperarPassword from './paginas/RecuperarPassword';
 import Resultados from './paginas/Resultados';
 import Videoteca from './paginas/Videoteca';
 import Perfil from './paginas/Perfil';
+import Colecciones from './paginas/Colecciones';
+import Likes from './paginas/Likes';
+import Seguidos from './paginas/Seguidos';
+import Seguidores from './paginas/Seguidores';
+import Vistas from './paginas/Vistas';
 import Configuracion from './paginas/Configuracion';
 import Buscar from './paginas/Buscar';
 import Explorar from './paginas/Explorar';
@@ -49,9 +54,14 @@ function AppContent({ currentUser, logout }) {
         <Route path="/cuestionario" element={<ProtectedRoute><Cuestionario /></ProtectedRoute>} />
         <Route path="/resultados" element={<Resultados />} />
         <Route path="/videoteca" element={<ProtectedRoute><Videoteca /></ProtectedRoute>} />
+        <Route path="/likes" element={<ProtectedRoute><Likes /></ProtectedRoute>} />
+        <Route path="/seguidos" element={<ProtectedRoute><Seguidos /></ProtectedRoute>} />
+        <Route path="/seguidores" element={<ProtectedRoute><Seguidores /></ProtectedRoute>} />
+        <Route path="/vistas" element={<ProtectedRoute><Vistas /></ProtectedRoute>} />
         <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
         <Route path="/configuracion" element={<ProtectedRoute><Configuracion /></ProtectedRoute>} />
         <Route path="/perfil/:id" element={<Perfil />} />
+        <Route path="/colecciones" element={<ProtectedRoute><Colecciones /></ProtectedRoute>} />
         <Route path="/buscar" element={<Buscar />} />
         <Route path="/explorar" element={<Explorar />} />
         <Route path="/pelicula/:id" element={<Pelicula />} />

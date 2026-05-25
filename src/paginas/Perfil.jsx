@@ -1,24 +1,22 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, Navigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useFavoritos, LISTAS } from '../hooks/useFavoritos';
 import { useMovieReviews } from '../hooks/useMovieReviews';
 import { hasApiBaseUrl, requestJson } from '../utils/movimoodApi';
 import { genreIdToName } from '../utils/recommendations';
+import useReviewLikes from '../hooks/useReviewLikes';
 import './Perfil.css';
+import './Likes.css';
+import WizardSidebar from '../componentes/WizardSidebar';
+import perfilMovimoodCover from '../assets/perfil-movimood-cover.png';
+import { Heart, User, Users, Film, Star } from 'lucide-react';
 
 const PROFILE_FAVORITES_KEY = 'movimood-profile-favorites';
 const REVIEW_LIKES_KEY = 'movimood-review-likes';
 const FAVORITOS_STORAGE_KEY = 'movimood-favoritos';
 const MAX_PROFILE_FAVORITES = 4;
 const REVIEW_PREVIEW_MAX_CHARS = 220;
-const PROFILE_TABS = [
-  { id: 'general', label: 'General' },
-  { id: 'colecciones', label: 'Colecciones' },
-  { id: 'actividad', label: 'Actividad' },
-  { id: 'seguidos', label: 'Seguidos' },
-  { id: 'seguidores', label: 'Seguidores' },
-];
 
 const MOOD_EMOJIS = {
   Triste: '🌧️',
@@ -51,6 +49,10 @@ const MOOD_NORMALIZATION_MAP = {
   motivado: 'Motivado',
   enojado: 'Enojado',
   emocionado: 'Emocionado',
+};
+
+const MOOD_DISPLAY_NAMES = {
+  Enojado: 'Enfadado',
 };
 
 function normalizeMovie(movie) {
@@ -117,6 +119,89 @@ function mergeMovieCandidates(fallbackMovieId, candidates) {
   };
 }
 
+function getMovieGenreNames(movie) {
+  if (!movie) {
+    return [];
+  }
+
+  if (Array.isArray(movie.genre_ids) && movie.genre_ids.length) {
+    const mapped = movie.genre_ids
+      .map((id) => genreIdToName[id] || genreIdToName[Number(id)])
+      .filter(Boolean);
+    if (mapped.length > 0) {
+      return mapped;
+    }
+  }
+
+  if (Array.isArray(movie.genres) && movie.genres.length) {
+    const mapped = movie.genres
+      .map((genre) => (typeof genre === 'string' ? genre : (genre && (genre.name || genre.title)) || null))
+      .filter(Boolean);
+    if (mapped.length > 0) {
+      return mapped;
+    }
+  }
+
+  if (movie.genre_names && typeof movie.genre_names === 'string') {
+    const mapped = movie.genre_names.split(',').map((part) => part.trim()).filter(Boolean);
+    if (mapped.length > 0) {
+      return mapped;
+    }
+  }
+
+  if (movie.genres && typeof movie.genres === 'string') {
+    const mapped = movie.genres.split(',').map((part) => part.trim()).filter(Boolean);
+    if (mapped.length > 0) {
+      return mapped;
+    }
+  }
+
+  return [];
+}
+
+function MovieGenreLabel({ movie }) {
+  const movieId = movie?.id || movie?.tmdb_id || movie?.movie_id || null;
+  const [genres, setGenres] = useState(() => getMovieGenreNames(movie));
+
+  useEffect(() => {
+    let cancelled = false;
+    const localGenres = getMovieGenreNames(movie);
+    if (localGenres.length > 0) {
+      setGenres(localGenres);
+      return undefined;
+    }
+
+    if (!movieId) {
+      setGenres([]);
+      return undefined;
+    }
+
+    requestJson('/tmdb-movie.php', { params: { id: movieId } })
+      .then((data) => {
+        if (cancelled) {
+          return;
+        }
+        const remoteGenres = getMovieGenreNames(data);
+        setGenres(remoteGenres);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setGenres([]);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [movieId, movie]);
+
+  return (
+    <span className="likes-review-genres">
+      {genres.length > 0 ? genres.slice(0, 2).join(' · ') : 'Sin género'}
+    </span>
+  );
+}
+
 function movieKey(movieId) {
   if (movieId === null || movieId === undefined) {
     return '';
@@ -140,6 +225,10 @@ function normalizeMoodName(mood) {
     .toLowerCase();
 
   return MOOD_NORMALIZATION_MAP[normalized] || null;
+}
+
+function getMoodDisplayName(mood) {
+  return MOOD_DISPLAY_NAMES[mood] || mood;
 }
 
 function getQuestionnaireMoods(questionnaire) {
@@ -379,6 +468,8 @@ function loadReviewsFromStorage(profileId) {
 function Perfil() {
   const { id: routeProfileId } = useParams();
   const { currentUser, getUserById } = useAuth();
+  const location = useLocation();
+  const query = new URLSearchParams(location.search);
   const { favoritos } = useFavoritos();
   const { getReviewsByProfile } = useMovieReviews();
 
@@ -412,7 +503,7 @@ function Perfil() {
   const [hasAnimatedRadarData, setHasAnimatedRadarData] = useState(false);
   const [hasAnimatedRadarGhost, setHasAnimatedRadarGhost] = useState(false);
 
-  const resolvedProfileId = routeProfileId || currentUser?.id || null;
+  const resolvedProfileId = routeProfileId || query.get('user_id') || currentUser?.id || null;
   const viewedUser = resolvedProfileId
     ? (getUserById(resolvedProfileId) || (currentUser?.id === resolvedProfileId ? currentUser : null))
     : null;
@@ -864,6 +955,7 @@ function Perfil() {
     [activeFavorites, storedWatchedFavorites]
   );
 
+  // Count moods only from movies marked as "YA_VISTA" (watched favorites)
   const moodStats = useMemo(() => {
     const moodKeys = Object.keys(MOOD_EMOJIS);
     const counts = moodKeys.reduce((accumulator, mood) => {
@@ -1008,68 +1100,6 @@ function Perfil() {
     [genreCounts]
   );
 
-  const selectedRadarMoodInfo = useMemo(() => {
-    if (!moodRadarData.hasData) {
-      return null;
-    }
-
-    const sortedByCount = [...moodRadarData.coordinates]
-      .filter((point) => point.value > 0)
-      .sort((left, right) => right.value - left.value);
-    const fallbackMood = sortedByCount[0]?.mood || null;
-    const selectedPoint = moodRadarData.coordinates.find((point) => point.mood === selectedRadarMood);
-    const activeMood = selectedPoint && selectedPoint.value > 0
-      ? selectedPoint.mood
-      : fallbackMood;
-
-    if (!activeMood) {
-      return null;
-    }
-
-    const activePoint = moodRadarData.coordinates.find((point) => point.mood === activeMood);
-    const count = activePoint?.value || 0;
-    const percentage = moodRadarData.totalCount > 0
-      ? Math.round((count / moodRadarData.totalCount) * 100)
-      : 0;
-    const topTitles = recentActivity
-      .filter((item) => item.mood === activeMood)
-      .slice(0, 3)
-      .map((item) => item.movie?.title)
-      .filter(Boolean);
-
-    return {
-      mood: activeMood,
-      count,
-      percentage,
-      topTitles,
-    };
-  }, [moodRadarData, recentActivity, selectedRadarMood]);
-
-  const moviesSeenCount = useMemo(() => {
-    const seenIds = new Set();
-
-    activeFavorites.forEach((fav) => {
-      if (fav.lista === LISTAS.YA_VISTA && fav.movie?.id) {
-        seenIds.add(fav.movie.id);
-      }
-    });
-
-    return seenIds.size;
-  }, [activeFavorites]);
-  const likesByReviewId = useMemo(() => loadReviewLikesByReviewId(), []);
-  const likesCount = useMemo(() => {
-    return activeReviews.reduce((total, review) => total + (likesByReviewId.get(review.id) || 0), 0);
-  }, [activeReviews, likesByReviewId]);
-  const followingCount = Number(
-    viewedUser?.followingCount || viewedUser?.seguidosCount || viewedUser?.following?.length || 0
-  );
-  const followersCount = Number(profileFollowersCount ?? viewedUser?.followersCount ?? 0);
-
-  const likedActivity = useMemo(
-    () => recentActivity.filter((item) => (likesByReviewId.get(item.id) || 0) > 0),
-    [likesByReviewId, recentActivity]
-  );
-
   const watchedActivity = useMemo(() => {
     const moviesById = new Map();
     const seenFavorites = [...activeFavorites]
@@ -1095,6 +1125,142 @@ function Perfil() {
 
     return Array.from(moviesById.values());
   }, [activeFavorites]);
+
+  const selectedRadarMoodInfo = useMemo(() => {
+    if (!moodRadarData.hasData) {
+      return null;
+    }
+
+    const sortedByCount = [...moodRadarData.coordinates]
+      .filter((point) => point.value > 0)
+      .sort((left, right) => right.value - left.value);
+    const fallbackMood = sortedByCount[0]?.mood || null;
+    const selectedPoint = moodRadarData.coordinates.find((point) => point.mood === selectedRadarMood);
+    const activeMood = selectedPoint && selectedPoint.value > 0
+      ? selectedPoint.mood
+      : fallbackMood;
+
+    if (!activeMood) {
+      return null;
+    }
+
+    const activePoint = moodRadarData.coordinates.find((point) => point.mood === activeMood);
+    const count = activePoint?.value || 0;
+    const percentage = moodRadarData.totalCount > 0
+      ? Math.round((count / moodRadarData.totalCount) * 100)
+      : 0;
+    const topTitles = watchedActivity
+      .filter((item) => item.mood === activeMood)
+      .slice(0, 3)
+      .map((item) => item.movie?.title)
+      .filter(Boolean);
+
+    return {
+      mood: activeMood,
+      count,
+      percentage,
+      topTitles,
+    };
+  }, [moodRadarData, selectedRadarMood, watchedActivity]);
+
+  const moviesSeenCount = useMemo(() => {
+    const seenIds = new Set();
+
+    activeFavorites.forEach((fav) => {
+      if (fav.lista === LISTAS.YA_VISTA && fav.movie?.id) {
+        seenIds.add(fav.movie.id);
+      }
+    });
+
+    return seenIds.size;
+  }, [activeFavorites]);
+  const [movieGenresCache, setMovieGenresCache] = useState({});
+  const navigate = useNavigate();
+  const reviewLikes = useReviewLikes();
+  const [likesByReviewId, setLikesByReviewId] = useState(() => loadReviewLikesByReviewId());
+  const [profileLikedReviewsCount, setProfileLikedReviewsCount] = useState(0);
+
+  // Keep likesByReviewId in sync with localStorage fallback and reviewLikes.counts
+  useEffect(() => {
+    // update from hook counts first
+    try {
+      setLikesByReviewId(loadReviewLikesByReviewId());
+    } catch (e) {
+      // ignore
+    }
+
+    const onStorage = (ev) => {
+      if (ev.key === REVIEW_LIKES_KEY || ev.key === null) {
+        setLikesByReviewId(loadReviewLikesByReviewId());
+      }
+    };
+
+    window.addEventListener('storage', onStorage);
+
+    return () => window.removeEventListener('storage', onStorage);
+  }, [reviewLikes.counts]);
+
+  // Load count of reviews this profile has liked (public) or current user's liked reviews
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadLikedCount() {
+      if (!viewedUser?.id) {
+        setProfileLikedReviewsCount(0);
+        return;
+      }
+
+      try {
+        if (isOwnProfile) {
+          const items = await reviewLikes.fetchUserLikedReviews();
+          if (!cancelled) setProfileLikedReviewsCount(Array.isArray(items) ? items.length : 0);
+        } else {
+          const resp = await requestJson('movimood.php', { params: { resource: 'review-likes', user_id: viewedUser.id } });
+          const items = Array.isArray(resp?.items) ? resp.items : [];
+          if (!cancelled) setProfileLikedReviewsCount(items.length);
+        }
+      } catch (e) {
+        if (!cancelled) setProfileLikedReviewsCount(0);
+      }
+    }
+
+    loadLikedCount();
+
+    return () => { cancelled = true; };
+  }, [viewedUser?.id, isOwnProfile, reviewLikes]);
+  const backToProfile = viewedUser?.id ? `/perfil/${encodeURIComponent(viewedUser.id)}` : (resolvedProfileId ? `/perfil/${encodeURIComponent(resolvedProfileId)}` : '/perfil');
+
+  useEffect(() => {
+    if (location.state?.resetTab === 'general') {
+      setActiveTab('general');
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.pathname, location.state, navigate]);
+  const likesCount = useMemo(() => {
+      // count only favorite movies marked as 'imprescindible'
+      const movieIds = new Set();
+      (Array.isArray(activeFavorites) ? activeFavorites : []).forEach((fav) => {
+        if (!fav || !fav.movie || !fav.movie.id) return;
+        if (!fav.flags?.imprescindible) return;
+        movieIds.add(fav.movie.id);
+      });
+
+      const moviesTotal = movieIds.size;
+
+      // count reviews that this profile has liked
+      const reviewsTotal = Number(profileLikedReviewsCount || 0);
+
+      return moviesTotal + reviewsTotal;
+    }, [profileLikedReviewsCount, activeFavorites]);
+  const followingCount = Number(
+    viewedUser?.followingCount || viewedUser?.seguidosCount || viewedUser?.following?.length || 0
+  );
+  const followersCount = Number(profileFollowersCount ?? viewedUser?.followersCount ?? 0);
+
+  const likedActivity = useMemo(
+    () => recentActivity.filter((item) => (likesByReviewId.get(item.id) || 0) > 0),
+    [likesByReviewId, recentActivity]
+  );
 
   const activityItems = useMemo(() => {
     let baseItems;
@@ -1170,33 +1336,126 @@ function Perfil() {
     watchedActivity,
   ]);
 
+  // Fetch genres for movies that don't include them in the activity payload.
+  useEffect(() => {
+    const idsToFetch = Array.from(new Set(
+      activityItems
+        .map((it) => it.movie && (it.movie.id || it.movie.tmdb_id || it.movie.movie_id))
+        .filter(Boolean)
+        .filter((id) => !movieGenresCache[id])
+    ));
+
+    if (idsToFetch.length === 0) return;
+
+    let cancelled = false;
+
+    Promise.all(idsToFetch.map((id) =>
+      requestJson('/tmdb-movie.php', { params: { id } })
+        .then((data) => {
+          const names = (data && data.genres && Array.isArray(data.genres))
+            ? data.genres.map((g) => (typeof g === 'string' ? g : g.name)).filter(Boolean)
+            : [];
+          return [id, names];
+        })
+        .catch(() => [id, []])
+    ))
+      .then((pairs) => {
+        if (cancelled) return;
+        setMovieGenresCache((prev) => {
+          const copy = { ...prev };
+          pairs.forEach(([id, names]) => { copy[id] = names; });
+          return copy;
+        });
+      });
+
+    return () => { cancelled = true; };
+  }, [activityItems, movieGenresCache]);
+
   function openMetricDestination(metric) {
     if (metric === 'seguidos') {
-      setActiveTab('seguidos');
-      return;
+      try {
+        if (isOwnProfile) {
+          navigate('/seguidos');
+        } else if (viewedUser?.id) {
+          navigate(`/seguidos?user_id=${encodeURIComponent(viewedUser.id)}`);
+        } else {
+          navigate('/seguidos');
+        }
+        return;
+      } catch (e) {
+        setActiveTab('seguidos');
+        return;
+      }
     }
 
     if (metric === 'seguidores') {
-      setActiveTab('seguidores');
-      return;
+      try {
+        if (isOwnProfile) {
+          navigate('/seguidores');
+        } else if (viewedUser?.id) {
+          navigate(`/seguidores?user_id=${encodeURIComponent(viewedUser.id)}`);
+        } else {
+          navigate('/seguidores');
+        }
+        return;
+      } catch (e) {
+        setActiveTab('seguidores');
+        return;
+      }
     }
 
     setActiveTab('actividad');
     setActivityMoodFilter('all');
 
     if (metric === 'likes') {
-      setActivityFilter('likes');
-      return;
+      // open dedicated Likes page for viewed user (or own likes if own profile)
+      try {
+        if (isOwnProfile) {
+          navigate('/likes');
+        } else if (viewedUser?.id) {
+          navigate(`/likes?user_id=${encodeURIComponent(viewedUser.id)}`);
+        } else {
+          navigate('/likes');
+        }
+        return;
+      } catch (e) {
+        // fallback to current behavior
+        setActivityFilter('likes');
+        return;
+      }
     }
 
     if (metric === 'vistas') {
-      setActivityFilter('vistas');
-      return;
+      try {
+        if (isOwnProfile) {
+          navigate('/vistas');
+        } else if (viewedUser?.id) {
+          navigate(`/vistas?user_id=${encodeURIComponent(viewedUser.id)}`);
+        } else {
+          navigate('/vistas');
+        }
+        return;
+      } catch (e) {
+        setActivityFilter('vistas');
+        return;
+      }
     }
 
     if (metric === 'resenas') {
-      setActivityFilter('resenas');
-      return;
+      try {
+        if (isOwnProfile) {
+          navigate('/likes?tab=resenas');
+        } else if (viewedUser?.id) {
+          navigate(`/likes?user_id=${encodeURIComponent(viewedUser.id)}&tab=resenas`);
+        } else {
+          navigate('/likes?tab=resenas');
+        }
+        return;
+      } catch (e) {
+        setActiveTab('actividad');
+        setActivityFilter('resenas');
+        return;
+      }
     }
 
     setActivityFilter('all');
@@ -1204,7 +1463,7 @@ function Perfil() {
 
   function openMoodActivity(mood) {
     setActiveTab('actividad');
-    setActivityFilter('resenas');
+    setActivityFilter('vistas');
     setActivityMoodFilter(mood);
   }
 
@@ -1274,35 +1533,10 @@ function Perfil() {
   }
 
   return (
-    <div className="pagina-principal perfil-page perfil-v3-page">
-      <div className="perfil-v3-shell">
-        <aside className="perfil-v3-sidebar">
-          <div className="perfil-v3-sidebar-head">
-            <p className="perfil-v3-kicker">{isOwnProfile ? 'Mi espacio' : 'Perfil publico'}</p>
-            <h1>{isOwnProfile ? 'Mi perfil' : viewedUser.name}</h1>
-            {viewedUser.username && <p className="perfil-v3-handle">@{viewedUser.username}</p>}
-          </div>
+    <div className="home-page perfil-page perfil-v3-page">
+      <WizardSidebar activeLabel="Perfil" footerText="Tu perfil" />
 
-          <nav className="perfil-v3-nav" aria-label="Secciones del perfil">
-            {PROFILE_TABS.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                className={`perfil-v3-nav-item${activeTab === tab.id ? ' active' : ''}`}
-                onClick={() => setActiveTab(tab.id)}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </nav>
-
-          <div className="perfil-v3-sidebar-foot">
-            <Link to="/" className="perfil-v3-link-ghost">Inicio</Link>
-            {isOwnProfile && <Link to="/configuracion" className="perfil-v3-link-main">Configuracion</Link>}
-          </div>
-        </aside>
-
-        <main className="perfil-v3-content">
+      <main className="home-main perfil-v3-content likes-page">
           {activeTab === 'general' && (
             <section className="perfil-v3-tab-panel">
               {isOwnProfile && !moodRadarData.hasData && (
@@ -1312,7 +1546,7 @@ function Perfil() {
                     <p>Empieza a entrenar tu perfil con tu actividad.</p>
                   </div>
                   <p className="perfil-v3-radar-callout-copy">
-                    El radar se rellena cuando puntúas o reseñas películas desde tu videoteca. Si no quieres escribir,
+                    El radar se rellena cuando marcas películas como ya vistas desde tu videoteca. Si no quieres escribir,
                     puedes guardar solo una puntuación y el mood quedará registrado igualmente.
                   </p>
                   <div className="perfil-v3-radar-callout-actions">
@@ -1321,64 +1555,79 @@ function Perfil() {
                 </article>
               )}
 
-              <article className="perfil-v3-card perfil-v3-profile-card">
-                <div className="perfil-v3-profile-head">
-                  {viewedUser.avatar ? (
-                    <img className="perfil-v3-avatar" src={viewedUser.avatar} alt={`Avatar de ${viewedUser.name}`} />
-                  ) : (
-                    <div className="perfil-v3-avatar perfil-v3-avatar-fallback">{getInitials(viewedUser.name)}</div>
-                  )}
+              {/* Page hero cover: full-width background image that sits behind the content */}
+              <div
+                className="perfil-v3-page-cover likes-hero"
+                aria-hidden="true"
+                style={{
+                  backgroundImage: "url('/assets/perfil/perfil-movimood-cover.png')",
+                  backgroundRepeat: 'no-repeat',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                }}
+              >
+                <picture>
+                  <source srcSet="/assets/perfil/perfil-movimood-cover.webp" type="image/webp" />
+                  <source srcSet="/assets/perfil/perfil-movimood-cover.png" type="image/png" />
+                  <img
+                    className="perfil-v3-page-cover-image"
+                    src={perfilMovimoodCover}
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    alt=""
+                    aria-hidden="true"
+                  />
+                </picture>
+                <div className="perfil-v3-page-cover-shade" />
 
-                  <div className="perfil-v3-profile-copy">
-                    <p className="perfil-v3-kicker">General</p>
-                    <div className="perfil-v3-profile-title-row">
-                      <div className="perfil-v3-profile-title-block">
-                        <h2>{viewedUser.name}</h2>
-                        {didBlockViewedUser && (
-                          <span className="perfil-v3-profile-badge">Perfil bloqueado</span>
-                        )}
-                      </div>
-                      {!isOwnProfile && currentUser?.id && (
-                        <div className="perfil-v3-profile-actions">
-                          {!isBlockedProfile && (
-                            <button
-                              type="button"
-                              className={`perfil-v3-follow-btn${isFollowingProfile ? ' is-following' : ''}`}
-                              onClick={handleToggleFollow}
-                              disabled={isFollowSaving}
-                              aria-pressed={isFollowingProfile}
-                            >
-                              {isFollowingProfile ? 'Siguiendo' : 'Seguir'}
-                            </button>
-                          )}
-                          <button
-                            type="button"
-                            className={`perfil-v3-block-btn${didBlockViewedUser ? ' is-blocked' : ''}`}
-                            onClick={handleToggleBlock}
-                            disabled={isBlockSaving}
-                            aria-pressed={didBlockViewedUser}
-                          >
-                            {didBlockViewedUser ? 'Desbloquear' : 'Bloquear'}
-                          </button>
-                          {blockError && (
-                            <div className="perfil-v3-error-message" style={{ color: 'red', fontSize: '14px', marginTop: '5px' }}>
-                              {blockError}
-                            </div>
-                          )}
-                        </div>
-                      )}
+                {/* Hero copy positioned like Likes */}
+                <div className="likes-hero-copy" aria-hidden="false">
+                  <h1 className="likes-title">{isOwnProfile ? 'Mi perfil' : viewedUser?.name}</h1>
+                  {viewedUser?.username && <p className="likes-subtitle">@{viewedUser.username}</p>}
+                  {!isOwnProfile && (
+                    <div className="likes-tabs" role="tablist" aria-label="Secciones">
+                      <button type="button" className={`likes-tab${activeTab === 'general' ? ' active' : ''}`} onClick={() => setActiveTab('general')}>Todo</button>
+                      <button type="button" className={`likes-tab${activeTab === 'colecciones' ? ' active' : ''}`} onClick={() => setActiveTab('colecciones')}>Películas</button>
+                      <button type="button" className={`likes-tab${activeTab === 'actividad' ? ' active' : ''}`} onClick={() => setActiveTab('actividad')}>Reseñas</button>
                     </div>
-                    <p className="perfil-v3-bio">
-                      Perfil cinéfilo en MoviMood: moods, reseñas y películas que definen su estilo.
-                    </p>
-                    {didBlockViewedUser && (
-                      <div className="perfil-v3-block-status">
-                        Has bloqueado a este usuario. Ya no podrá seguirte ni ver tu actividad.
-                      </div>
-                    )}
+                  )}
+                {!isOwnProfile && (
+                  <div className="likes-hero-actions-bottom">
+                    <Link to={currentUser?.id ? `/perfil/${encodeURIComponent(currentUser.id)}` : '/perfil'} className="volver-perfil">← Volver al perfil</Link>
                   </div>
+                )}
                 </div>
-              </article>
+
+                {!isOwnProfile && currentUser?.id && (
+                  <div className="perfil-v3-page-cover-actions" aria-hidden="false">
+                    {!isBlockedProfile && (
+                      <button
+                        type="button"
+                        className={`perfil-v3-follow-btn${isFollowingProfile ? ' is-following' : ''}`}
+                        onClick={handleToggleFollow}
+                        disabled={isFollowSaving}
+                        aria-pressed={isFollowingProfile}
+                      >
+                        {isFollowingProfile ? 'Siguiendo' : 'Seguir'}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className={`perfil-v3-block-btn${didBlockViewedUser ? ' is-blocked' : ''}`}
+                      onClick={handleToggleBlock}
+                      disabled={isBlockSaving}
+                      aria-pressed={didBlockViewedUser}
+                    >
+                      {didBlockViewedUser ? 'Desbloquear' : 'Bloquear'}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {blockError && (
+                <div className="perfil-v3-error-message" style={{ color: 'red', fontSize: '14px', marginTop: '5px' }}>
+                  {blockError}
+                </div>
+              )}
 
               <section className="perfil-v3-stats-grid">
                 <button
@@ -1387,7 +1636,9 @@ function Perfil() {
                   onClick={() => openMetricDestination('likes')}
                 >
                   <div className="perfil-v3-stat-head">
-                    <span className="perfil-v3-stat-icon" aria-hidden="true">❤</span>
+                    <span className="perfil-v3-stat-icon" aria-hidden="true">
+                      <Heart size={18} color="#00e5ff" style={{ filter: 'drop-shadow(0 0 8px rgba(0,229,255,0.20))' }} aria-hidden="true" />
+                    </span>
                     <span>Likes</span>
                   </div>
                   <strong>{likesCount}</strong>
@@ -1398,7 +1649,9 @@ function Perfil() {
                   onClick={() => openMetricDestination('seguidos')}
                 >
                   <div className="perfil-v3-stat-head">
-                    <span className="perfil-v3-stat-icon" aria-hidden="true">➡</span>
+                    <span className="perfil-v3-stat-icon" aria-hidden="true">
+                      <User size={18} color="#00e5ff" style={{ filter: 'drop-shadow(0 0 8px rgba(0,229,255,0.20))' }} aria-hidden="true" />
+                    </span>
                     <span>Seguidos</span>
                   </div>
                   <strong>{followingCount}</strong>
@@ -1409,7 +1662,9 @@ function Perfil() {
                   onClick={() => openMetricDestination('seguidores')}
                 >
                   <div className="perfil-v3-stat-head">
-                    <span className="perfil-v3-stat-icon" aria-hidden="true">👥</span>
+                    <span className="perfil-v3-stat-icon" aria-hidden="true">
+                      <Users size={18} color="#00e5ff" style={{ filter: 'drop-shadow(0 0 8px rgba(0,229,255,0.20))' }} aria-hidden="true" />
+                    </span>
                     <span>Seguidores</span>
                   </div>
                   <strong>{followersCount}</strong>
@@ -1420,7 +1675,9 @@ function Perfil() {
                   onClick={() => openMetricDestination('vistas')}
                 >
                   <div className="perfil-v3-stat-head">
-                    <span className="perfil-v3-stat-icon" aria-hidden="true">🎬</span>
+                    <span className="perfil-v3-stat-icon" aria-hidden="true">
+                      <Film size={18} color="#00e5ff" style={{ filter: 'drop-shadow(0 0 8px rgba(0,229,255,0.20))' }} aria-hidden="true" />
+                    </span>
                     <span>Películas vistas</span>
                   </div>
                   <strong>{moviesSeenCount}</strong>
@@ -1431,7 +1688,9 @@ function Perfil() {
                   onClick={() => openMetricDestination('resenas')}
                 >
                   <div className="perfil-v3-stat-head">
-                    <span className="perfil-v3-stat-icon" aria-hidden="true">✍</span>
+                    <span className="perfil-v3-stat-icon" aria-hidden="true">
+                      <Star size={18} color="#00e5ff" style={{ filter: 'drop-shadow(0 0 8px rgba(0,229,255,0.20))' }} aria-hidden="true" />
+                    </span>
                     <span>Reseñas</span>
                   </div>
                   <strong>{activeReviews.length}</strong>
@@ -1527,7 +1786,7 @@ function Perfil() {
                               disabled={moodRadarData.counts[index] === 0}
                               onClick={() => toggleRadarMood(mood)}
                             >
-                              <span>{MOOD_EMOJIS[mood]} {mood}</span>
+                              <span>{MOOD_EMOJIS[mood]} {getMoodDisplayName(mood)}</span>
                               <strong>{moodRadarData.counts[index]}</strong>
                             </button>
                           </li>
@@ -1537,10 +1796,10 @@ function Perfil() {
                       {selectedRadarMoodInfo && (
                         <div className="perfil-v3-radar-detail">
                           <p className="perfil-v3-radar-detail-title">
-                            Mood activo: {MOOD_EMOJIS[selectedRadarMoodInfo.mood]} {selectedRadarMoodInfo.mood}
+                            Mood activo: {MOOD_EMOJIS[selectedRadarMoodInfo.mood]} {getMoodDisplayName(selectedRadarMoodInfo.mood)}
                           </p>
                           <p className="perfil-v3-radar-detail-copy">
-                            {selectedRadarMoodInfo.count} reseña(s), {selectedRadarMoodInfo.percentage}% de tu radar.
+                            {selectedRadarMoodInfo.count} película(s) vistas, {selectedRadarMoodInfo.percentage}% de tu radar.
                           </p>
                           {selectedRadarMoodInfo.topTitles.length > 0 && (
                             <p className="perfil-v3-radar-detail-copy">
@@ -1552,7 +1811,7 @@ function Perfil() {
                             className="perfil-v3-radar-detail-btn"
                             onClick={() => openMoodActivity(selectedRadarMoodInfo.mood)}
                           >
-                            Ver reseñas de este mood
+                            Ver películas vistas de este mood
                           </button>
                         </div>
                       )}
@@ -1582,7 +1841,7 @@ function Perfil() {
                         <circle className="perfil-v3-radar-ghost-core" cx="130" cy="130" r="4" />
                       </svg>
                       <p>
-                        Tu Mood Radar se activa cuando puntúas o reseñas películas desde la videoteca.
+                        Tu Mood Radar se activa cuando marcas películas como ya vistas desde la videoteca.
                         Puedes dejar solo una puntuación si no quieres escribir comentario.
                       </p>
                       {isOwnProfile && (
@@ -1601,8 +1860,20 @@ function Perfil() {
                   </div>
 
                   {selectedFavoriteMovies.length === 0 ? (
-                    <div className="perfil-v3-empty">
-                      <p>Todavia no hay favoritas fijadas en este perfil.</p>
+                    <div className="perfil-v3-favorites-empty">
+                      <div className="perfil-v3-favorites-empty-stack" role="img" aria-label="Sin favoritas">
+                        <div className="fav-stack">
+                          <div className="fav-card fav-card-back" />
+                          <div className="fav-card fav-card-mid" />
+                          <div className="fav-card fav-card-front">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                              <path d="M3 7h5l2-3 4 3h5v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" stroke="#9be8ff" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" opacity="0.95"/>
+                              <path d="M7 21V9" stroke="#9be8ff" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" opacity="0.95"/>
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="perfil-v3-empty-copy">Todavía no hay favoritas fijadas en este perfil.</p>
                     </div>
                   ) : (
                     <div className="perfil-v3-favorites-grid">
@@ -1642,7 +1913,7 @@ function Perfil() {
                           onClick={() => setSelectedCollectionMood(collection.mood)}
                         >
                           <div className="perfil-v3-collection-head">
-                            <strong>{MOOD_EMOJIS[collection.mood]} {collection.mood}</strong>
+                            <strong>{MOOD_EMOJIS[collection.mood]} {getMoodDisplayName(collection.mood)}</strong>
                             <span>{collection.count}</span>
                           </div>
                           <p>{collection.count} pelicula(s) en esta coleccion.</p>
@@ -1768,7 +2039,7 @@ function Perfil() {
                     <option value="all">Todos los moods</option>
                     {moodCollections.map((collection) => (
                       <option key={collection.mood} value={collection.mood}>
-                        {MOOD_EMOJIS[collection.mood]} {collection.mood} ({collection.count})
+                        {MOOD_EMOJIS[collection.mood]} {getMoodDisplayName(collection.mood)} ({collection.count})
                       </option>
                     ))}
                   </select>
@@ -1825,85 +2096,226 @@ function Perfil() {
                     <p>No hay actividad disponible para este filtro.</p>
                   </div>
                 ) : (
-                  <div className="perfil-v3-activity-grid">
-                    {activityItems.map((item) => {
-                      const isViewsOnly = activityFilter === 'vistas';
-                      const moodColor = MOOD_GLOW_COLORS[item.mood] || '#8aa2ff';
-
-                      return (
-                      <article
-                        className="perfil-v3-activity-card"
-                        key={item.id}
-                        style={{ '--activity-mood-color': moodColor }}
-                      >
-                        <div className="perfil-v3-activity-poster">
-                          {item.movie?.poster_path ? (
-                            <img src={`https://image.tmdb.org/t/p/w500${item.movie.poster_path}`} alt={item.movie.title || 'Película'} />
-                          ) : (
-                            <div className="perfil-v3-no-poster" aria-label="Poster no disponible">🎞</div>
-                          )}
-                          <span className="perfil-v3-activity-poster-meta">
-                            {item.action}{item.date ? ` · ${formatDate(item.date)}` : ''}
-                          </span>
+                  // If filtering by reviews, render using Likes-style review list for consistent appearance
+                  activityFilter === 'resenas' ? (
+                    <div className="perfil-resenas-hero-wrap">
+                      <div className="perfil-v3-page-cover likes-hero" style={{ marginBottom: '18px' }}>
+                        <picture>
+                          <source srcSet={perfilMovimoodCover} type="image/png" />
+                          <img className="perfil-v3-page-cover-image" src={perfilMovimoodCover} alt="" />
+                        </picture>
+                        <div className="perfil-v3-page-cover-shade" aria-hidden="true" />
+                        <div className="likes-hero-copy">
+                          <h1 className="likes-title">
+                            <span className="likes-neon-heart" aria-hidden>
+                              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                                <path d="M12 20s-6.716-4.35-9.029-7.01C-0.66 8.94 3.05 4 7.5 6.09 9.23 7.03 10 9 12 11c2-2 2.77-3.97 4.5-4.91C20.95 4 24.66 8.94 21.03 12.99 18.716 15.65 12 20 12 20z" stroke="#42e6ff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            </span>
+                            Reseñas
+                          </h1>
+                          <p className="likes-subtitle">Últimas reseñas publicadas en este perfil.</p>
+                          <div className="likes-hero-actions-bottom">
+                            <Link
+                              to={backToProfile}
+                              className="volver-perfil"
+                              onClick={(e) => { e.preventDefault(); navigate(backToProfile, { state: { resetTab: 'general' } }); }}
+                            >
+                              ← Volver al perfil
+                            </Link>
+                          </div>
                         </div>
-                        <div className="perfil-v3-activity-body">
-                          <h3>
-                            {item.movie?.title || item.movie?.name || 'Película sin título'}
-                            {item.movie?.release_date ? (
-                              <span className="perfil-v3-activity-year"> {item.movie.release_date.slice(0, 4)}</span>
-                            ) : null}
-                          </h3>
+                      </div>
+                      <section className="likes-section">
+                      <div className="section-header">
+                        <h2>Reseñas</h2>
+                        {isOwnProfile ? null : (
+                          <Link
+                            to={backToProfile}
+                            className="volver-perfil"
+                            onClick={(e) => { e.preventDefault(); navigate(backToProfile, { state: { resetTab: 'general' } }); }}
+                          >
+                            ← Volver al perfil
+                          </Link>
+                        )}
+                      </div>
+                      <div className="likes-reviews-list">
+                        {activityItems.map((item) => {
+                          const movie = item.movie || {};
+                          const poster = movie.poster_path ? `https://image.tmdb.org/t/p/w92${movie.poster_path}` : null;
+                          const likeCount = reviewLikes.counts[String(item.id)] || likesByReviewId.get(item.id) || 0;
+                          // Resolve genres robustly: prefer genre_ids -> map to names, then movie.genres
+                          let genres = [];
+                          if (Array.isArray(movie.genre_ids) && movie.genre_ids.length) {
+                            genres = movie.genre_ids
+                              .map((id) => {
+                                // id may be number or string
+                                return genreIdToName[id] || genreIdToName[Number(id)];
+                              })
+                              .filter(Boolean);
+                          }
 
-                          {!isViewsOnly && (
-                            <p className="perfil-v3-activity-meta-line">
-                              <span className="perfil-v3-activity-stars" aria-hidden="true">
-                                {'★'.repeat(getStarsFromRating(item.rating).full)}
-                                {getStarsFromRating(item.rating).hasHalf ? '½' : ''}
-                                {'☆'.repeat(getStarsFromRating(item.rating).empty)}
-                              </span>
-                            </p>
-                          )}
+                          if (genres.length === 0 && Array.isArray(movie.genres) && movie.genres.length) {
+                            // movie.genres may be array of objects {id,name} or array of strings
+                            genres = movie.genres
+                              .map((g) => (typeof g === 'string' ? g : (g && (g.name || g.title)) || null))
+                              .filter(Boolean);
+                          }
 
-                          {!isViewsOnly && (
-                            <>
-                              <p className="perfil-v3-activity-review-text">
-                                {(() => {
-                                  const reviewText = item.comment || 'Solo puntuó esta película.';
-                                  const isExpanded = Boolean(expandedReviews[item.id]);
-                                  const { preview, truncated } = getReviewPreview(reviewText);
+                          // Some APIs return a comma-separated string field
+                          if (genres.length === 0 && movie.genre_names && typeof movie.genre_names === 'string') {
+                            genres = movie.genre_names.split(',').map((s) => s.trim()).filter(Boolean);
+                          }
 
-                                  if (!truncated) {
-                                    return reviewText;
-                                  }
+                          // Last resort: if movie.genres is a string
+                          if (genres.length === 0 && movie.genres && typeof movie.genres === 'string') {
+                            genres = movie.genres.split(',').map((s) => s.trim()).filter(Boolean);
+                          }
 
-                                  return (
-                                    <>
-                                      {isExpanded ? reviewText : preview}{' '}
-                                      <button
-                                        type="button"
-                                        className="perfil-v3-review-more-btn"
-                                        onClick={() => toggleReviewExpanded(item.id)}
-                                        aria-expanded={isExpanded}
-                                      >
-                                        {isExpanded ? 'less' : 'more'}
-                                      </button>
-                                    </>
-                                  );
-                                })()}
+                          // Use cached fetched genres if available
+                          if ((genres.length === 0 || !genres) && movie && movie.id && movieGenresCache[movie.id]) {
+                            genres = movieGenresCache[movie.id] || [];
+                          }
+                          const year = movie.release_date ? movie.release_date.slice(0, 4) : (movie.first_air_date ? movie.first_air_date.slice(0, 4) : '');
+                          const stars = getStarsFromRating(item.rating);
+
+                          return (
+                            <article className="likes-review-row" key={item.id}>
+                              {poster ? (
+                                <div className="likes-review-poster"><img src={poster} alt={movie.title || movie.name} /></div>
+                              ) : (
+                                <div className="likes-review-poster poster-placeholder-small">Sin poster</div>
+                              )}
+
+                              <div className="likes-review-body">
+                                <div className="likes-review-header">
+                                  <div className="likes-review-title-block">
+                                    <span className="likes-review-movie">{movie.title || movie.name}</span>
+                                    <div className="likes-review-subline">
+                                      <span className="likes-review-year">{year}</span>
+                                      <MovieGenreLabel movie={movie} />
+                                    </div>
+                                  </div>
+                                  <div className="likes-review-meta-top">
+                                    <span className="likes-review-stars" aria-hidden>
+                                      {Array(stars.full).fill('★').join('')}{stars.hasHalf ? '½' : ''}{Array(stars.empty).fill('☆').join('')}
+                                    </span>
+                                  </div>
+                                </div>
+                                <p className="likes-review-text">{(item.comment || '').slice(0,220)}</p>
+                              </div>
+
+                              <div className="likes-review-meta">
+                                <button type="button" className="videoteca-review-like-btn" aria-label="likes" onClick={async () => { try { await reviewLikes.toggleLike(item.id); } catch (e) { if (e && e.status === 401) { navigate(`/login?returnTo=${encodeURIComponent(location.pathname + location.search)}`); } } }}>
+                                  <span className="videoteca-review-card-heart" aria-hidden>♥</span>
+                                  {likeCount}
+                                </button>
+                                <time className="likes-review-time">{item.date ? formatDate(item.date) : ''}</time>
+                              </div>
+                            </article>
+                          );
+                        })}
+                      </div>
+                    </section>
+                    </div>
+                  ) : (
+                    <div className="perfil-v3-activity-grid">
+                      {activityItems.map((item) => {
+                        const isViewsOnly = activityFilter === 'vistas';
+                        const moodColor = MOOD_GLOW_COLORS[item.mood] || '#8aa2ff';
+
+                        return (
+                        <article
+                          className="perfil-v3-activity-card"
+                          key={item.id}
+                          style={{ '--activity-mood-color': moodColor }}
+                        >
+                          <div className="perfil-v3-activity-poster">
+                            {item.movie?.poster_path ? (
+                              <img src={`https://image.tmdb.org/t/p/w500${item.movie.poster_path}`} alt={item.movie.title || 'Película'} />
+                            ) : (
+                              <div className="perfil-v3-no-poster" aria-label="Poster no disponible">🎞</div>
+                            )}
+                            <span className="perfil-v3-activity-poster-meta">
+                              {item.action}{item.date ? ` · ${formatDate(item.date)}` : ''}
+                            </span>
+                          </div>
+                          <div className="perfil-v3-activity-body">
+                            <h3>
+                              {item.movie?.title || item.movie?.name || 'Película sin título'}
+                              {item.movie?.release_date ? (
+                                <span className="perfil-v3-activity-year"> {item.movie.release_date.slice(0, 4)}</span>
+                              ) : null}
+                            </h3>
+
+                            {!isViewsOnly && (
+                              <p className="perfil-v3-activity-meta-line">
+                                <span className="perfil-v3-activity-stars" aria-hidden="true">
+                                  {'★'.repeat(getStarsFromRating(item.rating).full)}
+                                  {getStarsFromRating(item.rating).hasHalf ? '½' : ''}
+                                  {'☆'.repeat(getStarsFromRating(item.rating).empty)}
+                                </span>
                               </p>
+                            )}
 
-                              <p className="perfil-v3-activity-likes-line">
-                                ❤ {(likesByReviewId.get(item.id) || 0) > 0 ? `${likesByReviewId.get(item.id)} likes` : 'No likes yet'}
-                              </p>
+                            {!isViewsOnly && (
+                              <>
+                                <p className="perfil-v3-activity-review-text">
+                                  {(() => {
+                                    const reviewText = item.comment || 'Solo puntuó esta película.';
+                                    const isExpanded = Boolean(expandedReviews[item.id]);
+                                    const { preview, truncated } = getReviewPreview(reviewText);
 
-                              <span className="perfil-v3-activity-mood-chip">{MOOD_EMOJIS[item.mood] || '🎬'} {item.mood}</span>
-                            </>
-                          )}
-                        </div>
-                      </article>
-                      );
-                    })}
-                  </div>
+                                    if (!truncated) {
+                                      return reviewText;
+                                    }
+
+                                    return (
+                                      <>
+                                        {isExpanded ? reviewText : preview}{' '}
+                                        <button
+                                          type="button"
+                                          className="perfil-v3-review-more-btn"
+                                          onClick={() => toggleReviewExpanded(item.id)}
+                                          aria-expanded={isExpanded}
+                                        >
+                                          {isExpanded ? 'less' : 'more'}
+                                        </button>
+                                      </>
+                                    );
+                                  })()}
+                                </p>
+
+                                <p className="perfil-v3-activity-likes-line">
+                                  <button
+                                    type="button"
+                                    className="perfil-v3-like-btn"
+                                    onClick={async () => {
+                                      try {
+                                        await reviewLikes.toggleLike(item.id);
+                                      } catch (e) {
+                                        if (e && e.status === 401) {
+                                          navigate(`/login?returnTo=${encodeURIComponent(location.pathname + location.search)}`);
+                                        }
+                                      }
+                                    }}
+                                    aria-label="Dar like a reseña"
+                                  >
+                                    ❤ {(reviewLikes.counts[String(item.id)] || likesByReviewId.get(item.id) || 0) > 0
+                                      ? `${reviewLikes.counts[String(item.id)] || likesByReviewId.get(item.id)} likes`
+                                      : 'No likes yet'}
+                                  </button>
+                                </p>
+
+                                <span className="perfil-v3-activity-mood-chip">{MOOD_EMOJIS[item.mood] || '🎬'} {item.mood}</span>
+                              </>
+                            )}
+                          </div>
+                        </article>
+                        );
+                      })}
+                    </div>
+                  )
                 )}
               </article>
             </section>
@@ -2001,7 +2413,6 @@ function Perfil() {
             </section>
           )}
         </main>
-      </div>
     </div>
   );
 }

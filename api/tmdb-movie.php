@@ -87,6 +87,98 @@ function buildTmdbMovieUrl(string $apiKey): string
     return 'https://api.themoviedb.org/3/movie/' . $movieId . '?' . http_build_query($params);
 }
 
+function decodeTmdbBody(string $body): string
+{
+    $candidates = [$body];
+
+    if (function_exists('gzdecode')) {
+        $decoded = @gzdecode($body);
+        if (is_string($decoded) && $decoded !== '') {
+            $candidates[] = $decoded;
+        }
+    }
+
+    if (function_exists('gzuncompress')) {
+        $decoded = @gzuncompress($body);
+        if (is_string($decoded) && $decoded !== '') {
+            $candidates[] = $decoded;
+        }
+    }
+
+    if (function_exists('gzinflate')) {
+        $decoded = @gzinflate($body);
+        if (is_string($decoded) && $decoded !== '') {
+            $candidates[] = $decoded;
+        }
+    }
+
+    if (function_exists('zlib_decode')) {
+        $decoded = @zlib_decode($body);
+        if (is_string($decoded) && $decoded !== '') {
+            $candidates[] = $decoded;
+        }
+    }
+
+    foreach ($candidates as $candidate) {
+        json_decode($candidate, true);
+        if (json_last_error() === JSON_ERROR_NONE) {
+            return $candidate;
+        }
+    }
+
+    return $body;
+}
+
+function fetchTmdbMovieResponse(string $url): array
+{
+    if (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        if ($ch !== false) {
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_TIMEOUT => 15,
+                CURLOPT_CONNECTTIMEOUT => 10,
+                CURLOPT_ENCODING => '',
+                CURLOPT_HTTPHEADER => [
+                    'Accept: application/json',
+                    'Accept-Encoding: identity',
+                ],
+                CURLOPT_USERAGENT => 'MoviMood/1.0',
+            ]);
+
+            $body = curl_exec($ch);
+            if ($body !== false) {
+                $statusCode = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+                curl_close($ch);
+                return [$statusCode > 0 ? $statusCode : 200, $body];
+            }
+
+            curl_close($ch);
+        }
+    }
+
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'GET',
+            'ignore_errors' => true,
+            'timeout' => 15,
+            'header' => "Accept: application/json\r\nAccept-Encoding: identity\r\n",
+        ],
+    ]);
+
+    $body = @file_get_contents($url, false, $context);
+    if ($body === false) {
+        return [502, false];
+    }
+
+    $statusLine = $http_response_header[0] ?? 'HTTP/1.1 502 Bad Gateway';
+    preg_match('/\s(\d{3})\s/', $statusLine, $matches);
+    $statusCode = isset($matches[1]) ? (int) $matches[1] : 502;
+
+    return [$statusCode, $body];
+}
+
 allowCors();
 
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
@@ -104,23 +196,21 @@ if ($apiKey === null || $apiKey === '') {
 }
 
 $tmdbUrl = buildTmdbMovieUrl($apiKey);
-$context = stream_context_create([
-    'http' => [
-        'method' => 'GET',
-        'ignore_errors' => true,
-        'timeout' => 15,
-    ],
-]);
+$response = fetchTmdbMovieResponse($tmdbUrl);
+[$statusCode, $responseBody] = $response;
 
-$responseBody = @file_get_contents($tmdbUrl, false, $context);
 if ($responseBody === false) {
     sendJson(502, ['message' => 'No se pudo contactar con TMDB.']);
 }
+// TMDB may return compressed bytes without a reliable encoding header in this
+// hosting environment. Decode to plain JSON before returning it to the client.
+$decodedBody = decodeTmdbBody((string) $responseBody);
 
-$statusLine = $http_response_header[0] ?? 'HTTP/1.1 502 Bad Gateway';
-preg_match('/\s(\d{3})\s/', $statusLine, $matches);
-$statusCode = isset($matches[1]) ? (int) $matches[1] : 502;
+if (json_decode($decodedBody, true) === null && json_last_error() !== JSON_ERROR_NONE) {
+    sendJson(502, ['message' => 'La respuesta de TMDB no pudo decodificarse correctamente.']);
+}
 
 http_response_code($statusCode);
 header('Content-Type: application/json; charset=utf-8');
-echo $responseBody;
+header('Content-Encoding: identity');
+echo $decodedBody;

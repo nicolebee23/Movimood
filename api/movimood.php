@@ -1160,7 +1160,7 @@ $resource = strtolower(trim((string) ($_GET['resource'] ?? '')));
 if ($resource === '') {
     sendJson(200, [
         'message' => 'MoviMood backend listo.',
-        'resources' => ['auth', 'profile', 'favorites', 'reviews', 'follows', 'blocks'],
+        'resources' => ['auth', 'profile', 'favorites', 'reviews', 'follows', 'blocks', 'review-likes'],
     ]);
 }
 
@@ -1180,6 +1180,9 @@ switch ($resource) {
     case 'reviews':
         handleReviews($pdo);
         break;
+        case 'review-likes':
+            handleReviewLikes($pdo);
+            break;
     case 'follows':
         handleFollows($pdo);
         break;
@@ -1188,4 +1191,119 @@ switch ($resource) {
         break;
     default:
         sendJson(404, ['message' => 'Recurso no encontrado.']);
+}
+
+function fetchReviewLikeCount(PDO $pdo, string $reviewId): int
+{
+    $stmt = $pdo->prepare('SELECT COUNT(*) as c FROM movimood_review_likes WHERE review_id = :review_id');
+    $stmt->execute([':review_id' => $reviewId]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    return (int) ($row['c'] ?? 0);
+}
+
+function handleReviewLikes(PDO $pdo): void
+{
+    $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+
+    if ($method === 'GET') {
+        $reviewId = isset($_GET['review_id']) ? trim((string) $_GET['review_id']) : null;
+
+        // If a specific review_id is provided, return count (backwards compatible)
+        if ($reviewId !== null && $reviewId !== '') {
+            $count = fetchReviewLikeCount($pdo, $reviewId);
+            sendJson(200, ['count' => $count]);
+        }
+
+        // Otherwise, return the list of reviews liked by a user
+        // If `user_id` is provided in the query string, return that user's liked reviews (public).
+        // Otherwise require session and return current user's liked reviews.
+        $lookupUser = isset($_GET['user_id']) ? trim((string) $_GET['user_id']) : null;
+        if ($lookupUser === null || $lookupUser === '') {
+            $lookupUser = currentSessionUserId();
+            if ($lookupUser === null) {
+                sendJson(401, ['message' => 'Debes iniciar sesion para ver tus likes']);
+            }
+        }
+
+        $stmt = $pdo->prepare(
+            'SELECT rl.review_id AS review_id, rl.created_at AS liked_at,
+                    r.id AS id, r.user_id AS user_id, r.movie_id AS movie_id, r.movie_json AS movie_json,
+                    r.mood AS mood, r.author AS author, r.rating AS rating, r.comment AS comment, r.created_at AS review_created_at, r.updated_at AS review_updated_at
+             FROM movimood_review_likes rl
+             LEFT JOIN movimood_movie_reviews r ON r.id = rl.review_id
+             WHERE rl.user_id = :user_id
+             ORDER BY rl.created_at DESC'
+        );
+        $stmt->execute(['user_id' => $lookupUser]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $items = array_map(function ($row) {
+            $movie = [];
+            if (!empty($row['movie_json'])) {
+                $decoded = json_decode($row['movie_json'], true);
+                if (is_array($decoded)) $movie = $decoded;
+            }
+
+            return [
+                'reviewId' => $row['review_id'],
+                'likedAt' => $row['liked_at'],
+                'review' => $row['id'] ? [
+                    'id' => $row['id'],
+                    'userId' => $row['user_id'],
+                    'movieId' => $row['movie_id'],
+                    'movie' => $movie,
+                    'mood' => $row['mood'],
+                    'author' => $row['author'],
+                    'rating' => $row['rating'],
+                    'comment' => $row['comment'],
+                    'createdAt' => $row['review_created_at'],
+                    'updatedAt' => $row['review_updated_at'],
+                ] : null,
+            ];
+        }, $rows);
+
+        sendJson(200, ['items' => $items]);
+    }
+
+    // POST -> add like (requires session)
+    if ($method === 'POST') {
+        $userId = requireSessionUserId();
+        $data = json_decode(file_get_contents('php://input'), true) ?: [];
+        $reviewId = isset($data['review_id']) ? trim((string) $data['review_id']) : null;
+        if ($reviewId === null || $reviewId === '') {
+            sendJson(400, ['message' => 'review_id es requerido']);
+        }
+
+        try {
+            $stmt = $pdo->prepare('INSERT INTO movimood_review_likes (review_id, user_id, created_at) VALUES (:review_id, :user_id, :created_at)');
+            $stmt->execute([
+                ':review_id' => $reviewId,
+                ':user_id' => $userId,
+                ':created_at' => date('Y-m-d H:i:s'),
+            ]);
+        } catch (PDOException $e) {
+            // ignore duplicate key errors or other integrity issues
+        }
+
+        $count = fetchReviewLikeCount($pdo, $reviewId);
+        sendJson(200, ['count' => $count]);
+    }
+
+    // DELETE -> remove like (requires session)
+    if ($method === 'DELETE') {
+        $userId = requireSessionUserId();
+        $data = json_decode(file_get_contents('php://input'), true) ?: [];
+        $reviewId = isset($data['review_id']) ? trim((string) $data['review_id']) : null;
+        if ($reviewId === null || $reviewId === '') {
+            sendJson(400, ['message' => 'review_id es requerido']);
+        }
+
+        $stmt = $pdo->prepare('DELETE FROM movimood_review_likes WHERE review_id = :review_id AND user_id = :user_id');
+        $stmt->execute([':review_id' => $reviewId, ':user_id' => $userId]);
+
+        $count = fetchReviewLikeCount($pdo, $reviewId);
+        sendJson(200, ['count' => $count]);
+    }
+
+    sendJson(405, ['message' => 'Method not allowed']);
 }

@@ -1,0 +1,2 @@
+SetEnv no-gzip 1
+Header set Content-Encoding identity

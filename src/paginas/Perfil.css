@@ -25,6 +25,11 @@
   background-size: 42px 42px;
 }
 
+/* Hide the subtle grid overlay that can create a visible seam at the top. */
+.perfil-page::before {
+  display: none !important;
+}
+
 .perfil-hero,
 .perfil-stats-grid,
 .perfil-panel-grid,
@@ -241,6 +246,167 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+/* V3 stats grid: show five items on wide viewports and add glassy card look */
+.perfil-v3-stats-grid {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 20px;
+  align-items: stretch;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.perfil-v3-stat-card {
+  background: rgba(6, 10, 14, 0.6); /* very dark, slightly transparent */
+  border: 1px solid rgba(255,255,255,0.03); /* subtle barely visible border */
+  border-radius: 12px;
+  padding: 18px 20px; /* generous padding */
+  box-shadow: 0 8px 30px rgba(2,8,16,0.55);
+  backdrop-filter: blur(8px) saturate(120%);
+  -webkit-backdrop-filter: blur(8px) saturate(120%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 130px;
+  flex: 1 1 160px;
+}
+
+.perfil-v3-stat-card-interactive { cursor: pointer; }
+
+.perfil-v3-stat-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.perfil-v3-stat-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.02);
+  color: #2dd4bf; /* cyan/teal */
+  font-size: 18px;
+  box-shadow:
+    0 6px 18px rgba(0,0,0,0.6),
+    0 0 18px rgba(45,212,191,0.08),
+    0 0 36px rgba(45,212,191,0.04);
+  text-shadow: 0 0 8px rgba(45,212,191,0.18);
+}
+
+/* Small neon glow behind icon for extra effect */
+.perfil-v3-stat-icon::after {
+  content: '';
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  left: -12px;
+  top: -12px;
+  z-index: -1;
+  filter: blur(18px);
+  background: radial-gradient(circle at center, rgba(45,212,191,0.12), rgba(45,212,191,0.02) 40%, transparent 65%);
+}
+
+.perfil-v3-stat-card strong,
+.perfil-v3-stat-value {
+  font-size: 40px;
+  line-height: 1;
+  color: #ffffff;
+  font-weight: 900;
+  text-shadow: 0 3px 18px rgba(0,0,0,0.55);
+}
+
+/* label above number: small, uppercase, muted gray */
+.perfil-v3-stat-head span:nth-child(2) {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: rgba(200,210,220,0.48);
+}
+
+.perfil-v3-stat-card::before {
+  /* thin accent stripe matches earlier variable */
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--stat-accent, #2dd4bf), rgba(255,255,255,0.04));
+}
+
+.perfil-v3-stat-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 28px 58px rgba(2,8,16,0.7), 0 0 24px rgba(45,212,191,0.04);
+}
+
+@media (max-width: 880px) {
+  .perfil-v3-stats-grid { gap: 10px; }
+  .perfil-v3-stat-card { flex: 1 1 48%; min-width: 46%; }
+}
+
+@media (max-width: 480px) {
+  .perfil-v3-stat-card { flex: 1 1 100%; min-width: 100%; }
+}
+
+/* Stronger overrides in case other global styles are taking precedence. */
+.perfil-page .perfil-v3-stats-grid {
+  width: min(960px, 92vw) !important;
+  margin: 0 auto 20px !important;
+  gap: 8px !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+}
+
+.perfil-page .perfil-v3-stats-grid button.perfil-v3-stat-card,
+.perfil-page .perfil-v3-stats-grid .perfil-v3-stat-card {
+  background: rgba(6, 10, 14, 0.6) !important;
+  border: 1px solid rgba(255,255,255,0.03) !important;
+  border-radius: 10px !important;
+  padding: 10px 12px !important;
+  box-shadow: 0 8px 30px rgba(2,8,16,0.55) !important;
+  color: #ffffff !important;
+}
+
+.perfil-page .perfil-v3-stats-grid .perfil-v3-stat-icon {
+  color: #2dd4bf !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.6), 0 0 18px rgba(45,212,191,0.08) !important;
+  text-shadow: 0 0 8px rgba(45,212,191,0.18) !important;
+}
+
+.perfil-page .perfil-v3-stats-grid .perfil-v3-stat-head span:nth-child(2) {
+  color: rgba(200,210,220,0.48) !important;
+}
+
+.perfil-page .perfil-v3-stats-grid .perfil-v3-stat-card strong {
+  font-size: 30px !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
+}
+
+/* Ensure the accent stripe appears */
+.perfil-page .perfil-v3-stats-grid .perfil-v3-stat-card::before {
+  background: linear-gradient(90deg, var(--stat-accent, #2dd4bf), rgba(255,255,255,0.04)) !important;
+}
+
+/* Make the cards slightly smaller per user request */
+.perfil-page .perfil-v3-stats-grid .perfil-v3-stat-card {
+  padding: 10px 12px !important;
+  min-width: 0 !important;
+  flex: 1 1 0 !important;
+}
+
+.perfil-page .perfil-v3-stats-grid .perfil-v3-stat-icon {
+  width: 28px !important;
+  height: 28px !important;
+  font-size: 12px !important;
+}
+
+.perfil-page .perfil-v3-stats-grid .perfil-v3-stat-card strong {
+  font-size: 28px !important;
 }
 
 /* Per-stat accent colors using nth-child to avoid changing markup */
@@ -539,8 +705,14 @@
   border: none;
   color: rgba(200,210,220,0.78);
   font-size: 13px;
-  padding: 6px 8px;
+  padding: 0;
   border-radius: 8px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  text-align: left;
 }
 
 .perfil-v3-radar-legend-btn[disabled] { opacity: 0.48; }
@@ -955,19 +1127,21 @@
     justify-content: flex-start;
   }
 
-  .perfil-v2-stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+/* adjust hero for medium screens */
+@media (max-width: 1060px) {
+  .perfil-v3-page-cover {
+    height: clamp(260px, 40vh, 420px);
   }
 
-  .perfil-v2-poster-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .perfil-v3-content {
+    padding-top: clamp(220px, 40vh, 480px);
+  }
+
+  .perfil-v3-page-cover-actions {
+    right: 12px;
+    top: 12px;
   }
 }
-
-@media (max-width: 700px) {
-  .perfil-v2-page {
-    padding-top: 86px;
-  }
 
   .perfil-v2-banner {
     padding: 22px 16px 18px;
@@ -1126,14 +1300,243 @@
   min-width: 0;
 }
 
+.perfil-v3-page-cover {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  /* larger hero: min 420px, prefer 60vh, max 960px */
+  height: clamp(420px, 60vh, 960px);
+  overflow: hidden;
+  z-index: 0;
+}
+
+/* Nudge the cover 1px upward to hide any thin seam/border at the very top */
+.perfil-page .perfil-v3-page-cover {
+  top: -10px !important;
+  height: calc(clamp(420px, 60vh, 960px) + 10px) !important;
+}
+
+/* Fallback background: if the <img> inside the cover is not rendered
+   (some runtime conditions or hydration issues), use the public asset
+   so the cover is visible without relying on the React markup. */
+/* background fallback is applied inline in the component to avoid
+   webpack/CSS loader resolving the public path during build. */
+
+.perfil-v3-page-cover-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.perfil-page .perfil-v3-page-cover-image {
+  object-position: center 36%;
+}
+
+/* Ensure the container background position matches the img crop (overrides inline style) */
+.perfil-page .perfil-v3-page-cover {
+  background-position: center 36% !important;
+}
+
+.perfil-v3-page-cover-shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* Further softened shade for perfil hero (reduced per user request) */
+  background:
+    radial-gradient(920px 320px at 54% -2%, rgba(43, 211, 255, 0.04), transparent 60%),
+    linear-gradient(180deg, rgba(6, 10, 18, 0.01) 0%, rgba(6, 10, 18, 0.10) 72%, rgba(6, 10, 18, 0.16) 100%);
+}
+
+/* Reuse Likes positioning for profile hero copy */
+.likes-hero-copy {
+  position: absolute;
+  left: 28px;
+  top: 125px;
+  z-index: 3;
+  max-width: calc(100% - 56px);
+  color: #ffffff;
+}
+
+.likes-hero-copy .likes-title {
+  margin: 0 0 6px 0;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #e9f2ff;
+}
+
+.likes-hero-copy .likes-subtitle {
+  margin: 0 0 8px 0;
+  color: rgba(235, 244, 255, 0.85);
+  font-size: 15px;
+}
+
+.likes-hero-copy .likes-tabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.likes-hero-copy .likes-tab {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  color: #f0f6ff;
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .likes-hero-copy { top: 100px; left: 16px; }
+  .likes-hero-copy .likes-title { font-size: 26px; }
+}
+
+.perfil-v3-page-cover-actions {
+  position: absolute;
+  right: 18px;
+  top: 18px;
+  z-index: 2;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.perfil-v3-profile-card {
+  padding: 0;
+  overflow: hidden;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.perfil-v3-profile-cover {
+  position: relative;
+  min-height: 246px;
+  background: transparent;
+}
+
+.perfil-v3-profile-cover-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.perfil-v3-profile-cover-shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: none;
+}
+
+.perfil-v3-profile-cover-actions {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  z-index: 2;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.perfil-v3-content {
+  position: relative;
+  z-index: 1;
+  /* content should start below the hero: min 360px, prefer 56vh, max 720px */
+  padding-top: clamp(360px, 56vh, 720px);
+}
+
+/* Remove the glassy card wrapper for the activity tab so the content
+   (filtros, reseñas, actividad) displays flush with the page, matching
+   the Likes/Vistas layout the user requested. Keep internal spacing by
+   preserving the section head padding. */
+.perfil-v3-tab-panel > .perfil-v3-card {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+}
+
+.perfil-v3-tab-panel > .perfil-v3-card .perfil-v3-section-head,
+.perfil-v3-tab-panel .perfil-v3-section-head {
+  padding: 12px 0 14px 0 !important;
+  margin: 0 0 12px 0 !important;
+}
+
+/* If the Likes page class was reused on the perfil main, avoid the extra +40px
+   so the cover aligns to the top without showing the page background border. */
+.perfil-page .perfil-v3-content {
+  padding-top: clamp(360px, 56vh, 720px) !important;
+}
+
+.perfil-v3-profile-tabs-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.perfil-v3-profile-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.perfil-v3-profile-tab {
+  flex: 1 1 150px;
+  min-height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(232, 236, 243, 0.9);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.perfil-v3-profile-tab:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.perfil-v3-profile-tab.active {
+  border-color: rgba(141, 204, 255, 0.32);
+  background: linear-gradient(135deg, rgba(58, 89, 120, 0.82), rgba(25, 39, 56, 0.92));
+  color: #f7fbff;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
+}
+
+.perfil-v3-profile-tab:focus-visible {
+  outline: 2px solid rgba(141, 204, 255, 0.72);
+  outline-offset: 2px;
+}
+
+@media (max-width: 720px) {
+  .perfil-v3-profile-tabs {
+    flex-direction: column;
+  }
+
+  .perfil-v3-profile-tab {
+    flex-basis: auto;
+    width: 100%;
+  }
+}
+
 .perfil-v3-tab-panel {
   display: flex;
   flex-direction: column;
   gap: 18px;
-}
-
-.perfil-v3-profile-card {
-  padding-bottom: 16px;
 }
 
 .perfil-v3-card {
@@ -1144,10 +1547,19 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
+.perfil-v3-card.perfil-v3-profile-card {
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+}
+
 .perfil-v3-profile-head {
   display: flex;
   align-items: center;
   gap: 14px;
+  padding: 18px;
 }
 
 .perfil-v3-profile-title-row {
@@ -1376,10 +1788,223 @@
   min-height: 100%;
 }
 
+.perfil-page .perfil-v3-radar-card {
+  background: rgba(6, 10, 14, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.03) !important;
+  border-radius: 12px !important;
+  padding: 10px 12px !important;
+  box-shadow: 0 8px 30px rgba(2, 8, 16, 0.55) !important;
+  backdrop-filter: blur(8px) saturate(120%);
+  -webkit-backdrop-filter: blur(8px) saturate(120%);
+  position: relative;
+  overflow: hidden;
+}
+
+.perfil-page .perfil-v3-radar-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #2dd4bf, rgba(255, 255, 255, 0.04)) !important;
+}
+
+.perfil-page .perfil-v3-radar-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 28px 58px rgba(2, 8, 16, 0.7), 0 0 24px rgba(45, 212, 191, 0.04) !important;
+}
+
 .perfil-v3-favorites-card {
   min-height: 0;
   align-self: start;
 }
+
+/* Make Top 4 Favoritos match the stat / radar card aesthetic */
+.perfil-page .perfil-v3-favorites-card {
+  background: rgba(6, 10, 14, 0.6) !important;
+  border: 1px solid rgba(255,255,255,0.03) !important;
+  border-radius: 12px !important;
+  padding: 12px !important;
+  box-shadow: 0 8px 30px rgba(2,8,16,0.55) !important;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(8px) saturate(120%);
+  -webkit-backdrop-filter: blur(8px) saturate(120%);
+}
+
+.perfil-page .perfil-v3-favorites-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--stat-accent, #2dd4bf), rgba(255,255,255,0.04)) !important;
+}
+
+.perfil-page .perfil-v3-favorites-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 28px 58px rgba(2,8,16,0.7), 0 0 24px rgba(45,212,191,0.04) !important;
+}
+
+.perfil-page .perfil-v3-favorites-card .perfil-v3-section-head h3 {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+}
+
+.perfil-page .perfil-v3-favorites-card .perfil-v3-section-head p {
+  font-size: 11px !important;
+  color: rgba(200,210,220,0.48) !important;
+  text-transform: uppercase !important;
+}
+
+/* Stacked empty-state cards for Top 4 Favoritos */
+.perfil-v3-favorites-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 6px;
+}
+
+.perfil-v3-favorites-empty-stack {
+  width: 200px;
+  height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fav-stack { position: relative; width: 180px; height: 220px; perspective: 1100px; transform-style: preserve-3d; }
+.fav-stack::before,
+.fav-stack::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+}
+.fav-stack::before {
+  /* faint radial glow behind stack */
+  inset: -20px -10px -30px -10px;
+  background: radial-gradient(closest-side, rgba(0,229,255,0.06), transparent 45%);
+  filter: blur(18px);
+}
+.fav-stack::after {
+  /* tiny sparkles */
+  width: 100%;
+  height: 100%;
+  background-image:
+    radial-gradient(circle at 18% 18%, rgba(0,229,255,0.9) 0 1px, transparent 2px),
+    radial-gradient(circle at 82% 22%, rgba(0,229,255,0.7) 0 1px, transparent 2px),
+    radial-gradient(circle at 62% 78%, rgba(0,200,220,0.55) 0 1px, transparent 2px);
+  opacity: 0.12;
+  mix-blend-mode: screen;
+}
+
+.fav-card {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 160px;
+  height: 210px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(10,14,18,0.96), rgba(6,8,12,0.7));
+  border: 1px solid rgba(255,255,255,0.02);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  box-shadow:
+    0 14px 34px rgba(2,8,16,0.72),
+    0 0 36px rgba(0,229,255,0.02);
+  z-index: 1;
+}
+.fav-card::after {
+  /* neon outline + soft glow */
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(90deg, rgba(0,229,255,0.98), rgba(0,160,180,0.7));
+  -webkit-mask: linear-gradient(#000, #000) content-box, linear-gradient(#000, #000);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.13;
+  filter: blur(6px);
+  pointer-events: none;
+}
+.fav-card::before {
+  /* top-left rounded accent */
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  width: 56px;
+  height: 8px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, rgba(0,229,255,0.98), rgba(0,160,180,0.6));
+  box-shadow: 0 4px 12px rgba(0,229,255,0.06);
+}
+.fav-card {
+  transform-origin: 50% 70%;
+  transition: transform 260ms cubic-bezier(.2,.9,.2,1), box-shadow 260ms ease, opacity 200ms ease;
+}
+.fav-card-back {
+  transform: translate3d(-30px, 18px, -36px) rotateZ(-16deg) rotateX(6deg) scale(0.92);
+  opacity: 0.62;
+  z-index: 1;
+  box-shadow: 0 20px 48px rgba(0,0,0,0.7);
+}
+.fav-card-mid {
+  transform: translate3d(14px, -6px, -18px) rotateZ(10deg) rotateX(4deg) scale(0.96);
+  opacity: 0.78;
+  z-index: 2;
+  box-shadow: 0 18px 42px rgba(0,0,0,0.68);
+}
+.fav-card-front {
+  transform: translate3d(0,0,0) rotateZ(0deg) rotateX(0deg) scale(1);
+  z-index: 3;
+  border: 1px solid rgba(255,255,255,0.05);
+  box-shadow: 0 26px 60px rgba(0,0,0,0.72), 0 0 40px rgba(0,229,255,0.02) inset;
+}
+
+/* thin card edge highlight to emphasize stack layering */
+.fav-card::marker, .fav-card .edge-highlight { display: none; }
+.fav-card .edge-highlight {
+  position: absolute;
+  right: 6px;
+  top: 8px;
+  bottom: 8px;
+  width: 6px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+.fav-card svg { z-index: 4; filter: drop-shadow(0 10px 28px rgba(0,0,0,0.6)); }
+
+.perfil-v3-empty-copy {
+  margin: 0;
+  color: rgba(203,211,223,0.92);
+  font-size: 14px;
+  text-align: center;
+}
+
+@media (max-width: 820px) {
+  .perfil-v3-favorites-empty-stack { width: 140px; height: 180px; }
+  .fav-stack { width: 120px; height: 160px; }
+  .fav-card { width: 100px; height: 130px; border-radius: 12px; }
+  .fav-card::before { left: 6px; top: 6px; width: 44px; height: 6px; }
+}
+
+/* hover: spread the deck slightly */
+.fav-stack:hover .fav-card-back { transform: translate3d(-54px, 28px, -46px) rotateZ(-20deg) rotateX(8deg) scale(0.92); }
+.fav-stack:hover .fav-card-mid { transform: translate3d(34px, -12px, -22px) rotateZ(14deg) rotateX(6deg) scale(0.98); }
+.fav-stack:hover .fav-card-front { transform: translate3d(0,0,8px) rotateZ(0deg) rotateX(0deg) scale(1.02); }
 
 .perfil-v3-section-head {
   display: flex;
@@ -1401,9 +2026,23 @@
   font-weight: 600;
 }
 
+.perfil-page .perfil-v3-radar-card .perfil-v3-section-head h3 {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
 .perfil-v3-section-head p {
   color: rgba(203, 211, 223, 0.78);
   font-size: 13px;
+}
+
+.perfil-page .perfil-v3-radar-card .perfil-v3-section-head p {
+  font-size: 11px;
+  color: rgba(200, 210, 220, 0.48);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .perfil-v3-radar-wrap {
@@ -1417,13 +2056,43 @@
   margin: 0 0 10px;
   color: rgba(203, 211, 223, 0.84);
   font-size: 12px;
+  padding: 8px 14px;
+}
+
+.perfil-page .perfil-v3-radar-help {
+  gap: 14px;
+  color: rgba(200, 210, 220, 0.68);
+  font-size: 11px;
   line-height: 1.45;
 }
 
-.perfil-v3-radar-wrap svg {
-  width: 100%;
-  max-width: 260px;
-  height: auto;
+.perfil-page .perfil-v3-radar-wrap {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(240px, 0.95fr);
+  grid-template-areas:
+    'radar legend'
+    'radar detail';
+  gap: 10px 12px;
+  align-items: start;
+}
+
+.perfil-page .perfil-v3-radar-wrap svg {
+  grid-area: radar;
+  width: min(270px, 100%);
+  max-width: 270px;
+  margin-inline: auto;
+  display: block;
+  filter: drop-shadow(0 10px 28px rgba(2, 8, 16, 0.55));
+}
+
+.perfil-page .perfil-v3-radar-wrap > .perfil-v3-radar-legend {
+  grid-area: legend;
+  align-self: start;
+}
+
+.perfil-page .perfil-v3-radar-wrap > .perfil-v3-radar-detail {
+  grid-area: detail;
+  align-self: start;
 }
 
 .perfil-v3-radar-grid polygon {
@@ -1523,6 +2192,41 @@
   padding: 10px;
 }
 
+.perfil-page .perfil-v3-radar-empty,
+.perfil-page .perfil-v3-radar-detail,
+.perfil-page .perfil-v3-radar-legend li,
+.perfil-page .perfil-v3-radar-callout {
+  background: rgba(6, 10, 14, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.03) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 30px rgba(2, 8, 16, 0.55) !important;
+}
+
+.perfil-page .perfil-v3-radar-empty {
+  padding: 12px !important;
+}
+
+.perfil-page .perfil-v3-radar-empty::before,
+.perfil-page .perfil-v3-radar-detail::before,
+.perfil-page .perfil-v3-radar-legend li::before,
+.perfil-page .perfil-v3-radar-callout::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #2dd4bf, rgba(255, 255, 255, 0.04));
+}
+
+.perfil-page .perfil-v3-radar-empty,
+.perfil-page .perfil-v3-radar-detail,
+.perfil-page .perfil-v3-radar-legend li,
+.perfil-page .perfil-v3-radar-callout {
+  position: relative;
+  overflow: hidden;
+}
+
 .perfil-v3-radar-empty-enter {
   animation: perfilRadarIn 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   transform-origin: center;
@@ -1580,10 +2284,10 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   width: 100%;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 9px;
+  gap: 10px;
 }
 
 .perfil-v3-radar-legend li {
@@ -1599,21 +2303,35 @@
   font-size: 13px;
 }
 
-.perfil-v3-radar-legend-btn {
-  width: 100%;
-  border: none;
-  background: transparent;
-  color: inherit;
+.perfil-page .perfil-v3-radar-legend {
+  gap: 8px;
+}
+
+.perfil-page .perfil-v3-radar-legend li {
+  padding: 8px 10px !important;
+  gap: 8px;
+}
+
+.perfil-v3-radar-legend li {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #1b212c;
+  border-radius: 12px;
+  padding: 8px 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 0;
-  cursor: pointer;
+  color: #dbeaf8;
+  font-size: 13px;
+  width: 100%;
 }
 
 .perfil-v3-radar-legend-btn.active {
   color: #f5fbff;
+}
+
+.perfil-page .perfil-v3-radar-legend-btn.active {
+  color: #ffffff !important;
 }
 
 .perfil-v3-radar-legend-btn:disabled {
@@ -1629,7 +2347,7 @@
 .perfil-v3-radar-legend li span {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   color: rgba(230, 235, 242, 0.9);
   font-weight: 600;
   white-space: nowrap;
@@ -1649,6 +2367,13 @@
   font-weight: 800;
 }
 
+.perfil-page .perfil-v3-radar-legend li strong {
+  min-width: 28px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+}
+
 .perfil-v3-radar-detail {
   width: 100%;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -1660,6 +2385,11 @@
   gap: 8px;
 }
 
+.perfil-page .perfil-v3-radar-detail {
+  padding: 10px 12px !important;
+  gap: 6px;
+}
+
 .perfil-v3-radar-detail-title {
   margin: 0;
   color: #f1f4f8;
@@ -1667,11 +2397,23 @@
   font-weight: 700;
 }
 
+.perfil-page .perfil-v3-radar-detail-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(240, 248, 255, 0.92);
+}
+
 .perfil-v3-radar-detail-copy {
   margin: 0;
   color: rgba(210, 217, 227, 0.84);
   font-size: 12px;
   line-height: 1.45;
+}
+
+.perfil-page .perfil-v3-radar-detail-copy {
+  color: rgba(200, 210, 220, 0.72);
+  font-size: 11px;
 }
 
 .perfil-v3-radar-detail-btn {
@@ -1691,13 +2433,32 @@
   background: #353d4c;
 }
 
+.perfil-page .perfil-v3-radar-detail-btn {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.perfil-page .perfil-v3-radar-detail-btn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
 @media (max-width: 700px) {
+  .perfil-page .perfil-v3-radar-wrap {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'radar'
+      'legend'
+      'detail';
+  }
+
   .perfil-v3-radar-wrap svg {
     max-width: 280px;
   }
 
   .perfil-v3-radar-legend {
-    grid-template-columns: 1fr;
+    grid-template-columns: none;
+    display: flex;
+    flex-direction: column;
   }
 }
 
@@ -2061,6 +2822,7 @@
   line-height: 1.35;
   color: rgba(215, 226, 240, 0.9);
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
@@ -2118,6 +2880,35 @@
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 12px;
+}
+
+/* Ensure section headers (Actividad reciente, Reseñas, etc.) sit clearly
+   below the hero and are not visually overlapped. Add a small top margin and
+   ensure they render above the hero shade. */
+ .perfil-v3-tab-panel .perfil-v3-section-head {
+   margin-top: 36px;
+   padding-top: 6px;
+   position: relative;
+   z-index: 2;
+ }
+
+/* Hide the 'Actividad reciente' header and its filter pills inside the
+   activity tab so the content appears without that section title and buttons */
+.perfil-v3-tab-panel > .perfil-v3-card:first-child .perfil-v3-section-head {
+  display: none !important;
+}
+.perfil-v3-tab-panel > .perfil-v3-card:first-child .perfil-v3-activity-filters {
+  display: none !important;
+}
+
+/* Extra spacing between the perfil hero and the likes/reseñas section header */
+.perfil-resenas-hero-wrap .perfil-v3-page-cover {
+  /* increase spacing so the cover and the 'Reseñas' section don't feel cramped */
+  margin-bottom: 56px !important;
+}
+.perfil-resenas-hero-wrap .section-header {
+  margin-top: 28px !important;
+  padding-top: 8px !important;
 }
 
 .perfil-v3-filter-pill {
@@ -2323,6 +3114,15 @@
   font-size: 12px !important;
 }
 
+.perfil-v3-like-btn {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+
 .perfil-v3-activity-mood-chip {
   margin-top: 2px;
   align-self: flex-start;
@@ -2367,6 +3167,17 @@
 
   .perfil-v3-sidebar {
     position: static;
+  }
+}
+
+@media (max-width: 720px) {
+  .perfil-v3-profile-cover {
+    min-height: 178px;
+  }
+
+  .perfil-v3-profile-cover-actions {
+    right: 10px;
+    bottom: 10px;
   }
 }
 
@@ -2449,4 +3260,48 @@
   .perfil-v3-activity-poster img {
     transition: none;
   }
+}
+
+/* Compact mood legend overrides to match first-image layout */
+.perfil-page .perfil-v3-radar-legend {
+  gap: 10px !important;
+}
+
+.perfil-page .perfil-v3-radar-legend li,
+.perfil-page .perfil-v3-radar-legend li .perfil-v3-radar-legend-btn {
+  padding: 8px 14px !important;
+  gap: 18px !important;
+  border-radius: 12px !important;
+  font-size: 13px !important;
+}
+
+.perfil-page .perfil-v3-radar-legend li span {
+  gap: 10px !important;
+  flex: 1 1 auto;
+}
+
+.perfil-page .perfil-v3-radar-legend li strong {
+  min-width: 30px !important;
+  height: 24px !important;
+  font-size: 12px !important;
+  background: rgba(255,255,255,0.06) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  color: #edf1f7 !important;
+  margin-left: auto !important;
+}
+
+.perfil-page .perfil-v3-radar-legend li::before {
+  /* reduce accent width so it doesn't visually dominate */
+  left: 8px !important;
+  right: auto !important;
+  top: 6px !important;
+  width: calc(40% - 8px) !important;
+  height: 3px !important;
+  border-radius: 3px !important;
+}
+
+/* Fix: move home-sidebar up to match Home page vertical alignment */
+.perfil-page .home-sidebar {
+  margin-top: -120px;
+  padding-top: 14px; /* keep same inner spacing as home */
 }

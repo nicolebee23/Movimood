@@ -356,9 +356,7 @@ function Explorar() {
                 </Link>
               ))}
             </nav>
-            <div className="sidebar-footer">
-              <p>Recomendaciones basadas en tu mood y preferencias.</p>
-            </div>
+            {/* sidebar footer removed */}
           </div>
         </div>
       </aside>

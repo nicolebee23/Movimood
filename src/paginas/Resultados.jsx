@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 import WizardSidebar from '../componentes/WizardSidebar';
+import UserMenu from '../componentes/UserMenu';
 import './Resultados.css';
 import '../App.css';
 import { fetchRecommendedMovies, genreIdToName, getRecommendationReasons } from '../utils/recommendations';
@@ -23,6 +24,7 @@ function getStoredQuestionnaire() {
 function Resultados() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { currentUser, logout } = useAuth();
   const questionnaire = location.state?.questionnaire || getStoredQuestionnaire();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -33,8 +35,6 @@ function Resultados() {
   const batchTransitionTimeoutRef = useRef(null);
   const { favoritos, setLista, getLista, getNoInteresaIds, getMovieState, toggleEssential } = useFavoritos();
   const [openMenuId, setOpenMenuId] = useState(null);
-  const [openMenuMovie, setOpenMenuMovie] = useState(null);
-  const [menuCoords, setMenuCoords] = useState(null);
 
   const noInteresaIds = getNoInteresaIds();
   const yaVistaIds = new Set(
@@ -50,10 +50,9 @@ function Resultados() {
     (batchIndex + 1) * MOVIES_PER_BATCH
   );
   const totalBatches = Math.ceil(filteredMovies.length / MOVIES_PER_BATCH);
+  // currentBatch removed (unused) to satisfy linter
   const batchStart = filteredMovies.length > 0 ? (batchIndex * MOVIES_PER_BATCH) + 1 : 0;
   const batchEnd = filteredMovies.length > 0 ? batchStart + visibleMovies.length - 1 : 0;
-
-  const menuMovieState = openMenuMovie ? getMovieState(openMenuMovie.id) : null;
 
   function getTrailerUrl(movie) {
     const year = movie.release_date?.slice(0, 4) || '';
@@ -78,41 +77,6 @@ function Resultados() {
       batchTransitionTimeoutRef.current = null;
     }, 230);
   }
-
-  function handleMenuToggle(movie, e) {
-    e.stopPropagation();
-    if (openMenuId === movie.id) {
-      setOpenMenuId(null);
-      setOpenMenuMovie(null);
-      setMenuCoords(null);
-      return;
-    }
-
-    const rect = e.currentTarget.getBoundingClientRect();
-    const menuWidth = 220; /* match min-width in CSS */
-    let left = rect.right - menuWidth;
-    if (left < 8) left = rect.left;
-    const top = rect.bottom + 8 + window.scrollY;
-
-    setMenuCoords({ top, left });
-    setOpenMenuId(movie.id);
-    setOpenMenuMovie(movie);
-  }
-
-  useEffect(() => {
-    if (!openMenuId) return undefined;
-    const handler = () => {
-      setOpenMenuId(null);
-      setOpenMenuMovie(null);
-      setMenuCoords(null);
-    };
-    window.addEventListener('scroll', handler, true);
-    window.addEventListener('resize', handler);
-    return () => {
-      window.removeEventListener('scroll', handler, true);
-      window.removeEventListener('resize', handler);
-    };
-  }, [openMenuId]);
 
   useEffect(() => {
     let isMounted = true;
@@ -185,11 +149,16 @@ function Resultados() {
 
   return (
     <div className="cuestionario-page">
-      <WizardSidebar activeLabel="Resultados" footerText="Tus recomendaciones personalizadas basadas en tu mood y preferencias." hideLinks={[ 'Resultados', 'Mi lista' ]} />
+      <WizardSidebar activeLabel="Resultados" footerText="Tus recomendaciones personalizadas basadas en tu mood y preferencias." hideLinks={['Resultados', 'Mi lista']} />
 
       {/* MAIN CONTENT */}
       <main className="cuestionario-main">
-        {/* User profile chip removed here to avoid duplicate centered avatar (floating menu in App handles it) */}
+        {/* User profile chip */}
+        {currentUser && (
+          <div className="wizard-user-chip-fixed">
+            <UserMenu currentUser={currentUser} logout={logout} />
+          </div>
+        )}
 
         {/* Main content area */}
         <div className="wizard-contenedor wizard-contenedor--sin-card resultados-contenedor">
@@ -347,7 +316,7 @@ function Resultados() {
                             <button
                               type="button"
                               className={`resultado-lista-btn lista-${currentList || 'none'}`}
-                              onClick={(e) => handleMenuToggle(movie, e)}
+                              onClick={(e) => { e.stopPropagation(); setOpenMenuId((prev) => (prev === movie.id ? null : movie.id)); }}
                               aria-label="Gestionar listas"
                               aria-expanded={openMenuId === movie.id}
                             >
@@ -384,7 +353,47 @@ function Resultados() {
                               )}
                             </button>
 
-                            {/* menu rendered in portal to avoid clipping/overlap */}
+                            {openMenuId === movie.id && (
+                              <div className="resultado-lista-menu" role="menu" onClick={(e) => e.stopPropagation()}>
+                              <button
+                                type="button"
+                                className={`resultado-lista-opcion${!movieState.isSeen && !movieState.isIgnored ? ' activa' : ''}`}
+                                role="menuitem"
+                                onClick={() => { setLista(movie, questionnaireForSave, LISTAS.VER_LUEGO); setOpenMenuId(null); }}
+                              >
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                Ver más tarde
+                              </button>
+                              <button
+                                type="button"
+                                className={`resultado-lista-opcion${movieState.isSeen ? ' activa' : ''}`}
+                                role="menuitem"
+                                onClick={() => { setLista(movie, questionnaireForSave, LISTAS.YA_VISTA); setOpenMenuId(null); }}
+                              >
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+                                Ya vista
+                              </button>
+                              <button
+                                type="button"
+                                className={`resultado-lista-opcion${movieState.isEssential ? ' activa' : ''}`}
+                                role="menuitem"
+                                onClick={() => { toggleEssential(movie, questionnaireForSave); setOpenMenuId(null); }}
+                              >
+                                <svg viewBox="0 0 24 24" fill={movieState.isEssential ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                                Imprescindible
+                              </button>
+                              <div className="resultado-lista-menu-divider" />
+                              <button
+                                type="button"
+                                className={`resultado-lista-opcion resultado-lista-opcion-ignorar${movieState.isIgnored ? ' activa' : ''}`}
+                                role="menuitem"
+                                onClick={() => { setLista(movie, questionnaireForSave, LISTAS.NO_INTERESA); setOpenMenuId(null); }}
+                              >
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                                No me interesa
+                              </button>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </article>
@@ -392,58 +401,6 @@ function Resultados() {
                   );
                 })}
               </section>
-
-              {openMenuId && openMenuMovie && menuCoords && createPortal(
-                <div
-                  className="resultado-lista-menu"
-                  role="menu"
-                  onClick={(e) => e.stopPropagation()}
-                  style={{ position: 'absolute', top: `${menuCoords.top}px`, left: `${menuCoords.left}px`, zIndex: 2000 }}
-                >
-                  <button
-                    type="button"
-                    className={`resultado-lista-opcion${!menuMovieState?.isSeen && !menuMovieState?.isIgnored ? ' activa' : ''}`}
-                    role="menuitem"
-                    onClick={() => { setLista(openMenuMovie, questionnaireForSave, LISTAS.VER_LUEGO); setOpenMenuId(null); setOpenMenuMovie(null); }}
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    Ver más tarde
-                  </button>
-
-                  <button
-                    type="button"
-                    className={`resultado-lista-opcion${menuMovieState?.isSeen ? ' activa' : ''}`}
-                    role="menuitem"
-                    onClick={() => { setLista(openMenuMovie, questionnaireForSave, LISTAS.YA_VISTA); setOpenMenuId(null); setOpenMenuMovie(null); }}
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-                    Ya vista
-                  </button>
-
-                  <button
-                    type="button"
-                    className={`resultado-lista-opcion${menuMovieState?.isEssential ? ' activa' : ''}`}
-                    role="menuitem"
-                    onClick={() => { toggleEssential(openMenuMovie, questionnaireForSave); setOpenMenuId(null); setOpenMenuMovie(null); }}
-                  >
-                    <svg viewBox="0 0 24 24" fill={menuMovieState?.isEssential ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                    Imprescindible
-                  </button>
-
-                  <div className="resultado-lista-menu-divider" />
-
-                  <button
-                    type="button"
-                    className={`resultado-lista-opcion resultado-lista-opcion-ignorar${menuMovieState?.isIgnored ? ' activa' : ''}`}
-                    role="menuitem"
-                    onClick={() => { setLista(openMenuMovie, questionnaireForSave, LISTAS.NO_INTERESA); setOpenMenuId(null); setOpenMenuMovie(null); }}
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                    No me interesa
-                  </button>
-                </div>,
-                document.body
-              )}
 
               {totalBatches > 1 && batchIndex < totalBatches - 1 && (
                 <div className="resultados-refresh-container">

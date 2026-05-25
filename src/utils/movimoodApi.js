@@ -124,7 +124,32 @@ async function requestJson(endpoint, { method = 'GET', params = {}, body = null,
     try {
       payload = JSON.parse(text);
     } catch {
-      payload = { raw: text };
+      // Some hosting setups forward compressed bytes without a proper
+      // Content-Encoding header. Try multiple pako decoders before giving up.
+      const tryDecode = (decoder) => {
+        try {
+          const decoded = decoder(view);
+          return new TextDecoder().decode(decoded);
+        } catch {
+          return '';
+        }
+      };
+
+      const fallbackText =
+        tryDecode((bytes) => pako.inflate(bytes)) ||
+        tryDecode((bytes) => pako.inflateRaw(bytes)) ||
+        tryDecode((bytes) => pako.ungzip(bytes)) ||
+        '';
+
+      if (fallbackText) {
+        try {
+          payload = JSON.parse(fallbackText);
+        } catch {
+          payload = { raw: fallbackText };
+        }
+      } else {
+        payload = { raw: text };
+      }
     }
   }
 
