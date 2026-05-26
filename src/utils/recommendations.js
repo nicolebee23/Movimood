@@ -134,7 +134,7 @@ function rankMovie(movie, questionnaire) {
   const ratingScore = Math.min(movie.vote_average || 0, 10) * 0.35;
   const popularityScore = Math.min((movie.popularity || 0) / 150, 1.5);
 
-  return (selectedGenres * 4.5) + (moodGenres * 2.5) + keywordScore + yearScore + ratingScore + popularityScore;
+  return (selectedGenres * 4.5) + (moodGenres * 4.0) + keywordScore + yearScore + ratingScore + popularityScore;
 }
 
 function uniqueMovies(movies) {

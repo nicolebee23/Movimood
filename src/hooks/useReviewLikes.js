@@ -35,6 +35,11 @@ function saveLocalLikes(obj) {
 export default function useReviewLikes() {
   const [counts, setCounts] = useState(() => parseLocalLikes());
   const pendingRef = useRef(new Set());
+  const countsRef = useRef(counts);
+
+  useEffect(() => {
+    countsRef.current = counts;
+  }, [counts]);
 
   useEffect(() => {
     saveLocalLikes(counts);
@@ -50,12 +55,12 @@ export default function useReviewLikes() {
     } catch (e) {
       // ignore network errors, fallback to local
     }
-    return counts[String(reviewId)] || 0;
-  }, [counts]);
+    return countsRef.current[String(reviewId)] || 0;
+  }, []);
 
   const toggleLike = useCallback(async (reviewId) => {
     const key = String(reviewId);
-    const current = Number(counts[key] || 0);
+    const current = Number(countsRef.current[key] || 0);
     // optimistic: increment locally
     setCounts((s) => ({ ...s, [key]: current + 1 }));
     pendingRef.current.add(key);
@@ -100,11 +105,11 @@ export default function useReviewLikes() {
     } finally {
       pendingRef.current.delete(key);
     }
-  }, [counts]);
+  }, []);
 
   const unlike = useCallback(async (reviewId) => {
     const key = String(reviewId);
-    const current = Number(counts[key] || 0);
+    const current = Number(countsRef.current[key] || 0);
     if (current <= 0) return;
     // optimistic decrement
     setCounts((s) => ({ ...s, [key]: Math.max(0, current - 1) }));
@@ -148,7 +153,42 @@ export default function useReviewLikes() {
     } finally {
       pendingRef.current.delete(key);
     }
-  }, [counts]);
+  }, []);
+
+  // Stable fetchUserLikedReviews so components depending on the returned
+  // object don't trigger effects in a loop.
+  const fetchUserLikedReviews = useCallback(async () => {
+    // prefer server-side list of liked reviews for the authenticated user
+    try {
+      // If we have a local session user, pass user_id so server can return public list
+      let params = { resource: 'review-likes' };
+      try {
+        const rawSession = localStorage.getItem('movimood-session-user');
+        if (rawSession) {
+          const parsed = JSON.parse(rawSession);
+          if (parsed && parsed.id) params.user_id = parsed.id;
+        }
+      } catch (err) {
+        // ignore parsing errors
+      }
+
+      const payload = await requestJson('movimood.php', { params });
+      if (payload && Array.isArray(payload.items)) {
+        return payload.items;
+      }
+    } catch (e) {
+      // fall through to local fallback
+    }
+
+    try {
+      const raw = localStorage.getItem(USER_LIKED_REVIEWS_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(parsed)) return [];
+      return parsed.map((id) => ({ reviewId: String(id), likedAt: null, review: null }));
+    } catch (e) {
+      return [];
+    }
+  }, []);
 
   return {
     counts,
@@ -156,26 +196,7 @@ export default function useReviewLikes() {
     toggleLike,
     unlike,
     isPending: (reviewId) => pendingRef.current.has(String(reviewId)),
-    fetchUserLikedReviews: async () => {
-      // prefer server-side list of liked reviews for the authenticated user
-      try {
-        const payload = await requestJson('movimood.php', { params: { resource: 'review-likes' } });
-        if (payload && Array.isArray(payload.items)) {
-          return payload.items;
-        }
-      } catch (e) {
-        // fall through to local fallback
-      }
-
-      try {
-        const raw = localStorage.getItem(USER_LIKED_REVIEWS_KEY);
-        const parsed = raw ? JSON.parse(raw) : [];
-        if (!Array.isArray(parsed)) return [];
-        return parsed.map((id) => ({ reviewId: String(id), likedAt: null, review: null }));
-      } catch (e) {
-        return [];
-      }
-    },
+    fetchUserLikedReviews,
     isLiked: (reviewId) => {
       // check server side by fetching user's liked reviews (synchronous fallback: local cache)
       try {

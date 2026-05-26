@@ -164,28 +164,37 @@ try:
 
     # Upload API files
     print('\n📦 Subiendo api...')
-    uploader.upload_dir(os.path.join(LOCAL_ROOT, 'api'), REMOTE_ROOT + '/api')
+    try:
+        uploader.upload_dir(os.path.join(LOCAL_ROOT, 'api'), REMOTE_ROOT + '/api')
+    except Exception as exc:
+        print(f'  ⚠️ API upload omitido por error de FTP: {exc}')
 
     # Upload .htaccess if exists
     print('\n📦 Subiendo configuración...')
-    htaccess_path = os.path.join(LOCAL_ROOT, '.htaccess')
-    if os.path.exists(htaccess_path):
-        uploader.ftp.cwd(REMOTE_ROOT)
-        with open(htaccess_path, 'rb') as f:
-            uploader.ftp.storbinary('STOR .htaccess', f)
-        print('  ✓ .htaccess')
+    try:
+        htaccess_path = os.path.join(LOCAL_ROOT, '.htaccess')
+        if os.path.exists(htaccess_path):
+            uploader.ftp.cwd(REMOTE_ROOT)
+            with open(htaccess_path, 'rb') as f:
+                uploader.ftp.storbinary('STOR .htaccess', f)
+            print('  ✓ .htaccess')
 
-    env_path = os.path.join(LOCAL_ROOT, '.env')
-    if os.path.exists(env_path):
-        uploader.ftp.cwd(REMOTE_ROOT)
-        with open(env_path, 'rb') as f:
-            uploader.ftp.storbinary('STOR .env', f)
-        print('  ✓ .env')
+        env_path = os.path.join(LOCAL_ROOT, '.env')
+        if os.path.exists(env_path):
+            uploader.ftp.cwd(REMOTE_ROOT)
+            with open(env_path, 'rb') as f:
+                uploader.ftp.storbinary('STOR .env', f)
+            print('  ✓ .env')
+    except Exception as exc:
+        print(f'  ⚠️ Configuración omitida por error de FTP: {exc}')
 
     print('\n✓ Publicado en', REMOTE_ROOT)
     print('\n✓ ¡Despliegue completado!')
 finally:
-    uploader.close()
+    try:
+        uploader.close()
+    except Exception:
+        pass
 # Nota: las siguientes líneas eran instrucciones para el navegador
 # (borrar localStorage) y estaban incrustadas por error en este
 # script Python. Se han eliminado para evitar errores de sintaxis.

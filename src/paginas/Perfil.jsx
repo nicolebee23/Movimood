@@ -1177,6 +1177,7 @@ function Perfil() {
   const [movieGenresCache, setMovieGenresCache] = useState({});
   const navigate = useNavigate();
   const reviewLikes = useReviewLikes();
+  const { fetchUserLikedReviews } = reviewLikes;
   const [likesByReviewId, setLikesByReviewId] = useState(() => loadReviewLikesByReviewId());
   const [profileLikedReviewsCount, setProfileLikedReviewsCount] = useState(0);
 
@@ -1212,7 +1213,7 @@ function Perfil() {
 
       try {
         if (isOwnProfile) {
-          const items = await reviewLikes.fetchUserLikedReviews();
+          const items = await fetchUserLikedReviews();
           if (!cancelled) setProfileLikedReviewsCount(Array.isArray(items) ? items.length : 0);
         } else {
           const resp = await requestJson('movimood.php', { params: { resource: 'review-likes', user_id: viewedUser.id } });
@@ -1227,7 +1228,7 @@ function Perfil() {
     loadLikedCount();
 
     return () => { cancelled = true; };
-  }, [viewedUser?.id, isOwnProfile, reviewLikes]);
+  }, [viewedUser?.id, isOwnProfile, fetchUserLikedReviews]);
   const backToProfile = viewedUser?.id ? `/perfil/${encodeURIComponent(viewedUser.id)}` : (resolvedProfileId ? `/perfil/${encodeURIComponent(resolvedProfileId)}` : '/perfil');
 
   useEffect(() => {
@@ -1442,20 +1443,8 @@ function Perfil() {
     }
 
     if (metric === 'resenas') {
-      try {
-        if (isOwnProfile) {
-          navigate('/likes?tab=resenas');
-        } else if (viewedUser?.id) {
-          navigate(`/likes?user_id=${encodeURIComponent(viewedUser.id)}&tab=resenas`);
-        } else {
-          navigate('/likes?tab=resenas');
-        }
-        return;
-      } catch (e) {
-        setActiveTab('actividad');
-        setActivityFilter('resenas');
-        return;
-      }
+      setActivityFilter('resenas');
+      return;
     }
 
     setActivityFilter('all');
@@ -1534,7 +1523,11 @@ function Perfil() {
 
   return (
     <div className="home-page perfil-page perfil-v3-page">
-      <WizardSidebar activeLabel="Perfil" footerText="Tu perfil" />
+      <WizardSidebar
+        activeLabel="Perfil"
+        footerText="Tu perfil"
+        sidebarClassName={!isOwnProfile && activeTab === 'actividad' ? 'perfil-activity-sidebar' : ''}
+      />
 
       <main className="home-main perfil-v3-content likes-page">
           {activeTab === 'general' && (
@@ -2109,7 +2102,7 @@ function Perfil() {
                           <h1 className="likes-title">
                             <span className="likes-neon-heart" aria-hidden>
                               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                                <path d="M12 20s-6.716-4.35-9.029-7.01C-0.66 8.94 3.05 4 7.5 6.09 9.23 7.03 10 9 12 11c2-2 2.77-3.97 4.5-4.91C20.95 4 24.66 8.94 21.03 12.99 18.716 15.65 12 20 12 20z" stroke="#42e6ff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" stroke="#42e6ff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
                               </svg>
                             </span>
                             Reseñas

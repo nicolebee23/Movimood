@@ -207,6 +207,21 @@
   flex-wrap: wrap;
 }
 
+/* sidebar spacing is controlled globally in App.css (home-sidebar) */
+
+/* Keep sidebar spacing unchanged globally; apply specific fix only when viewing another user's reviews */
+
+/* Specific fix for other-user profile reviews (actividad) only: keep other pages unchanged */
+.home-page.perfil-page.perfil-v3-page .home-sidebar.perfil-activity-sidebar {
+  /* explicitly set to 60px as requested: affects only other-user reseñas view */
+  padding-top: 60px !important;
+}
+
+/* Also apply the same adjustment for the Likes page when showing another user's reseñas */
+.home-page .home-sidebar.perfil-activity-sidebar {
+  padding-top: 60px !important;
+}
+
 .perfil-link-primario {
   background: linear-gradient(135deg, #f1c082 0%, #e68f5b 56%, #69c9c3 100%);
   color: #11222d;
@@ -1930,6 +1945,7 @@
   border-radius: inherit;
   padding: 1px;
   background: linear-gradient(90deg, rgba(0,229,255,0.98), rgba(0,160,180,0.7));
+  mask: linear-gradient(#000, #000) content-box, linear-gradient(#000, #000);
   -webkit-mask: linear-gradient(#000, #000) content-box, linear-gradient(#000, #000);
   -webkit-mask-composite: xor;
   mask-composite: exclude;

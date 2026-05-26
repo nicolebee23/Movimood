@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 const menuLinks = [
@@ -11,9 +11,10 @@ const menuLinks = [
   { label: 'Perfil', to: '/perfil', icon: '◯' },
 ];
 
-function WizardSidebar({ activeLabel = 'Cuestionario', footerText = 'Responde el cuestionario y te damos películas hechas para tu mood.', hideLinks = [] }) {
+function WizardSidebar({ activeLabel = null, footerText = 'Responde el cuestionario y te damos películas hechas para tu mood.', hideLinks = [], sidebarClassName = '' }) {
   const { currentUser } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
   // Match visible links and behavior used on Home: hide 'Mood' entirely,
   // and hide personal links when not logged in.
   const visibleLinks = menuLinks.filter((link) => {
@@ -40,9 +41,10 @@ function WizardSidebar({ activeLabel = 'Cuestionario', footerText = 'Responde el
       ),
     },
   ];
-
+  // If user is logged, append comunidad links to the main visible links
+  const finalVisibleLinks = currentUser ? [...visibleLinks, ...comunidadLinks] : visibleLinks;
   return (
-    <aside className={`cuestionario-sidebar home-sidebar${isOpen ? ' open' : ''}`}>
+    <aside className={`cuestionario-sidebar home-sidebar${isOpen ? ' open' : ''} ${sidebarClassName || ''}`}>
       <div className="sidebar-shell">
         <div className="sidebar-top">
           <div className="sidebar-brand">
@@ -65,42 +67,41 @@ function WizardSidebar({ activeLabel = 'Cuestionario', footerText = 'Responde el
         </div>
         <div id="wizard-sidebar-panel" className={`sidebar-panel${isOpen ? ' open' : ''}`}>
           <nav className="sidebar-nav" aria-label="Navegación principal">
-            {visibleLinks.map((link) => {
-              const isActive = link.label === activeLabel;
+            {finalVisibleLinks.map((link) => {
+                // Determine active state. Prefer explicit `activeLabel` prop when provided,
+                // otherwise match against current location pathname.
+                let isActive = false;
+                if (typeof activeLabel === 'string' && activeLabel) {
+                  isActive = link.label === activeLabel;
+                } else if (location && location.pathname) {
+                  try {
+                    // Treat '/perfil' as a prefix match for profile routes like '/perfil/:id' or '/perfil/*'
+                    if (link.to === '/perfil') {
+                      isActive = location.pathname.startsWith('/perfil');
+                    } else {
+                      isActive = location.pathname === link.to || location.pathname.startsWith(link.to + '/');
+                    }
+                  } catch (e) {
+                    isActive = false;
+                  }
+                }
 
-              return (
-                <Link
-                  key={link.label}
-                  to={link.to}
-                  className={`sidebar-link${isActive ? ' active' : ''}`}
-                  aria-current={isActive ? 'page' : undefined}
-                  onClick={() => setIsOpen(false)}
-                >
-                  <span className="sidebar-link-icon" aria-hidden="true">{link.icon}</span>
-                  <span>{link.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
-          {/* sidebar footer descriptions removed by request */}
-          {currentUser && (
-            <div className="sidebar-section sidebar-section--comunidad">
-              <p className="sidebar-section-head">COMUNIDAD</p>
-              <nav className="sidebar-nav" aria-label="Comunidad">
-                {comunidadLinks.map((link) => (
+                return (
                   <Link
                     key={link.label}
                     to={link.to}
-                    className={`sidebar-link${link.label === activeLabel ? ' active' : ''}`}
+                    className={`sidebar-link${isActive ? ' active' : ''}`}
+                    aria-current={isActive ? 'page' : undefined}
                     onClick={() => setIsOpen(false)}
                   >
                     <span className="sidebar-link-icon" aria-hidden="true">{link.icon}</span>
                     <span>{link.label}</span>
                   </Link>
-                ))}
-              </nav>
-            </div>
-          )}
+                );
+              })}
+          </nav>
+          {/* sidebar footer descriptions removed by request */}
+          {/* Comunidad links are appended to main nav when user is logged in */}
         </div>
       </div>
     </aside>

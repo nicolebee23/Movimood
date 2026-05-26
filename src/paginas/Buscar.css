@@ -1,9 +1,15 @@
 /* Search Page */
 .buscar-page {
-  min-height: calc(100vh - 60px);
-  padding: 80px 20px 40px;
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(190px, 210px) minmax(0, 1fr);
+  gap: 0;
   background: linear-gradient(135deg, rgba(5, 10, 16, 0.9), rgba(9, 21, 33, 0.8));
   color: #e4f6ff;
+}
+
+.buscar-main {
+  padding: 80px 20px 40px;
 }
 
 .buscar-header {

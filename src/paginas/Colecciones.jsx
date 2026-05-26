@@ -2,7 +2,7 @@ import WizardSidebar from '../componentes/WizardSidebar';
 import { useAuth } from '../hooks/useAuth';
 import { Link } from 'react-router-dom';
 import './Colecciones.css';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { requestJson } from '../utils/movimoodApi';
 
 function Colecciones() {
@@ -19,7 +19,15 @@ function Colecciones() {
   const [searchDebugInfo, setSearchDebugInfo] = useState(null);
   const [filterQuery, setFilterQuery] = useState('');
   const [orderBy, setOrderBy] = useState('recent');
+  const [sortOpen, setSortOpen] = useState(false);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
+  const sortRef = useRef(null);
+  const sortOptions = [
+    { value: 'recent', label: 'Recientes' },
+    { value: 'size', label: 'Mayor tamaño' },
+    { value: 'alpha', label: 'Alfabético' }
+  ];
+  const [activeSortIndex, setActiveSortIndex] = useState(0);
 
   const storageKey = currentUser ? `movimood-collections-${currentUser.id}` : 'movimood-collections-guest';
 
@@ -32,6 +40,14 @@ function Colecciones() {
       setCollections([]);
     }
   }, [storageKey]);
+
+  useEffect(() => {
+    function onDocClick(e) {
+      if (sortRef.current && !sortRef.current.contains(e.target)) setSortOpen(false);
+    }
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, []);
 
   function persist(list) {
     localStorage.setItem(storageKey, JSON.stringify(list));
@@ -71,6 +87,15 @@ function Colecciones() {
     if (!confirm('Eliminar colección?')) return;
     const next = collections.filter((c) => c.id !== id);
     persist(next);
+  }
+
+  function sortAndSet(value) {
+    let next = [...collections];
+    if (value === 'size') next = next.sort((a, b) => ((b.posters?.length || 0) - (a.posters?.length || 0)));
+    else if (value === 'alpha') next = next.sort((a, b) => a.title.localeCompare(b.title));
+    else next = next.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    persist(next);
+    setOrderBy(value);
   }
 
   return (
@@ -123,11 +148,49 @@ function Colecciones() {
             <div className="colecciones-controls" style={{ marginBottom: 12, display: 'flex', gap: 12, alignItems: 'center' }}>
               <input className="colecciones-search" placeholder="Buscar colecciones..." value={filterQuery} onChange={(e) => setFilterQuery(e.target.value)} />
               <div className="colecciones-sort">
-                <select value={orderBy} onChange={(e) => setOrderBy(e.target.value)}>
-                  <option value="recent">Recientes</option>
-                  <option value="size">Mayor tamaño</option>
-                  <option value="alpha">Alfabético</option>
-                </select>
+                <div
+                  ref={sortRef}
+                  className={`custom-select${sortOpen ? ' open' : ''}`}
+                  tabIndex={0}
+                  role="combobox"
+                  aria-haspopup="listbox"
+                  aria-expanded={sortOpen}
+                  aria-controls="colec-sort-list"
+                  aria-activedescendant={`colec-sort-option-${activeSortIndex}`}
+                  onKeyDown={(e) => {
+                    if (!sortOpen && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) { setSortOpen(true); e.preventDefault(); }
+                    else if (sortOpen) {
+                      if (e.key === 'ArrowDown') { setActiveSortIndex(i => (i + 1) % sortOptions.length); e.preventDefault(); }
+                      else if (e.key === 'ArrowUp') { setActiveSortIndex(i => (i - 1 + sortOptions.length) % sortOptions.length); e.preventDefault(); }
+                      else if (e.key === 'Enter' || e.key === ' ') { const sel = sortOptions[activeSortIndex]; if (sel) { setOrderBy(sel.value); setSortOpen(false); } e.preventDefault(); }
+                      else if (e.key === 'Escape') { setSortOpen(false); e.preventDefault(); }
+                    }
+                  }}
+                  onFocus={() => setSortOpen(true)}
+                  onBlur={() => setSortOpen(false)}
+                >
+                  <button type="button" className="custom-select-button" onClick={() => setSortOpen(s => !s)} aria-expanded={sortOpen}>
+                    {sortOptions.find(o => o.value === orderBy)?.label || 'Recientes'}
+                    <span className="chev" aria-hidden>▾</span>
+                  </button>
+                  {sortOpen && (
+                    <ul id="colec-sort-list" className="custom-select-list" role="listbox">
+                      {sortOptions.map((opt, idx) => (
+                        <li
+                          id={`colec-sort-option-${idx}`}
+                          key={opt.value}
+                          role="option"
+                          aria-selected={orderBy === opt.value}
+                          className={`custom-select-item${orderBy === opt.value ? ' selected' : ''}`}
+                          onMouseEnter={() => setActiveSortIndex(idx)}
+                          onClick={() => { sortAndSet(opt.value); setSortOpen(false); }}
+                        >
+                          {opt.label}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </div>
               <div className="colecciones-view-toggle" role="tablist" aria-label="Ver">
                 <button aria-pressed={viewMode==='grid'} onClick={() => setViewMode('grid')}>Cuadrícula</button>

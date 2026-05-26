@@ -18,12 +18,12 @@ function formatReviewDate(isoString) {
 export default function Likes() {
   const { favoritos } = useFavoritos();
   const reviewLikes = useReviewLikes();
+  const { fetchUserLikedReviews } = reviewLikes;
   const [likedReviews, setLikedReviews] = useState([]);
+  const [tab, setTab] = useState('todo'); // 'todo' | 'peliculas' | 'resenas'
   const location = useLocation();
   const params = new URLSearchParams(location.search || '');
   const profileUserId = params.get('user_id');
-  const initialTab = params.get('tab') || 'todo';
-  const [tab, setTab] = useState(initialTab); // 'todo' | 'peliculas' | 'resenas'
 
   const [profileFavorites, setProfileFavorites] = useState(null);
   const [, setLoadingProfileFavorites] = useState(false);
@@ -36,7 +36,7 @@ export default function Likes() {
     let cancelled = false;
     (async () => {
       try {
-        const items = await reviewLikes.fetchUserLikedReviews();
+        const items = await fetchUserLikedReviews();
         if (!cancelled) setLikedReviews(Array.isArray(items) ? items : []);
       } catch (e) {
         if (!cancelled) setLikedReviews([]);
@@ -44,12 +44,7 @@ export default function Likes() {
     })();
 
     return () => { cancelled = true; };
-  }, [reviewLikes]);
-
-  useEffect(() => {
-    const nextTab = params.get('tab') || 'todo';
-    setTab(nextTab);
-  }, [location.search]);
+  }, [fetchUserLikedReviews]);
 
   useEffect(() => {
     let cancelled = false;
@@ -98,7 +93,11 @@ export default function Likes() {
 
   return (
     <div className="home-page">
-      <WizardSidebar activeLabel="Likes" footerText="Aquí ves lo que te gustó" />
+      <WizardSidebar
+        activeLabel="Likes"
+        footerText="Aquí ves lo que te gustó"
+        sidebarClassName={profileUserId && tab === 'resenas' ? 'perfil-activity-sidebar' : ''}
+      />
 
       <main className="home-main videoteca-main likes-page perfil-v3-content">
         <div className="perfil-v3-page-cover likes-hero">

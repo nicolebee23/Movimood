@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import './Buscar.css';
+import WizardSidebar from '../componentes/WizardSidebar';
 
 const API_BASE_URL = (process.env.REACT_APP_API_BASE_URL || '').replace(/\/$/, '');
 
@@ -266,6 +267,8 @@ function Buscar() {
 
   return (
     <div className="buscar-page">
+      <WizardSidebar />
+      <main className="buscar-main">
       <div className="buscar-header">
         <button type="button" className="buscar-back-btn" onClick={() => navigate(-1)} aria-label="Volver atrás">
           <span aria-hidden="true">←</span>
@@ -395,6 +398,7 @@ function Buscar() {
           )}
         </section>
       )}
+      </main>
     </div>
   );
 }

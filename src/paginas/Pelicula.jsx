@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useFavoritos, LISTAS } from '../hooks/useFavoritos';
 import { useMovieReviews } from '../hooks/useMovieReviews';
 import './Pelicula.css';
+import WizardSidebar from '../componentes/WizardSidebar';
 
 const API_BASE_URL = (process.env.REACT_APP_API_BASE_URL || (typeof window !== 'undefined' ? `${window.location.origin}/api` : '/api')).replace(/\/$/, '');
 
@@ -268,20 +269,22 @@ function Pelicula() {
 
   return (
     <div className="pelicula-page">
-      <div className="pelicula-hero" style={{
-        backgroundImage: movie.backdrop_path
-          ? `url('https://image.tmdb.org/t/p/w1280${movie.backdrop_path}')`
-          : 'none',
-      }}>
-        <div className="pelicula-hero-overlay"></div>
-      </div>
+      <WizardSidebar />
+      <main className="pelicula-main">
+        <div className="pelicula-hero" style={{
+          backgroundImage: movie.backdrop_path
+            ? `url('https://image.tmdb.org/t/p/w1280${movie.backdrop_path}')`
+            : 'none',
+        }}>
+          <div className="pelicula-hero-overlay"></div>
+        </div>
 
-      <div className="pelicula-content">
-        <button type="button" className="pelicula-back-btn" onClick={() => navigate(-1)}>
+          <div className="pelicula-content">
+          <button type="button" className="pelicula-back-btn" onClick={() => navigate(-1)}>
           ← Volver
         </button>
 
-        <div className="pelicula-main">
+          <div className="pelicula-main-grid">
           {movie.poster_path && (
             <img
               src={`https://image.tmdb.org/t/p/w342${movie.poster_path}`}
@@ -553,7 +556,8 @@ function Pelicula() {
             )}
           </div>
         </div>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }

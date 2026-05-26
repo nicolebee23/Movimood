@@ -15,37 +15,6 @@
   .likes-hero-copy{ top: 100px; left: 18px; }
 }
 
-/* Ensure the nested perfil 'Reseñas' hero used inside Perfil.activity matches
-   the same spacing and visual rules as the standalone Likes/Vistas pages. */
-.perfil-resenas-hero-wrap .perfil-v3-page-cover.likes-hero {
-  background: transparent;
-  padding-bottom: 8px;
-}
-
-.perfil-resenas-hero-wrap .likes-hero-copy{
-  position: absolute;
-  top: 100px;
-  left: 18px;
-  z-index: 3;
-  padding: 18px 18px;
-  max-width: 760px;
-}
-
-.perfil-resenas-hero-wrap .perfil-v3-page-cover-image{
-  object-position: center 36%;
-}
-
-.perfil-resenas-hero-wrap .perfil-v3-page-cover-shade{
-  pointer-events: none;
-  z-index: 1;
-}
-
-/* push down the section below the nested hero so sidebar and top layout stay visible */
-.perfil-resenas-hero-wrap + .likes-section,
-.perfil-resenas-hero-wrap .likes-section {
-  margin-top: 18px;
-}
-
 .likes-title{
   font-size: 28px;
   margin: 0 0 6px 0;
