@@ -49,6 +49,8 @@ const MOOD_LABELS = {
   Enojado: 'Enfadado',
 };
 
+const UNASSIGNED_MOOD = 'Sin mood';
+
 const TABS = [
   {
     id: LISTAS.VER_LUEGO,
@@ -173,16 +175,15 @@ function Videoteca() {
   const [isCompactTabs, setIsCompactTabs] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 700);
   const [activeMood, setActiveMood] = useState('Todos');
   const [searchQuery, setSearchQuery] = useState('');
-  const [reviewStatusFilter, setReviewStatusFilter] = useState('todos');
-  const [sortMode, setSortMode] = useState('recientes');
-  /* eslint-disable-next-line no-unused-vars */
-  const [viewMode, setViewMode] = useState('grid');
-  /* eslint-disable-next-line no-unused-vars */
-  const [hidePosters, setHidePosters] = useState(false);
   const [openMoveMenuMovieId, setOpenMoveMenuMovieId] = useState(null);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [reviewEditorSeed, setReviewEditorSeed] = useState(0);
   const [reviewModalContext, setReviewModalContext] = useState(null);
+  const [isLikersModalOpen, setIsLikersModalOpen] = useState(false);
+  const [likersModalReview, setLikersModalReview] = useState(null);
+  const [likersModalUsers, setLikersModalUsers] = useState(null);
+  const [isLoadingLikers, setIsLoadingLikers] = useState(false);
+  const [likersModalError, setLikersModalError] = useState(null);
   const [isRatingDragging, setIsRatingDragging] = useState(false);
   const reviewEditorRef = useRef(null);
   const [reviewModalDraft, setReviewModalDraft] = useState({
@@ -200,6 +201,10 @@ function Videoteca() {
   useEffect(() => {
     const params = new URLSearchParams(location.search || '');
     const view = params.get('view');
+    const mood = params.get('mood');
+    if (mood) {
+      setActiveMood(mood);
+    }
     if (!view) return;
 
     if (view === 'imprescindibles') {
@@ -247,7 +252,7 @@ function Videoteca() {
     }
   }, [location.search]);
 
-  const reviewLikes = useReviewLikes();
+  const { fetchCount, counts, fetchLikers } = useReviewLikes();
 
   useEffect(() => {
     function handleResize() {
@@ -285,28 +290,76 @@ function Videoteca() {
       });
   
   const myReviews = getReviewsByProfile();
-  const reviewsByMovieId = new Map(myReviews.map((review) => [String(review.movieId), review]));
   const favoritosByMovieId = new Map(favoritos.map((fav) => [fav.movie.id, fav]));
+  const reviewsByMovieId = new Map(myReviews.map((review) => [review.movieId, review]));
+  const getMoodForReview = (review) => review?.mood || favoritosByMovieId.get(review?.movieId)?.questionnaire?.moods?.[0] || 'Sin mood';
   const uniqueMoodsRated = new Set(myReviews.map((review) => review.mood).filter(Boolean)).size;
   /* eslint-disable-next-line no-unused-vars */
   const moodCoveragePercent = Math.round((uniqueMoodsRated / Object.keys(MOOD_EMOJIS).length) * 100);
 
   useEffect(() => {
     if (!myReviews || myReviews.length === 0) return;
+    const MAX_FETCH = 12;
     (async () => {
-      for (const r of myReviews) {
+      const slice = myReviews.slice(0, MAX_FETCH);
+      for (const r of slice) {
         try {
-          await reviewLikes.fetchCount(r.id);
+          await fetchCount(r.id);
         } catch (e) {
           // ignore
         }
       }
     })();
-  }, [myReviews, reviewLikes]);
+  }, [myReviews, fetchCount]);
 
-  const availableMoods = Array.from(
-    new Set(tabMovies.flatMap((fav) => fav.questionnaire?.moods || []))
-  );
+  const availableMoods = isReviewsTab
+    ? Array.from(
+        new Set(
+          myReviews
+            .map((review) => getMoodForReview(review))
+            .filter((mood) => Boolean(mood) && mood !== UNASSIGNED_MOOD)
+        )
+      )
+    : Array.from(
+        new Set(
+          tabMovies.flatMap((fav) => {
+            // Check if there's a review for this movie
+            const review = reviewsByMovieId.get(fav.movie.id);
+            if (review?.mood) {
+              return [review.mood];
+            }
+            // Otherwise use questionnaire moods
+            const moods = Array.from(new Set((fav.questionnaire?.moods || []).filter(Boolean)));
+            return moods.length > 0 ? moods : [UNASSIGNED_MOOD];
+          })
+        )
+      );
+
+  const moodCounts = isReviewsTab
+    ? myReviews.reduce((acc, review) => {
+        const mood = getMoodForReview(review);
+        if (!mood || mood === UNASSIGNED_MOOD) return acc;
+        acc[mood] = (acc[mood] || 0) + 1;
+        return acc;
+      }, {})
+    : tabMovies.reduce((acc, fav) => {
+        // Check if there's a review for this movie
+        const review = reviewsByMovieId.get(fav.movie.id);
+        if (review?.mood) {
+          acc[review.mood] = (acc[review.mood] || 0) + 1;
+        } else {
+          // Otherwise use questionnaire moods
+          const uniqueMoods = Array.from(new Set((fav.questionnaire?.moods || []).filter(Boolean)));
+          if (uniqueMoods.length === 0) {
+            acc[UNASSIGNED_MOOD] = (acc[UNASSIGNED_MOOD] || 0) + 1;
+          } else {
+            uniqueMoods.forEach((mood) => {
+              acc[mood] = (acc[mood] || 0) + 1;
+            });
+          }
+        }
+        return acc;
+      }, {});
 
   const moodScrollRef = useRef(null);
   const recentScrollRef = useRef(null);
@@ -324,6 +377,15 @@ function Videoteca() {
       if (activeMood === 'Todos') {
         return true;
       }
+      // Check if there's a review for this movie
+      const review = reviewsByMovieId.get(fav.movie.id);
+      if (review?.mood) {
+        return review.mood === activeMood;
+      }
+      // Otherwise use questionnaire moods
+      if (activeMood === UNASSIGNED_MOOD) {
+        return !(fav.questionnaire?.moods || []).some(Boolean);
+      }
       return (fav.questionnaire?.moods || []).includes(activeMood);
     })
     .filter((fav) => {
@@ -335,55 +397,34 @@ function Videoteca() {
       const title = (fav.movie?.title || '').toLowerCase();
       return title.includes(normalizedQuery);
     })
-    .filter((fav) => {
-      const review = reviewsByMovieId.get(fav.movie.id);
-      const hasReview = Boolean(review);
-      const hasComment = Boolean((review?.comment || '').trim());
+    // reviewStatusFilter removed from UI — keep default behavior (no extra filtering)
+    .sort((left, right) => new Date(right.savedAt) - new Date(left.savedAt));
 
-      if (reviewStatusFilter === 'con-resena') {
-        return hasReview && hasComment;
+  const filteredReviews = myReviews
+    .filter((review) => {
+      if (activeMood === 'Todos') {
+        return true;
       }
-
-      if (reviewStatusFilter === 'solo-puntuacion') {
-        return hasReview && !hasComment;
-      }
-
-      if (reviewStatusFilter === 'sin-actividad') {
-        return !hasReview;
-      }
-
-      return true;
+      return getMoodForReview(review) === activeMood;
     })
-    .sort((left, right) => {
-      if (sortMode === 'antiguas') {
-        return new Date(left.savedAt) - new Date(right.savedAt);
+    .filter((review) => {
+      const normalizedQuery = searchQuery.trim().toLowerCase();
+      if (!normalizedQuery) {
+        return true;
       }
-
-      if (sortMode === 'rating-tmdb') {
-        return (right.movie?.vote_average || 0) - (left.movie?.vote_average || 0);
-      }
-
-      if (sortMode === 'mejor-puntuadas') {
-        const leftReview = reviewsByMovieId.get(left.movie.id);
-        const rightReview = reviewsByMovieId.get(right.movie.id);
-        return (Number(rightReview?.rating) || 0) - (Number(leftReview?.rating) || 0);
-      }
-
-      return new Date(right.savedAt) - new Date(left.savedAt);
+      const relatedFavorite = favoritosByMovieId.get(review.movieId);
+      const title = (review.movie?.title || relatedFavorite?.movie?.title || '').toLowerCase();
+      return title.includes(normalizedQuery);
     });
 
   /* eslint-disable-next-line no-unused-vars */
   const hasActiveFilters =
     Boolean(searchQuery.trim()) ||
-    reviewStatusFilter !== 'todos' ||
-    sortMode !== 'recientes' ||
     activeMood !== 'Todos';
 
   /* eslint-disable-next-line no-unused-vars */
   function clearAllFilters() {
     setSearchQuery('');
-    setReviewStatusFilter('todos');
-    setSortMode('recientes');
     setActiveMood('Todos');
   }
 
@@ -439,6 +480,69 @@ function Videoteca() {
       document.body.style.overflow = previousOverflow;
     };
   }, [isReviewModalOpen]);
+
+  useEffect(() => {
+    if (!isLikersModalOpen) {
+      return undefined;
+    }
+
+    function handleEscape(event) {
+      if (event.key === 'Escape') {
+        closeLikersModal();
+      }
+    }
+
+    window.addEventListener('keydown', handleEscape);
+    return () => {
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [isLikersModalOpen]);
+
+  useEffect(() => {
+    if (!isLikersModalOpen || typeof document === 'undefined') {
+      return undefined;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isLikersModalOpen]);
+
+  async function openLikersModal(review) {
+    setLikersModalReview(review);
+    setLikersModalUsers(null);
+    setLikersModalError(null);
+    setIsLoadingLikers(true);
+    setIsLikersModalOpen(true);
+
+    try {
+      const users = await fetchLikers(review.id);
+      setLikersModalUsers(users);
+    } catch (e) {
+      setLikersModalError('No se pudieron cargar las personas que dieron like.');
+      setLikersModalUsers([]);
+    } finally {
+      setIsLoadingLikers(false);
+    }
+  }
+
+  function closeLikersModal() {
+    setIsLikersModalOpen(false);
+    setLikersModalReview(null);
+    setLikersModalUsers(null);
+    setLikersModalError(null);
+    setIsLoadingLikers(false);
+  }
+
+  function handleLikersTriggerKeyDown(event, review) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      openLikersModal(review);
+    }
+  }
 
   useEffect(() => {
     if (openMoveMenuMovieId === null) {
@@ -672,11 +776,11 @@ function Videoteca() {
                 onClick={() => setActiveTab(tab.id)}
               >
                 {tab.id === LISTAS.VER_LUEGO ? (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  <svg className="videoteca-tab-icon videoteca-tab-icon-later" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 ) : tab.id === LISTAS.YA_VISTA ? (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+                  <svg className="videoteca-tab-icon videoteca-tab-icon-seen" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
                 ) : (
-                  <svg viewBox="0 0 24 24" fill={activeTab === tab.id ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                  <svg className="videoteca-tab-icon" viewBox="0 0 24 24" fill={activeTab === tab.id ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                 )}
                 {tab.label}
                 {count > 0 && <span className="videoteca-tab-count">{count}</span>}
@@ -698,7 +802,7 @@ function Videoteca() {
             Todos
           </button>
           {Object.keys(MOOD_EMOJIS).map((m) => {
-            const count = favoritos.filter((f) => (f.questionnaire?.moods || []).includes(m)).length;
+            const count = moodCounts[m] || 0;
             const moodLabel = MOOD_LABELS[m] || m;
             return (
               <button
@@ -718,6 +822,25 @@ function Videoteca() {
               </button>
             );
           })}
+          {(() => {
+            const unassignedCount = moodCounts[UNASSIGNED_MOOD] || 0;
+            if (!unassignedCount) return null;
+
+            return (
+              <button
+                key={UNASSIGNED_MOOD}
+                type="button"
+                role="listitem"
+                className={`videoteca-mood-chip${activeMood === UNASSIGNED_MOOD ? ' activo' : ''}`}
+                onClick={() => setActiveMood(UNASSIGNED_MOOD)}
+                title={UNASSIGNED_MOOD}
+              >
+                <span className="mood-emoji" aria-hidden>•</span>
+                <span className="mood-label">Sin mood</span>
+                <span className="mood-count">{unassignedCount}</span>
+              </button>
+            );
+          })()}
         </div>
       </div>
 
@@ -731,7 +854,9 @@ function Videoteca() {
           const userMood = activeMood === 'Todos' ? (availableMoods[0] || 'Todos') : activeMood;
           const MoodIcon = MOOD_COMPONENTS[userMood];
           const moodEmoji = MoodIcon ? <MoodIcon className="mood-emoji" aria-hidden /> : (MOOD_EMOJIS[userMood] || '🎬');
-          const moodMovies = favoritos.filter((f) => (f.questionnaire?.moods || []).includes(userMood));
+          const moodMovies = userMood === UNASSIGNED_MOOD
+            ? favoritos.filter((f) => !(f.questionnaire?.moods || []).some(Boolean))
+            : favoritos.filter((f) => (f.questionnaire?.moods || []).includes(userMood));
           const recentMovies = favoritos.slice().sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt)).slice(0, 24);
 
           return (
@@ -903,7 +1028,7 @@ function Videoteca() {
               <button type="button" className="videoteca-arrow right" aria-label="Desplazar derecha" onClick={() => scrollContainer(watchLaterScrollRef, 'right')}>›</button>
             </div>
           ) : (
-            <div className={`videoteca-grid${viewMode === 'list' ? ' list' : ''}${hidePosters ? ' no-posters' : ''}`}>
+            <div className="videoteca-grid">
               {filteredTabMovies.map(({ movie, questionnaire, savedAt }) => {
                 const genres = movie.genre_ids
                   ?.map((id) => genreIdToName[id])
@@ -1040,15 +1165,23 @@ function Videoteca() {
 
       {isReviewsTab && myReviews.length > 0 && (
         <section className="videoteca-seccion">
+          {filteredReviews.length === 0 && (
+            <div className="videoteca-no-resultados-filtro">
+              No hay reseñas de mood <strong>{activeMood}</strong> con ese filtro.
+            </div>
+          )}
+
           <div className="videoteca-reviews-grid">
-            {myReviews.map((review) => {
+            {filteredReviews.map((review) => {
               const relatedFavorite = favoritosByMovieId.get(review.movieId);
               const movieData = review.movie || relatedFavorite?.movie || null;
               const title = movieData?.title || 'Pelicula';
               const posterPath = movieData?.poster_path || null;
-              const moodAtReview = review.mood || relatedFavorite?.questionnaire?.moods?.[0] || 'Sin mood';
+              const moodAtReview = getMoodForReview(review);
+              const MoodIcon = MOOD_COMPONENTS[moodAtReview];
               const ratingOutOfFive = Math.max(0, Math.min(5, Math.round((Number(review.rating) || 0) / 2)));
-              const likeCount = reviewLikes.counts[String(review.id)] || 0;
+              const likeCount = counts[String(review.id)] || 0;
+              const likeLabel = `${likeCount} ${likeCount === 1 ? 'persona' : 'personas'} les ha gustado`;
 
               return (
                 <article className="videoteca-review-card" key={review.id}>
@@ -1124,28 +1257,26 @@ function Videoteca() {
 
                     <div className="videoteca-review-card-meta-row">
                       <p className="videoteca-review-card-mood">
-                        {MOOD_EMOJIS[moodAtReview] || '🎬'} {moodAtReview}
+                        {MoodIcon ? (
+                          <MoodIcon className="videoteca-review-card-mood-icon" aria-hidden />
+                        ) : (
+                          <span className="videoteca-review-card-mood-icon" aria-hidden>{MOOD_EMOJIS[moodAtReview] || '🎬'}</span>
+                        )}
+                        <span className="videoteca-review-card-mood-label">{moodAtReview}</span>
                       </p>
                       <p className="videoteca-review-card-likes">
-                        <button
-                          type="button"
-                          className="videoteca-review-like-btn"
-                          onClick={async () => {
-                            try {
-                              await reviewLikes.toggleLike(review.id);
-                            } catch (e) {
-                              if (e && e.status === 401) {
-                                navigate(`/login?returnTo=${encodeURIComponent(window.location.pathname + window.location.search)}`);
-                                return;
-                              }
-                              // ignore other errors
-                            }
-                          }}
-                          aria-label={`Dar like a reseña de ${title}`}
+                        <span
+                          className={`videoteca-review-like-btn${likeCount > 0 ? ' interactive' : ''}`}
+                          role={likeCount > 0 ? 'button' : 'text'}
+                          tabIndex={likeCount > 0 ? 0 : -1}
+                          onClick={likeCount > 0 ? () => openLikersModal(review) : undefined}
+                          onKeyDown={likeCount > 0 ? (event) => handleLikersTriggerKeyDown(event, review) : undefined}
+                          aria-label={likeCount > 0 ? `${likeLabel}, pulsa para ver quién le ha dado like` : `${likeLabel}`}
+                          title={likeCount > 0 ? 'Pulsa para ver quién ha dado like' : '0 personas han dado like'}
                         >
                           <span className="videoteca-review-card-heart" aria-hidden="true">♥</span>
-                          {likeCount} personas les ha gustado
-                        </button>
+                          {likeLabel}
+                        </span>
                       </p>
                     </div>
                   </div>
@@ -1242,9 +1373,11 @@ function Videoteca() {
 
               <div className="videoteca-review-modal-field">
                 <span>Mood asignado</span>
-                {(reviewModalContext.assignedMoods || []).length > 1 ? (
-                  <div className="videoteca-review-modal-mood-options" role="radiogroup" aria-label="Seleccionar mood de la peli">
-                    {reviewModalContext.assignedMoods.map((mood) => (
+                <div className="videoteca-review-modal-mood-options" role="radiogroup" aria-label="Seleccionar mood de la peli">
+                  {Object.keys(MOOD_EMOJIS).map((mood) => {
+                    const MoodIcon = MOOD_COMPONENTS[mood];
+
+                    return (
                       <button
                         key={mood}
                         type="button"
@@ -1258,15 +1391,16 @@ function Videoteca() {
                           }));
                         }}
                       >
-                        {MOOD_EMOJIS[mood] || '🎬'} {mood}
+                        {MoodIcon ? (
+                          <MoodIcon className="videoteca-review-modal-mood-icon" aria-hidden />
+                        ) : (
+                          <span className="videoteca-review-modal-mood-icon" aria-hidden>{MOOD_EMOJIS[mood] || '🎬'}</span>
+                        )}
+                        <span className="videoteca-review-modal-mood-label">{mood}</span>
                       </button>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="videoteca-review-modal-mood-locked">
-                    {MOOD_EMOJIS[reviewModalDraft.mood] || '🎬'} {reviewModalDraft.mood || 'Sin mood'}
-                  </p>
-                )}
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="videoteca-review-modal-editor-wrap">
@@ -1297,6 +1431,62 @@ function Videoteca() {
                 </button>
               </footer>
             </form>
+          </div>
+        </div>
+      ), document.body)}
+
+      {typeof document !== 'undefined' && isLikersModalOpen && likersModalReview && createPortal((
+        <div
+          className="videoteca-review-modal-overlay"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              closeLikersModal();
+            }
+          }}
+          role="presentation"
+        >
+          <div className="videoteca-review-modal" role="dialog" aria-modal="true" aria-labelledby="videoteca-likers-modal-title">
+            <button
+              type="button"
+              className="videoteca-review-modal-close"
+              onClick={closeLikersModal}
+              aria-label="Cerrar"
+            >
+              ×
+            </button>
+
+            <header className="videoteca-review-modal-header">
+              <p className="videoteca-review-modal-kicker">Personas que han dado like</p>
+              <h3 id="videoteca-likers-modal-title">{likersModalReview.movie?.title || 'Reseña'}</h3>
+              <p>{likersModalUsers && likersModalUsers.length > 0 ? `${likersModalUsers.length} ${likersModalUsers.length === 1 ? 'persona' : 'personas'} le ha gustado esta reseña` : 'Nadie ha dado like todavía.'}</p>
+            </header>
+
+            <div className="videoteca-review-modal-form">
+              {isLoadingLikers && <p>Cargando personas...</p>}
+              {likersModalError && <p className="videoteca-review-modal-error">{likersModalError}</p>}
+              {!isLoadingLikers && !likersModalError && likersModalUsers && likersModalUsers.length > 0 && (
+                <ul className="videoteca-likers-modal-list">
+                  {likersModalUsers.map((user) => (
+                    <li key={user.id} className="videoteca-likers-modal-item">
+                      {user.avatar ? (
+                        <img src={user.avatar} alt={user.username} className="videoteca-likers-modal-avatar" />
+                      ) : (
+                        <span className="videoteca-likers-modal-avatar-placeholder" aria-hidden="true">
+                          {user.username?.charAt(0)?.toUpperCase() || 'U'}
+                        </span>
+                      )}
+                      <div>
+                        <strong>{user.name || user.username}</strong>
+                        <div className="videoteca-likers-modal-username">@{user.username}</div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {!isLoadingLikers && !likersModalError && likersModalUsers && likersModalUsers.length === 0 && (
+                <p>Nadie ha dado like todavía.</p>
+              )}
+            </div>
           </div>
         </div>
       ), document.body)}

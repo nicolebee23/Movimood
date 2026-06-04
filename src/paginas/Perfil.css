@@ -1385,6 +1385,28 @@
   color: #e9f2ff;
 }
 
+.perfil-v3-hero-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.perfil-v3-hero-inline-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.perfil-v3-hero-inline-actions .perfil-v3-follow-btn,
+.perfil-v3-hero-inline-actions .perfil-v3-block-btn {
+  min-height: 34px;
+  padding: 0 14px;
+  font-size: 12px;
+}
+
 .likes-hero-copy .likes-subtitle {
   margin: 0 0 8px 0;
   color: rgba(235, 244, 255, 0.85);
@@ -1412,13 +1434,23 @@
 }
 
 .perfil-v3-page-cover-actions {
-  position: absolute;
-  right: 18px;
-  top: 18px;
-  z-index: 2;
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .perfil-v3-hero-title-row {
+    align-items: flex-start;
+  }
+
+  .perfil-v3-hero-inline-actions {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  .perfil-v3-page-cover-actions {
+    display: none;
+  }
 }
 
 .perfil-v3-profile-card {

@@ -7,13 +7,52 @@ const AUTH_CHANGE_EVENT = 'movimood-auth-change';
 const AuthContext = createContext(null);
 
 const USERNAME_REGEX = /^[a-z0-9._]{3,18}$/;
+const ADMIN_USER_ID = process.env.REACT_APP_ADMIN_ID?.trim() || '';
+const ADMIN_USER_USERNAME = process.env.REACT_APP_ADMIN_USERNAME?.trim().toLowerCase() || '';
+const ADMIN_USER_EMAIL = process.env.REACT_APP_ADMIN_EMAIL?.trim().toLowerCase() || '';
 
 function normalizeEmail(email) {
   return email.trim().toLowerCase();
 }
 
+function isConfiguredAdminUser(user) {
+  if (!user || typeof user !== 'object') {
+    return false;
+  }
+
+  const userId = String(user.id || '').trim();
+  const username = normalizeUsername(String(user.username || ''));
+  const email = normalizeEmail(String(user.email || ''));
+
+  if (ADMIN_USER_ID && userId && userId === ADMIN_USER_ID) {
+    return true;
+  }
+
+  if (ADMIN_USER_USERNAME && username && username === ADMIN_USER_USERNAME) {
+    return true;
+  }
+
+  if (ADMIN_USER_EMAIL && email && email === ADMIN_USER_EMAIL) {
+    return true;
+  }
+
+  return false;
+}
+
+function normalizeAdminFlag(user, normalizedIsAdmin) {
+  if (ADMIN_USER_ID || ADMIN_USER_USERNAME || ADMIN_USER_EMAIL) {
+    return isConfiguredAdminUser(user);
+  }
+
+  return normalizedIsAdmin;
+}
+
 function normalizeUsername(username) {
   return username.trim().toLowerCase();
+}
+
+function normalizeBooleanFlag(value) {
+  return value === true || value === 'true' || value === 1 || value === '1' || value === 'yes' || value === 'on';
 }
 
 function firstNonEmptyString(...values) {
@@ -57,6 +96,9 @@ function normalizeStoredUser(user) {
     normalizedId
   );
   const password = firstNonEmptyString(user.password, user.pass, user.contrasena, user['contraseña']);
+  const rawIsAdmin = user.isAdmin ?? user.is_admin ?? user.admin;
+  const normalizedIsAdmin = normalizeBooleanFlag(rawIsAdmin);
+  const isAdmin = normalizeAdminFlag(user, normalizedIsAdmin);
 
   if (!password) {
     return null;
@@ -70,6 +112,7 @@ function normalizeStoredUser(user) {
     avatar: typeof user.avatar === 'string' ? user.avatar : '',
     email: normalizedEmail,
     password,
+    isAdmin,
     createdAt: firstNonEmptyString(user.createdAt, user.created_at) || new Date().toISOString(),
     notifications:
       user.notifications && typeof user.notifications === 'object'
@@ -97,6 +140,9 @@ function normalizeSessionUser(user) {
     normalizedEmail,
     normalizedId
   );
+  const rawIsAdmin = user.isAdmin ?? user.is_admin ?? user.admin;
+  const normalizedIsAdmin = normalizeBooleanFlag(rawIsAdmin);
+  const isAdmin = normalizeAdminFlag(user, normalizedIsAdmin);
 
   return {
     ...user,
@@ -106,6 +152,7 @@ function normalizeSessionUser(user) {
     avatar: typeof user.avatar === 'string' ? user.avatar : '',
     email: normalizedEmail,
     password: undefined,
+    isAdmin,
     createdAt: firstNonEmptyString(user.createdAt, user.created_at) || new Date().toISOString(),
     notifications:
       user.notifications && typeof user.notifications === 'object'
@@ -132,6 +179,10 @@ function normalizeSessionUser(user) {
           normalizedId
         );
 
+        const rawIsAdmin = user.isAdmin ?? user.is_admin ?? user.admin;
+        const normalizedIsAdmin = normalizeBooleanFlag(rawIsAdmin);
+        const isAdmin = normalizeAdminFlag(user, normalizedIsAdmin);
+
         return {
           ...user,
           id: normalizedId,
@@ -139,6 +190,7 @@ function normalizeSessionUser(user) {
           name: firstNonEmptyString(user.name, user.nombre, user.displayName, normalizedUsername) || normalizedUsername,
           avatar: firstNonEmptyString(user.avatar, user.avatar_url) || '',
           email: firstNonEmptyString(user.email, user.mail, user.correo),
+          isAdmin,
           createdAt: firstNonEmptyString(user.createdAt, user.created_at) || new Date().toISOString(),
           notifications: user.notifications && typeof user.notifications === 'object'
             ? {
@@ -690,6 +742,25 @@ function useAuthState() {
     return users;
   }, [users]);
 
+  const toggleUserAdmin = useCallback((userId, enabled) => {
+    const normalizedId = String(userId);
+    const existingUsers = loadUsers();
+    const nextUsers = existingUsers.map((user) => {
+      if (!user) return user;
+      if (String(user.id) !== normalizedId) return user;
+      return { ...user, isAdmin: Boolean(enabled) };
+    });
+
+    persistUsers(nextUsers);
+    setUsers(nextUsers);
+
+    if (currentUser && String(currentUser.id) === normalizedId) {
+      const nextCurrentUser = { ...currentUser, isAdmin: Boolean(enabled) };
+      persistSession(nextCurrentUser);
+      setCurrentUser(nextCurrentUser);
+    }
+  }, [currentUser]);
+
   const updateAccountSettings = useCallback(({ name, username, email, avatar, notifications }) => {
     setCurrentUser((prevUser) => {
       if (!prevUser) {
@@ -823,6 +894,7 @@ function useAuthState() {
     changeCurrentUserPassword,
     getUserById,
     getPublicUsers,
+    toggleUserAdmin,
   };
 }
 

@@ -32,14 +32,83 @@ function Colecciones() {
   const storageKey = currentUser ? `movimood-collections-${currentUser.id}` : 'movimood-collections-guest';
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(storageKey);
-      const parsed = raw ? JSON.parse(raw) : [];
-      setCollections(Array.isArray(parsed) ? parsed : []);
-    } catch (e) {
-      setCollections([]);
+    let mounted = true;
+
+    async function loadCollections() {
+      // Try server first
+      try {
+        const resp = await requestJson('movimood.php', { params: { resource: 'collections' } });
+        if (!mounted) return;
+        const items = Array.isArray(resp.items) ? resp.items.map(i => ({ ...i, posters: i.posters || [] })) : [];
+        setCollections(items);
+        try { localStorage.setItem(storageKey, JSON.stringify(items)); } catch {}
+        return;
+      } catch (err) {
+        // fallback to localStorage
+      }
+
+      try {
+        const raw = localStorage.getItem(storageKey);
+        const parsed = raw ? JSON.parse(raw) : [];
+        if (!mounted) return;
+
+        // If user is logged and we have local items, try to migrate them to server
+        if (currentUser && Array.isArray(parsed) && parsed.length > 0) {
+          try {
+            const migrated = [];
+            for (const col of parsed) {
+              // create collection on server
+              const resp = await requestJson('movimood.php', { method: 'POST', params: { resource: 'collections' }, body: { title: col.title || 'Sin título', description: col.description || '' } });
+              const serverItem = resp?.item || null;
+              if (!serverItem) continue;
+              const newCol = { id: serverItem.id, title: serverItem.title, description: serverItem.description, createdAt: serverItem.created_at || serverItem.createdAt, posters: [] };
+              // migrate posters/movies
+              if (Array.isArray(col.posters) && col.posters.length) {
+                for (const m of col.posters) {
+                  try {
+                    await requestJson('movimood.php', { method: 'POST', params: { resource: 'collection-movies' }, body: { collection_id: serverItem.id, movie: m } });
+                    newCol.posters.push(m);
+                  } catch (err) {
+                    // ignore individual movie failures
+                  }
+                }
+              }
+              migrated.push(newCol);
+            }
+            if (migrated.length) {
+              if (!mounted) return;
+              setCollections(migrated);
+              try { localStorage.setItem(storageKey, JSON.stringify(migrated)); } catch {}
+              return;
+            }
+          } catch (err) {
+            // migration failed -> fallback to local
+          }
+        }
+
+        setCollections(Array.isArray(parsed) ? parsed : []);
+      } catch (e) {
+        if (!mounted) return;
+        setCollections([]);
+      }
     }
+
+    loadCollections();
+    return () => { mounted = false; };
   }, [storageKey]);
+
+  async function refreshCollectionsFromServer() {
+    if (!currentUser) return;
+    try {
+      const resp = await requestJson('movimood.php', { params: { resource: 'collections' } });
+      const items = Array.isArray(resp.items) ? resp.items.map(i => ({ ...i, posters: i.posters || [] })) : [];
+      setCollections(items);
+      try { localStorage.setItem(storageKey, JSON.stringify(items)); } catch {}
+      return items;
+    } catch (err) {
+      return null;
+    }
+  }
 
   useEffect(() => {
     function onDocClick(e) {
@@ -56,11 +125,22 @@ function Colecciones() {
 
   // Derived stats
   const totalCollections = collections.length;
-  const totalMovies = collections.reduce((s, c) => s + ((c.posters && c.posters.length) || 0), 0);
-  const largestCollectionSize = collections.reduce((mx, c) => Math.max(mx, (c.posters && c.posters.length) || 0), 0);
+  const totalMovies = collections.reduce((s, c) => s + (typeof c.movies_count === 'number' ? c.movies_count : ((c.posters && c.posters.length) || 0)), 0);
+  const largestCollectionSize = collections.reduce((mx, c) => Math.max(mx, (typeof c.movies_count === 'number' ? c.movies_count : ((c.posters && c.posters.length) || 0))), 0);
   const lastUpdatedISO = collections.reduce((d, c) => {
     try {
-      const t = c.createdAt || null;
+      let t = c.updatedAt || c.updated_at || c.createdAt || c.created_at || null;
+      if (!t) return d;
+      // Normalize server timestamp strings like "YYYY-MM-DD HH:MM:SS" to ISO UTC: "YYYY-MM-DDTHH:MM:SSZ"
+      if (typeof t === 'string') {
+        if (!t.includes('T')) {
+          t = t.replace(' ', 'T');
+        }
+        if (!t.endsWith('Z')) {
+          // assume server times are UTC
+          t = `${t}Z`;
+        }
+      }
       return (!d && t) || (t && new Date(t) > new Date(d) ? t : d);
     } catch (e) { return d; }
   }, null);
@@ -75,23 +155,43 @@ function Colecciones() {
   function handleCreate(e) {
     e.preventDefault();
     if (!newTitle.trim()) return;
-    const id = `c_${Date.now()}`;
-    const item = { id, title: newTitle.trim(), description: newDesc.trim(), createdAt: new Date().toISOString(), posters: [] };
-    const next = [item, ...collections];
-    persist(next);
-    setIsModalOpen(false);
+    (async () => {
+      const title = newTitle.trim();
+      const description = newDesc.trim();
+      try {
+        await requestJson('movimood.php', { method: 'POST', params: { resource: 'collections' }, body: { title, description } });
+        // refresh full list from server to avoid desync
+        await refreshCollectionsFromServer();
+      } catch (err) {
+        // fallback: local-only
+        const id = `c_${Date.now()}`;
+        const item = { id, title, description, createdAt: new Date().toISOString(), posters: [] };
+        const next = [item, ...collections];
+        persist(next);
+      } finally {
+        setIsModalOpen(false);
+      }
+    })();
   }
 
   function handleDelete(id) {
     // eslint-disable-next-line no-restricted-globals
     if (!confirm('Eliminar colección?')) return;
-    const next = collections.filter((c) => c.id !== id);
-    persist(next);
+    (async () => {
+      try {
+        await requestJson('movimood.php', { method: 'DELETE', params: { resource: 'collections' }, body: { collection_id: id } });
+        await refreshCollectionsFromServer();
+      } catch (err) {
+        // fallback local delete
+        const next = collections.filter((c) => c.id !== id);
+        persist(next);
+      }
+    })();
   }
 
   function sortAndSet(value) {
     let next = [...collections];
-    if (value === 'size') next = next.sort((a, b) => ((b.posters?.length || 0) - (a.posters?.length || 0)));
+    if (value === 'size') next = next.sort((a, b) => ((typeof b.movies_count === 'number' ? b.movies_count : (b.posters?.length || 0)) - (typeof a.movies_count === 'number' ? a.movies_count : (a.posters?.length || 0))));
     else if (value === 'alpha') next = next.sort((a, b) => a.title.localeCompare(b.title));
     else next = next.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
     persist(next);
@@ -228,20 +328,33 @@ function Colecciones() {
                       {(!col.posters || (col.posters.filter(p => p && p.poster_path).length === 0)) && (
                         <div className="coleccion-preview-empty">No hay miniaturas</div>
                       )}
+                      {/* only show total movies (movies_count) */}
                     </div>
                     <div className="coleccion-meta">
                       <div>
                         <h3>{col.title}</h3>
                         {col.description && <p className="coleccion-desc">{col.description}</p>}
                         <div className="coleccion-stats-row">
-                          <div className="coleccion-count"><strong>{col.posters?.length || 0}</strong> películas</div>
+                          <div className="coleccion-count"><strong>{typeof col.movies_count === 'number' ? col.movies_count : (col.posters?.length || 0)}</strong> películas</div>
                           <div className="coleccion-progress">
-                            <div className="coleccion-progress-bar"><div style={{ width: `${largestCollectionSize ? Math.round(((col.posters?.length||0)/largestCollectionSize)*100) : 0}%` }} /></div>
+                            <div className="coleccion-progress-bar">
+                              <div style={{ width: `${largestCollectionSize ? Math.round(((typeof col.movies_count === 'number' ? col.movies_count : (col.posters?.length||0)) / largestCollectionSize) * 100) : 0}%` }} />
+                            </div>
                           </div>
                         </div>
                       </div>
                       <div className="coleccion-actions">
-                        <button className="btn btn-small" onClick={() => setDetailOpenFor(col)}>Ver</button>
+                        <button className="btn btn-small" onClick={async () => {
+                          // load collection movies from server if possible
+                          try {
+                            const resp = await requestJson('movimood.php', { params: { resource: 'collection-movies', collection_id: col.id } });
+                            const items = Array.isArray(resp.items) ? resp.items.map(it => it.movie).filter(Boolean) : [];
+                            const withPosters = { ...col, posters: items };
+                            setDetailOpenFor(withPosters);
+                          } catch (err) {
+                            setDetailOpenFor(col);
+                          }
+                        }}>Ver</button>
                         <button className="btn btn-small btn-danger" onClick={() => handleDelete(col.id)}>Eliminar</button>
                       </div>
                     </div>
@@ -282,14 +395,38 @@ function Colecciones() {
               </header>
 
               <section className="coleccion-detail-body">
-                <div className="coleccion-posters-grid">
+                  <div className="coleccion-posters-grid">
                   {(detailOpenFor.posters || []).map((m) => (
                     <div key={m.id} className="movie-thumb">
-                      <img src={`https://image.tmdb.org/t/p/w185${m.poster_path}`} alt={m.title} />
-                      <button className="btn btn-small btn-danger" onClick={() => {
-                        const next = collections.map((c) => c.id === detailOpenFor.id ? { ...c, posters: (c.posters || []).filter(x => x.id !== m.id) } : c);
-                        persist(next);
-                        setDetailOpenFor(next.find(c => c.id === detailOpenFor.id));
+                      {m && m.poster_path ? (
+                        <img src={`https://image.tmdb.org/t/p/w185${m.poster_path}`} alt={m.title} />
+                      ) : (
+                        <div className="movie-thumb-placeholder">
+                          <div className="movie-thumb-title">{m?.title || 'Sin póster'}</div>
+                        </div>
+                      )}
+                      <button className="btn btn-small btn-danger" onClick={async () => {
+                          try {
+                            await requestJson('movimood.php', { method: 'DELETE', params: { resource: 'collection-movies' }, body: { collection_id: detailOpenFor.id, movie_id: m.id } });
+                            // refresh collections and detail
+                            const updated = await refreshCollectionsFromServer();
+                            if (updated) {
+                              const serverCol = updated.find(c => c.id === detailOpenFor.id);
+                              if (serverCol) {
+                                try {
+                                  const resp = await requestJson('movimood.php', { params: { resource: 'collection-movies', collection_id: detailOpenFor.id } });
+                                  const items = Array.isArray(resp.items) ? resp.items.map(it => it.movie).filter(Boolean) : [];
+                                  setDetailOpenFor({ ...serverCol, posters: items });
+                                } catch (e) {
+                                  setDetailOpenFor(serverCol);
+                                }
+                              }
+                            }
+                          } catch (err) {
+                            const next = collections.map((c) => c.id === detailOpenFor.id ? { ...c, posters: (c.posters || []).filter(x => x.id !== m.id) } : c);
+                            persist(next);
+                            setDetailOpenFor(next.find(c => c.id === detailOpenFor.id));
+                          }
                       }}>Quitar</button>
                     </div>
                   ))}
@@ -345,12 +482,31 @@ function Colecciones() {
                           <small>{m.release_date}</small>
                         </div>
                         <div>
-                          <button className="btn btn-small" onClick={() => {
-                            // add movie
+                          <button className="btn btn-small" onClick={async () => {
                             const movie = { id: m.id, title: m.title, poster_path: m.poster_path };
-                            const next = collections.map((c) => c.id === detailOpenFor.id ? { ...c, posters: [...(c.posters || []), movie] } : c);
-                            persist(next);
-                            setDetailOpenFor(next.find(c => c.id === detailOpenFor.id));
+                            try {
+                                await requestJson('movimood.php', { method: 'POST', params: { resource: 'collection-movies' }, body: { collection_id: detailOpenFor.id, movie } });
+                                // refresh collections from server and update detail view
+                                const updated = await refreshCollectionsFromServer();
+                                if (updated) {
+                                  const serverCol = updated.find(c => c.id === detailOpenFor.id);
+                                  if (serverCol) {
+                                    // fetch full movie list for detail
+                                    try {
+                                      const resp = await requestJson('movimood.php', { params: { resource: 'collection-movies', collection_id: detailOpenFor.id } });
+                                      const items = Array.isArray(resp.items) ? resp.items.map(it => it.movie).filter(Boolean) : [];
+                                      setDetailOpenFor({ ...serverCol, posters: items });
+                                    } catch (e) {
+                                      setDetailOpenFor(serverCol);
+                                    }
+                                  }
+                                }
+                              } catch (err) {
+                                // fallback local-only
+                                const next = collections.map((c) => c.id === detailOpenFor.id ? { ...c, posters: [...(c.posters || []), movie] } : c);
+                                persist(next);
+                                setDetailOpenFor(next.find(c => c.id === detailOpenFor.id));
+                              }
                           }}>Añadir</button>
                         </div>
                       </div>

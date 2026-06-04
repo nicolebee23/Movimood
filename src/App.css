@@ -574,11 +574,28 @@ svg {
 
 .menu-icon {
   width: 28px;
+  height: 28px;
   display: inline-grid;
   place-items: center;
   color: #cfefff;
   font-size: 16px;
 }
+
+/* Neon menu svg styles */
+.neon-menu {
+  width: 20px;
+  height: 20px;
+  display: block;
+  color: #9bdcff;
+  filter: drop-shadow(0 6px 14px rgba(0,0,0,0.6)) drop-shadow(0 0 6px rgba(0,0,0,0.15));
+}
+.neon-profile { color: #6ee6d8; }
+.neon-videoteca { color: #8fb9ff; }
+.neon-discover { color: #e6b3ff; }
+.neon-gear { color: #ffd27f; }
+.neon-logout { color: #ff9b9b; }
+
+.user-dropdown-logout .neon-menu { filter: drop-shadow(0 6px 14px rgba(0,0,0,0.6)) drop-shadow(0 0 10px rgba(255,155,155,0.6)); }
 
 .user-dropdown-logout {
   color: #ffb6b6;

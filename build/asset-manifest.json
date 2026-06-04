@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/static/css/main.b54b2092.css",
-    "main.js": "/static/js/main.5f64df94.js",
+    "main.css": "/static/css/main.2274e813.css",
+    "main.js": "/static/js/main.d07cc075.js",
     "static/media/genero-familia.png": "/static/media/genero-familia.19628b96d1c5f1490824.png",
     "static/media/genero-animacion.png": "/static/media/genero-animacion.f139a3838371a0e01ec8.png",
     "static/media/genero-romance.png": "/static/media/genero-romance.5a99f63b7bcaeee2e161.png",
@@ -40,11 +40,11 @@
     "static/media/mood-triste-joker.png": "/static/media/mood-triste-joker.7ee899bb64dc2cd0961f.png",
     "static/media/hero-bg.png": "/static/media/hero-bg.f29405316749ec0b5dd9.png",
     "index.html": "/index.html",
-    "main.b54b2092.css.map": "/static/css/main.b54b2092.css.map",
-    "main.5f64df94.js.map": "/static/js/main.5f64df94.js.map"
+    "main.2274e813.css.map": "/static/css/main.2274e813.css.map",
+    "main.d07cc075.js.map": "/static/js/main.d07cc075.js.map"
   },
   "entrypoints": [
-    "static/css/main.b54b2092.css",
-    "static/js/main.5f64df94.js"
+    "static/css/main.2274e813.css",
+    "static/js/main.d07cc075.js"
   ]
 }

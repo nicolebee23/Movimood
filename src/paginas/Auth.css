@@ -389,16 +389,101 @@
   }
 
   .login-form-container {
-    max-width: 100%;
+    max-width: 92%;
     width: 100%;
-    margin-right: 0;
-    padding: 40px 32px;
-    background: rgba(10, 14, 26, 0.68);
+    margin: 0 auto;
+    padding: 28px 20px;
+    background: rgba(10, 14, 26, 0.78);
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
   }
 
   .login-form-content h1 {
     font-size: 28px;
   }
+}
+
+/* Force single-column card layout and hide hero background for tablets and smaller */
+@media (max-width: 1200px) {
+  .pagina-login,
+  .pagina-register {
+    position: relative !important;
+    inset: auto !important;
+    display: block !important;
+    min-height: 100vh !important;
+    background-image: none !important;
+    background-color: #070b14 !important;
+    padding: 18px 12px !important;
+    overflow: auto !important;
+  }
+
+  .login-hero-panel {
+    display: none !important;
+  }
+
+  .login-form-container {
+    position: relative !important;
+    width: 100% !important;
+    max-width: 820px !important;
+    margin: 14px auto !important;
+    padding: 36px 28px !important;
+    background: rgba(8, 12, 20, 0.98) !important;
+    border-radius: 14px !important;
+    box-shadow: 0 22px 48px rgba(0,0,0,0.6) !important;
+    min-height: auto !important;
+  }
+
+  .login-form-content h1 { font-size: 34px !important; }
+  .hero-copy { display: none !important; }
+}
+
+/* Also apply centered/card layout on tablet and smaller laptops */
+@media (max-width: 1024px) {
+  .pagina-login,
+  .pagina-register {
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 18px;
+    overflow-y: auto;
+  }
+
+  .login-hero-panel {
+    display: none !important;
+  }
+
+  .login-form-container {
+    max-width: 920px;
+    width: calc(100% - 24px);
+    margin: 8px auto 20px;
+    padding: 36px 28px;
+    min-height: auto;
+    background: rgba(8, 12, 20, 0.98);
+    border-radius: 12px;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.5);
+  }
+
+  .login-form-content h1 { font-size: 32px; }
+}
+
+/* Make form almost full-width and hide hero background on small devices */
+@media (max-width: 900px) {
+  .pagina-login, .pagina-register {
+    background-image: none !important;
+    background-color: #070b14;
+  }
+
+  .login-form-container {
+    width: 96%;
+    max-width: 760px;
+    padding: 28px 22px;
+    margin: 12px auto;
+    border-radius: 10px;
+  }
+
+  .login-form { gap: 16px; }
+  .login-form .form-group { gap: 8px; }
+  .login-form .form-group input { padding: 14px 14px; font-size: 16px; }
+  .login-btn { padding: 14px 16px; font-size: 16px; }
 }
 
 @media (max-width: 640px) {
@@ -407,12 +492,13 @@
   }
 
   .login-form-container {
-    max-width: 100%;
+    max-width: 98%;
     width: 100%;
     height: auto;
-    min-height: 100vh;
-    padding: 32px 24px;
+    min-height: auto;
+    padding: 18px 14px;
     justify-content: center;
+    margin: 12px 0;
   }
 
   .login-form-content h1 {
@@ -421,6 +507,23 @@
 
   .login-subtitle {
     font-size: 13px;
+  }
+
+  .login-back-btn {
+    top: 12px;
+    left: 12px;
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .login-btn {
+    padding: 14px 16px;
+    font-size: 16px;
+  }
+
+  .login-form .form-group input {
+    padding: 12px 14px;
+    font-size: 15px;
   }
 }
 

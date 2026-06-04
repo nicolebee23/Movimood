@@ -1,21 +1,15 @@
 /* Movie Detail Page */
 .pelicula-page {
   min-height: 100vh;
-  background: #050a10;
-  color: #e4f6ff;
+  background: #040911;
+  color: #eef4ff;
   display: grid;
   grid-template-columns: minmax(190px, 210px) minmax(0, 1fr);
 }
 
 /* Hero Background */
 .pelicula-hero {
-  position: relative;
-  width: 100%;
-  height: 350px;
-  background-size: cover;
-  background-position: center;
-  overflow: hidden;
-  filter: blur(6px) brightness(0.75);
+  display: none;
 }
 
 .pelicula-hero-overlay {
@@ -23,85 +17,186 @@
   inset: 0;
   background: linear-gradient(
     180deg,
-    rgba(5, 10, 16, 0.3) 0%,
-    rgba(5, 10, 16, 0.6) 50%,
-    rgba(5, 10, 16, 0.95) 100%
+    rgba(4, 8, 14, 0.18) 0%,
+    rgba(4, 8, 14, 0.65) 48%,
+    rgba(4, 8, 14, 0.98) 100%
   );
 }
 
 /* Content Container */
 .pelicula-main {
-  padding: 40px 20px 60px;
+  padding: 16px 20px 40px;
 }
 
 .pelicula-content {
-  max-width: 1000px;
+  max-width: 960px;
   width: 100%;
-  margin: -100px 0 0;
-  padding: 40px 20px 60px;
+  margin: 0 auto; /* center content within main column */
+  padding: 12px 16px 24px;
   position: relative;
   z-index: 1;
-  background: linear-gradient(to bottom, rgba(5, 10, 16, 0.95), #050a10);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  box-shadow: none;
+  backdrop-filter: none;
 }
 
 .pelicula-back-btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  margin-bottom: 20px;
+  gap: 10px;
+  padding: 12px 20px;
+  margin: 0 16px 24px 16px;
   font-size: 14px;
-  font-weight: 600;
-  color: #64c8ff;
-  background: rgba(100, 200, 255, 0.15);
-  border: 1px solid rgba(100, 200, 255, 0.3);
-  border-radius: 8px;
+  font-weight: 700;
+  color: #edf3ff;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .pelicula-back-btn:hover {
-  background: rgba(100, 200, 255, 0.25);
-  border-color: rgba(100, 200, 255, 0.5);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
 /* Main Container */
 .pelicula-main-grid {
   display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 40px;
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+  gap: 24px;
   align-items: start;
+}
+
+.pelicula-poster-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.01);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.28);
 }
 
 .pelicula-poster {
   width: 100%;
-  max-width: 280px;
+  display: block;
   aspect-ratio: 2/3;
-  border-radius: 12px;
   object-fit: cover;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8);
+}
+
+.pelicula-poster-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 24px;
+  background: linear-gradient(180deg, rgba(4, 8, 14, 0) 0%, rgba(4, 8, 14, 0.9) 100%);
+}
+
+.pelicula-poster-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #cbd6ff;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.pelicula-poster-name {
+  margin: 0;
+  font-size: clamp(1rem, 1.6vw, 1.4rem);
+  line-height: 1.05;
+  font-weight: 800;
+  color: #f8fbff;
 }
 
 /* Info Section */
 .pelicula-info {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  display: grid;
+  gap: 24px;
 }
 
 .pelicula-title {
-  font-size: 42px;
-  font-weight: 700;
+  font-size: clamp(1.8rem, 3.2vw, 2.6rem);
+  font-weight: 800;
   margin: 0;
-  line-height: 1.1;
-  color: #f3f8fd;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  color: #f8fbff;
 }
 
-/* Header Meta - Géneros y Duración */
-.pelicula-header-meta {
+.pelicula-info-top {
+  display: grid;
+  gap: 18px;
+}
+
+.pelicula-detail-badges {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+}
+
+.pelicula-detail-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  color: #eef5ff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  min-height: 34px;
+  transition: transform 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+}
+
+.pelicula-detail-badge:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.pelicula-rating-badge {
+  background: rgba(255, 193, 7, 0.16);
+  border-color: rgba(255, 193, 7, 0.24);
+  color: #f7ce5d;
+}
+
+.pelicula-genre-badge {
+  background: rgba(103, 71, 255, 0.14);
+  border-color: rgba(103, 71, 255, 0.24);
+}
+
+.pelicula-year-badge {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.pelicula-detail-badge span {
+  font-size: 0.88rem;
+}
+
+.pelicula-tagline {
+  font-size: 0.94rem;
+  margin: 0;
+  color: rgba(222, 234, 255, 0.78);
+  max-width: 640px;
 }
 
 .pelicula-genres {
@@ -173,25 +268,30 @@
 
 /* Description */
 .pelicula-description {
-  border-top: 1px solid rgba(100, 200, 255, 0.15);
-  padding-top: 20px;
+  display: grid;
+  gap: 14px;
+  padding: 16px 16px 14px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
 }
 
 .pelicula-description h2 {
-  font-size: 18px;
-  font-weight: 600;
-  margin: 0 0 12px;
-  color: #f3f8fd;
+  font-size: 12px;
+  font-weight: 700;
+  margin: 0;
+  color: rgba(245, 248, 255, 0.92);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  opacity: 0.9;
+  letter-spacing: 0.22em;
 }
 
 .pelicula-description p {
-  font-size: 15px;
-  line-height: 1.7;
-  color: rgba(228, 246, 255, 0.8);
   margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: rgba(225, 233, 245, 0.84);
+  max-width: 760px;
 }
 
 /* Action Buttons */
@@ -199,48 +299,49 @@
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
-  border-top: 1px solid rgba(100, 200, 255, 0.15);
-  border-bottom: 1px solid rgba(100, 200, 255, 0.15);
-  padding: 20px 0;
 }
 
 .pelicula-action-btn {
   flex: 1;
-  min-width: 140px;
-  padding: 12px 16px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #64c8ff;
-  background: rgba(100, 200, 255, 0.1);
-  border: 1.5px solid rgba(100, 200, 255, 0.3);
-  border-radius: 8px;
+  min-width: 130px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #eef4ff;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.16s ease, background 0.16s ease, border-color 0.16s ease;
   white-space: nowrap;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
 }
 
 .pelicula-action-btn:hover {
-  background: rgba(100, 200, 255, 0.15);
-  border-color: rgba(100, 200, 255, 0.5);
-  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.16);
+  transform: translateY(-1px);
 }
 
 .pelicula-action-btn.active {
-  background: linear-gradient(135deg, rgba(100, 200, 255, 0.3), rgba(60, 150, 210, 0.3));
-  border-color: rgba(100, 200, 255, 0.6);
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(100, 200, 255, 0.2);
+  background: linear-gradient(135deg, rgba(139, 90, 255, 0.22), rgba(119, 112, 255, 0.24));
+  border-color: rgba(139, 90, 255, 0.28);
+  color: #ffffff;
+  box-shadow: 0 14px 24px rgba(139, 90, 255, 0.18);
 }
 
 .pelicula-review-btn {
-  background: linear-gradient(135deg, rgba(100, 200, 255, 0.15), rgba(60, 150, 210, 0.15));
-  border-color: rgba(100, 200, 255, 0.4);
+  color: #f5d4ff;
+  background: rgba(162, 103, 255, 0.12);
+  border-color: rgba(162, 103, 255, 0.22);
 }
 
 .pelicula-review-btn:hover {
-  background: linear-gradient(135deg, rgba(100, 200, 255, 0.25), rgba(60, 150, 210, 0.25));
-  border-color: rgba(100, 200, 255, 0.6);
+  background: rgba(162, 103, 255, 0.18);
+  border-color: rgba(162, 103, 255, 0.34);
 }
+
+/* Pelicula facts removed — styles left intentionally blank */
 
 /* Review Form */
 .pelicula-review-form {
@@ -346,7 +447,6 @@
   display: flex;
   gap: 6px;
   align-items: center;
-  role: radiogroup;
 }
 
 .pelicula-review-form-rating-dot {
@@ -376,6 +476,66 @@
   font-weight: 700;
 }
 
+/* Mood Selection */
+.pelicula-review-form-mood {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pelicula-review-form-mood-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(228, 246, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pelicula-review-form-mood-options {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.pelicula-review-form-mood-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  background: rgba(100, 200, 255, 0.1);
+  border: 1.5px solid rgba(100, 200, 255, 0.2);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.pelicula-review-form-mood-option:hover {
+  background: rgba(100, 200, 255, 0.15);
+  border-color: rgba(100, 200, 255, 0.4);
+}
+
+.pelicula-review-form-mood-option.active {
+  background: linear-gradient(135deg, rgba(100, 200, 255, 0.3), rgba(60, 150, 210, 0.3));
+  border-color: #64c8ff;
+}
+
+.pelicula-review-form-mood-icon {
+  width: 24px;
+  height: 24px;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(228, 246, 255, 0.7);
+}
+
+.pelicula-review-form-mood-option.active .pelicula-review-form-mood-icon {
+  color: #64c8ff;
+}
+
 /* Editor */
 .pelicula-review-form-editor-wrap {
   display: flex;
@@ -393,7 +553,6 @@
   padding: 8px;
   border-bottom: 1px solid rgba(100, 200, 255, 0.15);
   background: rgba(5, 10, 16, 0.6);
-  role: toolbar;
 }
 
 .pelicula-review-form-toolbar-btn {
@@ -495,6 +654,103 @@
 .pelicula-production {
   border-top: 1px solid rgba(100, 200, 255, 0.15);
   padding-top: 20px;
+}
+
+/* Facts bar: single horizontal container */
+.pelicula-facts-bar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0;
+  background: rgba(18, 15, 32, 0.92);
+  border: 1px solid rgba(145, 92, 210, 0.18);
+  border-radius: 24px;
+  padding: 12px 14px;
+  margin-top: 20px;
+  overflow: hidden;
+  backdrop-filter: blur(14px);
+}
+
+.pelicula-fact-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  flex: 1 1 0;
+  min-width: 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.pelicula-fact-item:last-child {
+  border-right: none;
+}
+
+.pelicula-fact-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: rgba(145, 92, 210, 0.18);
+  border: 1px solid rgba(145, 92, 210, 0.3);
+  color: #d7c7ff;
+}
+
+.pelicula-fact-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.pelicula-fact-content {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pelicula-fact-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(216, 196, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+}
+
+.pelicula-fact-value {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #f5f1ff;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 980px) {
+  .pelicula-facts-bar {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .pelicula-fact-item {
+    flex: 1 1 calc(50% - 12px);
+    padding: 14px 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .pelicula-fact-item {
+    flex: 1 1 100%;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 14px 16px;
+  }
+
+  .pelicula-fact-item:last-child {
+    border-bottom: none;
+  }
 }
 
 .pelicula-production h3 {
@@ -701,28 +957,42 @@
 }
 
 /* Responsive */
-@media (max-width: 768px) {
-  .pelicula-hero {
-    height: 250px;
-    margin-top: 60px;
-  }
-
-  .pelicula-content {
-    margin-top: -80px;
-    padding: 30px 16px 40px;
+@media (max-width: 980px) {
+  .pelicula-page {
+    grid-template-columns: 1fr;
   }
 
   .pelicula-main {
-    grid-template-columns: 200px 1fr;
-    gap: 24px;
+    padding: 20px 20px 44px;
   }
 
-  .pelicula-poster {
-    max-width: 200px;
+  .pelicula-content {
+    margin-top: -90px;
+    padding: 28px 20px 38px;
+  }
+
+  .pelicula-main-grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+}
+
+@media (max-width: 768px) {
+  .pelicula-hero {
+    height: 280px;
+  }
+
+  .pelicula-content {
+    padding: 26px 18px 36px;
+  }
+
+  .pelicula-back-btn {
+    font-size: 13px;
+    padding: 10px 16px;
   }
 
   .pelicula-title {
-    font-size: 32px;
+    font-size: clamp(2.6rem, 7vw, 3.4rem);
   }
 
   .pelicula-actions {
@@ -731,65 +1001,47 @@
 
   .pelicula-action-btn {
     min-width: unset;
+    width: 100%;
+  }
+
+  .pelicula-facts-strip {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 480px) {
   .pelicula-hero {
-    height: 180px;
-    margin-top: 60px;
+    height: 220px;
   }
 
   .pelicula-content {
-    margin-top: -60px;
-    padding: 0 12px 32px;
-  }
-
-  .pelicula-back-btn {
-    font-size: 13px;
-    padding: 6px 12px;
-    margin-bottom: 16px;
+    margin-top: -70px;
+    padding: 18px 14px 32px;
   }
 
   .pelicula-main {
-    grid-template-columns: 1fr;
-    gap: 20px;
+    padding: 16px 14px 30px;
   }
 
-  .pelicula-poster {
-    max-width: 140px;
-    justify-self: center;
+  .pelicula-main-grid {
+    gap: 22px;
   }
 
   .pelicula-title {
-    font-size: 24px;
+    font-size: 2.2rem;
   }
 
   .pelicula-tagline {
-    font-size: 14px;
-  }
-
-  .pelicula-genre-tag {
-    font-size: 12px;
-    padding: 5px 12px;
-  }
-
-  .pelicula-duration {
-    font-size: 13px;
-  }
-
-  .pelicula-meta {
-    gap: 12px;
-    font-size: 14px;
-  }
-
-  .pelicula-description h2 {
-    font-size: 16px;
+    font-size: 0.95rem;
   }
 
   .pelicula-description p {
-    font-size: 14px;
+    font-size: 0.95rem;
     line-height: 1.6;
+  }
+
+  .pelicula-facts-strip {
+    padding: 18px;
   }
 
   .pelicula-actions {

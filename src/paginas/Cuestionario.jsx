@@ -47,7 +47,7 @@ function Cuestionario() {
   // Estados para las respuestas
   const [moodsSeleccionados, setMoodsSeleccionados] = useState([]);
   const [avisoMood, setAvisoMood] = useState('');
-  const [aniosSeleccionados, setAniosSeleccionados] = useState({ min: 1980, max: 2025 });
+  const [aniosSeleccionados, setAniosSeleccionados] = useState({ min: 1980, max: 2026 });
   const [duracionSeleccionada, setDuracionSeleccionada] = useState('');
   const [generosSeleccionados, setGenerosSeleccionados] = useState([]); // ← AHORA ES ARRAY
 

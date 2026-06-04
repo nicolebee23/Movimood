@@ -1,41 +1,58 @@
 .videoteca-page {
   width: 100%;
   min-height: calc(100vh - 80px);
-  /* remove negative margin so content doesn't sit under the header line */
-  margin-top: 0;
-  /* adjust: move content higher and closer to the sidebar */
-  padding-top: 80px;
-  /* reduce left gutter to bring content more to the left */
-  padding-left: clamp(14px, 2.4vw, 32px);
-  padding-right: clamp(14px, 2.4vw, 24px);
+  margin-top: -80px;
+  padding-top: 116px;
+  padding-inline: clamp(24px, 3vw, 48px);
   position: relative;
   isolation: isolate;
-  /* Use global page background instead of a page-specific one */
-  background: transparent;
+  background:
+    radial-gradient(900px 420px at 20% -8%, rgba(118, 82, 196, 0.16), transparent 54%),
+    radial-gradient(700px 360px at 88% 0%, rgba(49, 63, 112, 0.2), transparent 52%),
+    linear-gradient(180deg, #040a14 0%, #07101d 42%, #050b16 100%);
   overflow-x: clip;
 }
+
 .videoteca-page::before {
-  /* disable page-specific grid overlay */
-  content: none;
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.2;
+  background-image:
+    linear-gradient(rgba(174, 214, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(174, 214, 255, 0.06) 1px, transparent 1px);
+  background-size: 42px 42px;
 }
+
+.videoteca-main {
+  padding-inline: 0;
+}
+
+.home-main.videoteca-main {
+  padding: 0;
+}
+
+.videoteca-main .videoteca-page {
+  margin-inline: 0;
+  max-width: none;
+}
+
+.videoteca-header-row {
+  width: min(1120px, 92vw);
+  margin-bottom: 14px;
+}
+
+/* ── Hero ───────────────────────────────────────── */
 
 .videoteca-hero {
   width: min(1120px, 92vw);
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 20px;
-  margin-bottom: 32px;
-}
-
-/* Header row: align search to the title */
-.videoteca-header-row {
-  width: min(1120px, 92vw);
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start; /* keep search aligned to title top */
-  gap: 20px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .videoteca-kicker {
@@ -48,11 +65,7 @@
 }
 
 .videoteca-titulo {
-  margin: 0 0 6px 0;
-  font-size: clamp(1.6rem, 2.6vw, 2.6rem);
-  font-weight: 900;
-  color: var(--text);
-  letter-spacing: -0.02em;
+  margin-bottom: 12px;
 }
 
 .videoteca-copy {
@@ -100,7 +113,7 @@
 
 .videoteca-empty {
   width: min(640px, 92vw);
-  margin: 60px auto 0;
+  margin: 60px 0 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -112,71 +125,27 @@
   padding: 48px 32px;
   box-shadow: 0 22px 48px rgba(2, 0, 16, 0.32);
   backdrop-filter: blur(12px);
-  position: relative;
-  isolation: isolate;
 }
 
-.videoteca-empty::before {
-  content: '';
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  position: absolute;
-  inset: 22px auto auto 50%;
-  transform: translateX(-50%);
-  background: radial-gradient(circle, rgba(196, 168, 232, 0.18) 0%, rgba(196, 168, 232, 0) 68%);
-  pointer-events: none;
+.videoteca-empty-icon {
+  width: 64px;
+  height: 64px;
+  color: rgba(196, 168, 232, 0.55);
 }
 
-.videoteca-empty-bubble {
-  width: 72px;
-  height: 72px;
-  display: grid;
-  place-items: center;
-  border-radius: 22px;
-  color: #dac2ff;
-  background: linear-gradient(180deg, rgba(196, 168, 232, 0.14), rgba(196, 168, 232, 0.04));
-  border: 1px solid rgba(196, 168, 232, 0.22);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 12px 30px rgba(0,0,0,0.16);
-  position: relative;
-  z-index: 1;
-}
-
-.videoteca-empty-bubble svg {
+.videoteca-empty-icon svg {
   width: 100%;
   height: 100%;
-  width: 34px;
-  height: 34px;
 }
 
-.videoteca-empty-later .videoteca-empty-bubble {
-  color: #d2c0ff;
-}
-
-.videoteca-empty-seen .videoteca-empty-bubble {
-  color: #c9f4df;
-  border-color: rgba(125, 233, 181, 0.22);
-  background: linear-gradient(180deg, rgba(125, 233, 181, 0.14), rgba(125, 233, 181, 0.04));
-}
-
-.videoteca-empty-essential .videoteca-empty-bubble {
-  color: #ffe3a3;
-  border-color: rgba(255, 202, 87, 0.24);
-  background: linear-gradient(180deg, rgba(255, 202, 87, 0.14), rgba(255, 202, 87, 0.04));
-}
-
-.videoteca-empty-reviews .videoteca-empty-bubble {
-  color: #f3c6e8;
-  border-color: rgba(236, 126, 202, 0.24);
-  background: linear-gradient(180deg, rgba(236, 126, 202, 0.14), rgba(236, 126, 202, 0.04));
+.videoteca-empty-icon-inline {
+  font-size: 1em;
 }
 
 .videoteca-empty h2 {
   margin: 0;
   font-size: 22px;
   color: #ede4ff;
-  position: relative;
-  z-index: 1;
 }
 
 .videoteca-empty p {
@@ -185,8 +154,6 @@
   color: rgba(220, 206, 250, 0.82);
   line-height: 1.6;
   font-size: 15px;
-  position: relative;
-  z-index: 1;
 }
 
 /* ── Mood section ────────────────────────────────── */
@@ -206,12 +173,12 @@
 }
 .videoteca-hero-right {
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
 }
 
-.videoteca-hero-right .videoteca-search { order: 0; }
+.videoteca-hero-right .videoteca-search { order: 1; }
 .videoteca-titulo {
   margin-bottom: 12px;
   font-size: clamp(1.6rem, 2.6vw, 2.6rem);
@@ -224,66 +191,9 @@
   max-width: 48vw;
 }
 
-/* Pill-style search for Videoteca */
-.videoteca-search {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: #070d188c; /* dark translucent */
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 999px;
-  box-shadow: 0 6px 18px rgba(4,6,20,0.6);
-  max-width: 520px;
-  width: 100%;
-  height: 44px;
-}
-
-.videoteca-search .search-icon {
-  color: #ffffff; /* ensure the magnifier is white */
-  font-size: 16px;
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-}
-
-.videoteca-search .search-input {
-  background: transparent;
-  border: none;
-  outline: none;
-  color: #e9e7f8;
-  font-size: 0.95rem;
-  padding: 0 40px 0 36px; /* left padding to avoid icon, right for filter */
-  height: 28px;
-  width: 100%;
-  min-width: 0;
-}
-
-.videoteca-search .search-input::placeholder { color: rgba(220,220,235,0.5); }
-
 .videoteca-search .search-filter-inside {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: transparent;
-  border: none;
-  color: #ffffff;
-  font-size: 18px;
-  width: 36px;
-  height: 36px;
-  display: inline-grid;
-  place-items: center;
-  border-radius: 8px;
-  cursor: pointer;
+  display: none;
 }
-
-.videoteca-search:focus-within { border-color: rgba(44,207,209,0.16); }
 
 .videoteca-subtitle {
   margin: 6px 0 0;
@@ -298,7 +208,7 @@
 
 .videoteca-mood-section-header {
   width: min(1120px, 92vw);
-  margin: 12px 0 16px;
+  margin: 12px 0 8px;
   display: flex;
   align-items: center;
 }
@@ -316,39 +226,14 @@
   line-height: 1;
 }
 .videoteca-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 18px;
-  border-radius: 12px;
-  background: transparent;
-  color: rgba(223, 218, 242, 0.72);
-  border: none;
-  font-weight: 700;
-  cursor: pointer;
-  transition: color 0.12s ease, transform 0.12s ease, box-shadow 0.12s ease;
+  display: inline-flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: 999px;
+  background: transparent; color: var(--muted); border: 1px solid transparent; font-weight:700; cursor:pointer;
+  transition: background 0.15s ease, transform 0.12s ease;
   flex-shrink: 0;
 }
-.videoteca-tab:hover {
-  transform: translateY(-2px);
-  color: var(--accent);
-}
-.videoteca-tab.activo {
-  color: var(--accent);
-  background: rgba(196, 168, 232, 0.03);
-  border: 1px solid rgba(196, 168, 232, 0.08);
-  box-shadow: 0 6px 18px rgba(167, 107, 255, 0.06);
-}
-.videoteca-tab .videoteca-tab-count {
-  background: rgba(10, 12, 22, 0.55);
-  padding: 2px 8px;
-  border-radius: 999px;
-  margin-left: 8px;
-  font-weight: 800;
-  color: #d4c4f8;
-  border: 1px solid rgba(196,168,232,0.10);
-  font-size: 12px;
-}
+.videoteca-tab:hover { transform: translateY(-2px); }
+.videoteca-tab.activo { background: linear-gradient(135deg, rgba(44,207,209,0.08), rgba(29,187,201,0.04)); color: var(--text); border-color: rgba(44,207,209,0.12); box-shadow: 0 8px 20px rgba(13,30,34,0.32); }
+.videoteca-tab .videoteca-tab-count { background: rgba(255,255,255,0.03); padding: 2px 8px; border-radius: 999px; margin-left:8px; font-weight:800; color:var(--muted); }
 
 .videoteca-mood-titulo {
   margin: 0;
@@ -391,19 +276,18 @@
 }
 
 /* New horizontal sections */
-.videoteca-two-sections { display: flex; flex-direction: column; gap: 28px; margin-top: 36px; }
-.videoteca-hsection { background: transparent; padding: 0; }
+.videoteca-two-sections { display: flex; flex-direction: column; gap: 28px; margin-top: 18px; }
+.videoteca-hsection { background: transparent; padding: 6px 2px; }
 .videoteca-hsection { position: relative; }
-.videoteca-hsection-header { display:flex; justify-content:space-between; align-items:baseline; gap:12px; margin: 0 0 16px; }
-.videoteca-hsection-header h3 { margin:0; font-size:1.1rem; color:var(--text); font-weight:700; }
+.videoteca-hsection-header { display:flex; justify-content:space-between; align-items:baseline; gap:12px; margin: 6px 0 12px; }
+.videoteca-hsection-header h3 { margin:0; font-size:1.1rem; color:var(--text); font-weight:800; }
 .videoteca-hsection-sub { margin:0; color:var(--muted); font-size:0.9rem; }
 .videoteca-ver-todo { color:var(--accent); font-weight:700; }
 
 .videoteca-hscroll {
   display: flex;
   gap: 16px;
-  /* add left/right padding so the first/last posters aren't flush against the edge */
-  padding: 6px 12px 18px 12px;
+  padding: 6px 2px 18px;
   overflow-x: auto;
   scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
@@ -411,38 +295,74 @@
   scrollbar-width: none; /* Firefox */
 }
 .videoteca-hcard {
-  width: 140px;
+  width: 160px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
   flex: 0 0 auto;
   scroll-snap-align: start;
-  min-height: 338px;
 }
-.videoteca-hcard:first-child { margin-left: 4px; }
-.videoteca-hposter-wrap { position:relative; width:140px; }
-.videoteca-hposter { width:140px; max-width:140px; aspect-ratio: 2 / 3; object-fit:cover; border-radius:12px; display:block; box-shadow:0 8px 16px rgba(0,0,0,0.32); }
-.videoteca-hcard-body { min-width: 0; padding: 0; display: flex; flex-direction: column; flex: 1; }
-.videoteca-hcard-title { margin: 0; color: #fff; font-size: 13px; line-height: 1.2; font-weight: 700; display: -webkit-box; line-clamp: 2; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.videoteca-hcard-genres { margin: 4px 0 0; color: rgba(200,205,215,0.75); font-size: 11px; line-height: 1.2; display: -webkit-box; line-clamp: 1; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
-.videoteca-hcard-year { margin: 2px 0 0; color: rgba(200,205,215,0.75); font-size: 11px; }
+.videoteca-hposter-wrap { position:relative; width:160px; height:240px; }
+.videoteca-hposter { width:160px; max-width:160px; height:240px; object-fit:cover; border-radius:8px; box-shadow:0 8px 20px rgba(0,0,0,0.45); display:block; }
+.videoteca-hposter-overlay { position:absolute; left:0; right:0; bottom:0; height:56px; display:flex; align-items:flex-end; padding:8px 10px; border-radius:0 0 8px 8px; background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.78) 100%); }
+.videoteca-hposter-title { color:#fff; font-weight:700; font-size:0.88rem; line-height:1.1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.videoteca-hcard-body {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+.videoteca-hcard-title {
+  margin: 0;
+  font-size: 0.84rem;
+  font-weight: 650;
+  line-height: 1.22;
+  letter-spacing: -0.01em;
+  color: #f2ecff;
+  display: -webkit-box;
+  line-clamp: 3;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.videoteca-hcard-genres,
+.videoteca-hcard-year {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.32;
+  font-weight: 500;
+  color: rgba(218, 205, 245, 0.9);
+}
+
 .videoteca-hcard-review-btn {
   margin-top: auto;
   width: 100%;
-  min-height: 32px;
-  border-radius: 10px;
-  border: 1px solid rgba(196, 168, 232, 0.2);
-  background: rgba(196, 168, 232, 0.08);
-  color: rgba(231, 220, 255, 0.95);
-  font-size: 12px;
+  min-height: 30px;
+  border-radius: 9px;
+  border: 1px solid rgba(188, 156, 238, 0.34);
+  background: linear-gradient(180deg, rgba(26, 17, 48, 0.96), rgba(18, 12, 36, 0.96));
+  color: #efe7ff;
+  font-size: 0.78rem;
   font-weight: 700;
+  letter-spacing: 0.01em;
   cursor: pointer;
-  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
+
 .videoteca-hcard-review-btn:hover {
-  background: rgba(196, 168, 232, 0.14);
-  border-color: rgba(196, 168, 232, 0.34);
+  border-color: rgba(212, 178, 255, 0.62);
+  box-shadow: 0 8px 18px rgba(24, 12, 46, 0.42);
+  background: linear-gradient(180deg, rgba(42, 26, 74, 0.98), rgba(26, 16, 52, 0.98));
   transform: translateY(-1px);
+}
+
+.videoteca-hcard-review-btn:active {
+  transform: translateY(0);
+}
+
+.videoteca-hcard-review-btn:focus-visible {
+  outline: 2px solid rgba(203, 174, 252, 0.7);
+  outline-offset: 2px;
 }
 .videoteca-empty-inline { color:var(--muted); padding: 28px 12px; }
 
@@ -470,40 +390,34 @@
   border: 1px solid rgba(255,255,255,0.04);
   z-index: 20;
 }
-.videoteca-arrow.left { left: 8px; }
-.videoteca-arrow.right { right: 8px; }
+.videoteca-arrow.left { left: -18px; }
+.videoteca-arrow.right { right: -18px; }
 .videoteca-arrow:focus { outline: 2px solid rgba(196,168,232,0.28); }
 
 /* Tabs container with subtle border and vertical separators */
 .videoteca-tabs-container {
   width: min(1120px, 92vw);
-  margin-bottom: 24px;
+  margin-bottom: 10px;
   display: flex;
   justify-content: flex-start;
 }
 .videoteca-tabs-container .videoteca-tabs {
   display: inline-flex;
-  gap: 8px;
+  gap: 0;
   width: 100%;
-  align-items: center; /* keep tabs vertically centered, avoid extra empty row */
-  flex-wrap: nowrap; /* prevent tabs from wrapping to a second row */
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  margin-bottom: 0; /* override global .videoteca-tabs margin that added a large gap */
-  padding-bottom: 0;
+  align-items: stretch;
+  margin-bottom: 0;
 }
 .videoteca-tabs-container .videoteca-tab {
-  padding: 10px 18px;
+  padding: 14px 20px;
   background: transparent;
   border-bottom: none;
   border-right: 1px solid rgba(151, 132, 197, 0.12);
   margin-bottom: 0;
   color: rgba(223, 218, 242, 0.72);
   font-weight: 700;
-  flex: 1 1 160px; /* allow tabs to expand evenly, but keep a sensible min width */
-  min-width: 140px;
+  flex: 1 1 0;
   justify-content: center;
-  text-align: center;
 }
 .videoteca-tabs-container .videoteca-tab:last-child { border-right: none; }
 .videoteca-tabs-container .videoteca-tab.activo {
@@ -516,21 +430,16 @@
   background: rgba(10, 14, 29, 0.58);
   border: 1px solid rgba(189, 160, 240, 0.08);
   border-radius: 16px;
-  padding: 6px;
+  padding: 3px;
   align-items: center;
 }
 .videoteca-tabs-container .videoteca-tabs { gap: 0; }
 .videoteca-tabs-container .videoteca-tab {
-  padding: 10px 14px;
-  border-radius: 12px;
+  padding: 8px 14px;
+  border-radius: 10px;
   background: transparent;
   border: none;
 }
-
-/* hide horizontal scrollbar while preserving scroll */
-.videoteca-tabs-container .videoteca-tabs::-webkit-scrollbar { height: 6px; }
-.videoteca-tabs-container .videoteca-tabs { scrollbar-width: thin; }
-.videoteca-tabs-container .videoteca-tabs::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.04); border-radius: 999px; }
 .videoteca-tabs-container .videoteca-tab.activo {
   background: rgba(196, 168, 232, 0.08);
   box-shadow: inset 0 -2px 0 rgba(210, 147, 255, 0.85);
@@ -568,8 +477,6 @@
   position: relative;
 }
 .videoteca-mood-chip .mood-emoji { font-size: 19px; }
-.videoteca-mood-chip .mood-emoji svg { width: 20px; height: 20px; display: inline-block; vertical-align: middle; }
-.videoteca-hposter-title .mood-emoji svg { width: 18px; height: 18px; }
 .videoteca-mood-chip .mood-count {
   margin-left: 8px;
   padding: 2px 8px;
@@ -592,7 +499,20 @@
   border-radius: 999px;
   background: linear-gradient(90deg, rgba(214, 144, 255, 0.95), rgba(214, 144, 255, 0.55));
 }
-.videoteca-mood-arrow { display: none !important; }
+.videoteca-mood-arrow {
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 999px;
+  background: rgba(13, 15, 32, 0.92);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255,255,255,0.06);
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.24);
+}
+
 
 /* Remove old controls visually */
 .videoteca-mood-filtros, .videoteca-tools { display:none !important; }
@@ -725,15 +645,16 @@
 .videoteca-card-body {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .videoteca-card-title {
   margin: 0;
-  font-size: 15px;
-  font-weight: 700;
-  color: #ede4ff;
-  line-height: 1.3;
+  font-size: 13.5px;
+  font-weight: 650;
+  color: #f1ebff;
+  line-height: 1.26;
+  letter-spacing: -0.01em;
   display: -webkit-box;
   line-clamp: 2;
   -webkit-line-clamp: 2;
@@ -743,9 +664,10 @@
 
 .videoteca-card-meta {
   margin: 0;
-  font-size: 12px;
-  color: rgba(213, 196, 255, 0.72);
+  font-size: 11.5px;
+  color: rgba(221, 209, 248, 0.82);
   font-weight: 500;
+  line-height: 1.35;
 }
 
 .videoteca-card-rating {
@@ -1104,14 +1026,7 @@
   display: flex;
   gap: 10px;
   margin-bottom: 32px;
-  border-bottom: 1px solid rgba(196, 168, 232, 0.16);
-  padding-bottom: 0;
-}
-
-/* Override default tabs border when inside the styled tabs container to avoid duplicate line */
-.videoteca-tabs-container .videoteca-tabs {
   border-bottom: none;
-  margin-bottom: 0;
   padding-bottom: 0;
 }
 
@@ -1135,6 +1050,32 @@
   width: 15px;
   height: 15px;
   flex-shrink: 0;
+}
+
+.videoteca-tab .videoteca-tab-icon-later,
+.videoteca-tab .videoteca-tab-icon-seen {
+  width: 21px;
+  height: 21px;
+  stroke-width: 2.45;
+}
+
+.videoteca-mood-chip .mood-emoji {
+  width: 22px;
+  height: 22px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.videoteca-mood-chip svg.mood-emoji {
+  width: 22px;
+  height: 22px;
+}
+
+.videoteca-hsection .mood-emoji {
+  width: 22px;
+  height: 22px;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .videoteca-tab:hover {
@@ -1363,32 +1304,29 @@
 /* ── Mis reseñas ─────────────────────────────────── */
 
 .videoteca-reviews-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 18px;
 }
 
 .videoteca-review-card {
-  width: min(100%, 980px);
-  margin-inline: auto;
   display: grid;
-  grid-template-columns: 156px minmax(0, 1fr) auto;
-  gap: 16px;
-  align-items: center;
-  border: 1px solid rgba(196, 168, 232, 0.12);
-  border-radius: 16px;
-  background: linear-gradient(180deg, rgba(13, 18, 35, 0.92), rgba(8, 12, 24, 0.9));
-  padding: 12px;
-  box-shadow: 0 12px 28px rgba(2, 0, 16, 0.28);
+  grid-template-columns: 90px 1fr;
+  gap: 12px;
+  align-items: start;
+  border: 1px solid rgba(196, 168, 232, 0.2);
+  border-radius: 14px;
+  background: linear-gradient(160deg, rgba(16, 8, 40, 0.88), rgba(8, 5, 24, 0.76));
+  padding: 10px;
+  box-shadow: 0 10px 24px rgba(2, 0, 16, 0.24);
 }
 
 .videoteca-review-card-media {
-  width: 156px;
-  height: 210px;
-  border-radius: 12px;
+  height: 128px;
+  align-self: start;
+  border-radius: 10px;
   overflow: hidden;
   background: rgba(196, 168, 232, 0.08);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
 }
 
 .videoteca-review-card-poster {
@@ -1413,106 +1351,37 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-}
-
-.videoteca-review-card-top {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: flex-start;
-}
-
-.videoteca-review-card-title-block {
-  min-width: 0;
-  max-width: 100%;
+  gap: 6px;
 }
 
 .videoteca-review-card-title {
   margin: 0;
-  font-size: 17px;
-  font-weight: 800;
-  color: #f4efff;
-  line-height: 1.2;
-}
-
-.videoteca-review-card-rating-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 6px;
-}
-
-.videoteca-review-card-stars {
-  display: inline-flex;
-  gap: 2px;
-  color: rgba(162, 119, 236, 0.4);
-  font-size: 17px;
-  line-height: 1;
-}
-
-.videoteca-review-star.active {
-  color: #b86cff;
-}
-
-.videoteca-review-card-rating-value {
+  font-size: 15px;
+  font-weight: 700;
   color: #efe6ff;
-  font-size: 14px;
+  line-height: 1.3;
+}
+
+.videoteca-review-card-score,
+.videoteca-review-card-mood {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(221, 208, 245, 0.9);
+}
+
+.videoteca-review-card-mood span {
+  color: rgba(181, 235, 221, 0.9);
   font-weight: 700;
 }
 
-.videoteca-review-card-date {
-  margin: 6px 0 0;
-  color: rgba(196, 168, 232, 0.76);
-  font-size: 12px;
-}
-
-.videoteca-review-card-meta-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-
-.videoteca-review-card-mood,
-.videoteca-review-card-likes {
-  margin: 0;
-  font-size: 13px;
-  color: rgba(221, 208, 245, 0.92);
-}
-
-.videoteca-review-card-likes {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: rgba(213, 196, 255, 0.86);
-}
-
-.videoteca-review-card-heart {
-  color: #b86cff;
-  font-size: 15px;
-}
-
-.videoteca-review-like-btn {
-  background: transparent;
-  border: none;
-  color: inherit;
-  cursor: pointer;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .videoteca-review-card-text {
-  margin: 0;
-  color: rgba(226, 214, 252, 0.92);
-  font-size: 13px;
-  line-height: 1.5;
+  margin: 2px 0 0;
+  color: rgba(226, 214, 252, 0.9);
+  font-size: 12px;
+  line-height: 1.45;
   display: -webkit-box;
-  line-clamp: 3;
-  -webkit-line-clamp: 3;
+  line-clamp: 4;
+  -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -1528,43 +1397,254 @@
 
 .videoteca-review-card-actions {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
   gap: 10px;
 }
 
-.videoteca-review-action-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.03);
-  color: rgba(232, 225, 255, 0.92);
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+.videoteca-review-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
 }
 
-.videoteca-review-action-btn:hover {
-  transform: translateY(-1px);
-  border-color: rgba(184, 108, 255, 0.28);
-  background: rgba(184, 108, 255, 0.08);
+.videoteca-review-card-title-block {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.videoteca-review-card-title {
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.videoteca-review-card-rating-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(219, 207, 245, 0.86);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.videoteca-review-card-stars {
+  display: inline-flex;
+  gap: 1px;
+  line-height: 1;
+}
+
+.videoteca-review-star {
+  color: rgba(168, 151, 204, 0.5);
+  font-size: 13px;
+}
+
+.videoteca-review-star.active {
+  color: #ffd66b;
+  text-shadow: 0 0 8px rgba(255, 214, 107, 0.28);
+}
+
+.videoteca-review-card-rating-value {
+  color: rgba(244, 236, 255, 0.94);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.videoteca-review-card-date {
+  margin: 0;
+  color: rgba(196, 168, 232, 0.72);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.videoteca-review-action-btn {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 9px;
+  border: 1px solid rgba(196, 168, 232, 0.26);
+  background: rgba(196, 168, 232, 0.08);
+  color: rgba(230, 219, 252, 0.92);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
 }
 
 .videoteca-review-action-btn svg {
-  width: 18px;
-  height: 18px;
-  fill: none;
+  width: 14px;
+  height: 14px;
   stroke: currentColor;
-  stroke-width: 1.8;
+  fill: none;
+  stroke-width: 1.9;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
+.videoteca-review-action-btn:hover {
+  border-color: rgba(212, 169, 248, 0.52);
+  background: rgba(196, 168, 232, 0.16);
+  transform: translateY(-1px);
+}
+
+.videoteca-review-action-btn.danger {
+  color: rgba(255, 182, 196, 0.9);
+  border-color: rgba(255, 152, 176, 0.3);
+  background: rgba(92, 26, 46, 0.18);
+}
+
 .videoteca-review-action-btn.danger:hover {
-  border-color: rgba(255, 112, 141, 0.28);
-  background: rgba(255, 112, 141, 0.08);
+  border-color: rgba(255, 152, 176, 0.56);
+  background: rgba(120, 34, 60, 0.28);
+}
+
+.videoteca-review-card-text {
+  margin-top: 4px;
+}
+
+.videoteca-review-card-meta-row {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.videoteca-review-card-mood {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 10px;
+  min-height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(174, 223, 211, 0.28);
+  background: rgba(59, 120, 104, 0.16);
+  color: rgba(196, 246, 231, 0.94);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.videoteca-review-card-mood-icon {
+  width: 16px;
+  height: 16px;
+  display: block;
+  flex-shrink: 0;
+}
+
+.videoteca-review-card-mood-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.videoteca-review-card-mood-label {
+  line-height: 1;
+}
+
+.videoteca-review-card-likes {
+  margin: 0;
+}
+
+.videoteca-review-like-btn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  color: #ff8ea9;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: default;
+}
+
+.videoteca-review-like-btn.interactive {
+  cursor: pointer;
+}
+
+.videoteca-review-like-btn.interactive:hover {
+  color: #ffb0c3;
+}
+
+.videoteca-likers-modal-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.videoteca-likers-modal-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.videoteca-likers-modal-avatar,
+.videoteca-likers-modal-avatar-placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: rgba(255, 142, 169, 0.14);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #fff;
+}
+
+.videoteca-likers-modal-avatar {
+  object-fit: cover;
+}
+
+.videoteca-likers-modal-username {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.videoteca-review-modal-error {
+  color: #ffb0c3;
+}
+
+.videoteca-review-card-heart {
+  font-size: 12px;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 720px) {
+  .videoteca-review-card {
+    grid-template-columns: 84px 1fr;
+    gap: 10px;
+    padding: 9px;
+  }
+
+  .videoteca-review-card-poster,
+  .videoteca-review-card-poster-placeholder {
+    height: 100%;
+  }
+
+  .videoteca-review-card-media {
+    height: 122px;
+  }
+
+  .videoteca-review-card-title {
+    font-size: 14px;
+  }
+
+  .videoteca-review-card-meta-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
 }
 
 /* ── Review modal ───────────────────────────────── */
@@ -1683,6 +1763,7 @@
   font-size: 14px;
   display: inline-flex;
   align-items: center;
+  gap: 8px;
 }
 
 .videoteca-review-modal-mood-options {
@@ -1701,6 +1782,21 @@
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.videoteca-review-modal-mood-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  display: block;
+}
+
+.videoteca-review-modal-mood-label {
+  line-height: 1;
 }
 
 .videoteca-review-modal-mood-option:hover {
@@ -1819,27 +1915,26 @@
 }
 
 .videoteca-review-modal-editor {
+  width: 100%;
+  display: block;
   min-height: 180px;
   max-height: 300px;
   overflow: auto;
   padding: 12px;
+  border: none;
+  background: transparent;
   line-height: 1.6;
   color: #f3e9ff;
-  direction: ltr;
-  text-align: left;
-  unicode-bidi: plaintext;
-}
-
-.videoteca-review-modal-textarea {
-  width: 100%;
-  border: none;
   resize: vertical;
-  background: transparent;
   font: inherit;
 }
 
 .videoteca-review-modal-editor:focus {
   outline: none;
+}
+
+.videoteca-review-modal-editor::placeholder {
+  color: rgba(206, 190, 234, 0.58);
 }
 
 .videoteca-review-modal-editor:empty::before {
@@ -2046,8 +2141,25 @@
   .videoteca-page {
     margin-top: 0;
     padding-top: 104px;
-    padding-left: 16px;
-    padding-right: 16px;
+  }
+
+  .videoteca-header-row {
+    width: 100%;
+  }
+
+  .videoteca-hero-right {
+    width: 100%;
+    align-items: stretch;
+    margin-top: 8px;
+  }
+
+  .videoteca-search {
+    width: 100%;
+    max-width: none;
+  }
+
+  .videoteca-subtitle {
+    margin-bottom: 8px;
   }
 
   .videoteca-hero {
@@ -2061,6 +2173,15 @@
 
   .videoteca-tabs-mobile {
     display: flex;
+    width: 100%;
+    max-width: none;
+    padding-inline: 4px;
+    box-sizing: border-box;
+  }
+
+  .videoteca-tabs-select {
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .videoteca-mood-filtros {
@@ -2112,31 +2233,11 @@
   .videoteca-review-modal-rating-track {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
-
-  .videoteca-review-card {
-    width: 100%;
-    grid-template-columns: 108px minmax(0, 1fr);
-    gap: 12px;
-  }
-
-  .videoteca-review-card-media {
-    width: 108px;
-    height: 144px;
-  }
-
-  .videoteca-review-card-actions {
-    grid-column: 1 / -1;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-end;
-  }
 }
 
 @media (max-width: 420px) {
   .videoteca-page {
     padding-top: 112px;
-    padding-left: 12px;
-    padding-right: 12px;
   }
 
   .videoteca-hero {
@@ -2150,6 +2251,7 @@
 
   .videoteca-tabs-mobile {
     margin-bottom: 18px;
+    padding-inline: 2px;
   }
 
   .videoteca-tabs-select {
@@ -2187,17 +2289,15 @@
 
   .videoteca-review-card {
     grid-template-columns: 1fr;
-    gap: 12px;
   }
 
-  .videoteca-review-card-media {
-    width: 100%;
-    height: 200px;
+  .videoteca-review-card-poster,
+  .videoteca-review-card-poster-placeholder {
+    height: 180px;
   }
 
+  .videoteca-review-card-footer,
   .videoteca-review-card-actions {
     flex-wrap: wrap;
-    justify-content: flex-end;
-    align-items: center;
   }
 }

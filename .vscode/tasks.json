@@ -1,114 +1,98 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"label": "Build React App",
-			"type": "shell",
-			"command": "npm run build"
-		},
-		{
-			"label": "build-frontend",
-			"type": "shell",
-			"command": "npm",
-			"args": [
-				"run",
-				"build"
-			],
-			"isBackground": false
-		},
-		{
-			"label": "deploy-hostinger",
-			"type": "shell",
-			"command": "powershell.exe",
-			"args": [
-				"-NoLogo",
-				"-ExecutionPolicy",
-				"Bypass",
-				"-Command",
-				"Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned; $passFile=\"${workspaceFolder}\\tmp_deploy_api_update.ps1\"; if (-not $env:FTP_PASS -and (Test-Path $passFile)) { $line = Get-Content $passFile | Where-Object { $_ -match '^\\$ftpPass\\s*=' } | Select-Object -First 1; if ($line) { $parts = $line.Split(\"\"\"\"); if ($parts.Count -ge 2) { $env:FTP_PASS = $parts[1] } } }; if (-not $env:FTP_PASS) { throw \"FTP_PASS no definido. Define FTP_PASS en el entorno.\" }; & \"${workspaceFolder}\\.venv\\Scripts\\Activate.ps1\"; python ftp_upload.py"
-			],
-			"options": {
-				"cwd": "${workspaceFolder}"
-			},
-			"isBackground": false
-		},
-		{
-			"label": "build-remove-social",
-			"type": "shell",
-			"command": "npm",
-			"args": [
-				"run",
-				"build"
-			],
-			"isBackground": false
-		},
-		{
-			"label": "deploy-footer-fix",
-			"type": "shell",
-			"command": "powershell.exe",
-			"args": [
-				"-NoLogo",
-				"-ExecutionPolicy",
-				"Bypass",
-				"-Command",
-				"Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned; $passFile=\"${workspaceFolder}\\tmp_deploy_api_update.ps1\"; if (-not $env:FTP_PASS -and (Test-Path $passFile)) { $line = Get-Content $passFile | Where-Object { $_ -match '^\\$ftpPass\\s*=' } | Select-Object -First 1; if ($line) { $parts = $line.Split(\"\"\"\"); if ($parts.Count -ge 2) { $env:FTP_PASS = $parts[1] } } }; if (-not $env:FTP_PASS) { throw \"FTP_PASS no definido. Define FTP_PASS en el entorno.\" }; & \"${workspaceFolder}\\.venv\\Scripts\\Activate.ps1\"; python ftp_upload.py"
-			],
-			"options": {
-				"cwd": "${workspaceFolder}"
-			},
-			"isBackground": false
-		},
-		{
-			"label": "build-center-footer",
-			"type": "shell",
-			"command": "npm",
-			"args": [
-				"run",
-				"build"
-			],
-			"isBackground": false
-		},
-		{
-			"label": "deploy-center-footer",
-			"type": "shell",
-			"command": "powershell.exe",
-			"args": [
-				"-NoLogo",
-				"-ExecutionPolicy",
-				"Bypass",
-				"-Command",
-				"Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned; $passFile=\"${workspaceFolder}\\tmp_deploy_api_update.ps1\"; if (-not $env:FTP_PASS -and (Test-Path $passFile)) { $line = Get-Content $passFile | Where-Object { $_ -match '^\\$ftpPass\\s*=' } | Select-Object -First 1; if ($line) { $parts = $line.Split(\"\"\"\"); if ($parts.Count -ge 2) { $env:FTP_PASS = $parts[1] } } }; if (-not $env:FTP_PASS) { throw \"FTP_PASS no definido. Define FTP_PASS en el entorno.\" }; & \"${workspaceFolder}\\.venv\\Scripts\\Activate.ps1\"; python ftp_upload.py"
-			],
-			"options": {
-				"cwd": "${workspaceFolder}"
-			},
-			"isBackground": false
-		},
-		{
-			"label": "build-carousel-fix",
-			"type": "shell",
-			"command": "npm",
-			"args": [
-				"run",
-				"build"
-			],
-			"isBackground": false
-		},
-		{
-			"label": "deploy-carousel-fix",
-			"type": "shell",
-			"command": "powershell.exe",
-			"args": [
-				"-NoLogo",
-				"-ExecutionPolicy",
-				"Bypass",
-				"-Command",
-				"Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned; $passFile=\"${workspaceFolder}\\tmp_deploy_api_update.ps1\"; if (-not $env:FTP_PASS -and (Test-Path $passFile)) { $line = Get-Content $passFile | Where-Object { $_ -match '^\\$ftpPass\\s*=' } | Select-Object -First 1; if ($line) { $parts = $line.Split(\"\"\"\"); if ($parts.Count -ge 2) { $env:FTP_PASS = $parts[1] } } }; if (-not $env:FTP_PASS) { throw \"FTP_PASS no definido. Define FTP_PASS en el entorno.\" }; & \"${workspaceFolder}\\.venv\\Scripts\\Activate.ps1\"; python ftp_upload.py"
-			],
-			"options": {
-				"cwd": "${workspaceFolder}"
-			},
-			"isBackground": false
-		}
-	]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build React App",
+      "type": "shell",
+      "command": "npm run build"
+    },
+    {
+      "label": "build-frontend",
+      "type": "shell",
+      "command": "npm",
+      "args": [
+        "run",
+        "build"
+      ],
+      "isBackground": false
+    },
+    {
+      "label": "deploy-hostinger",
+      "type": "shell",
+      "command": "\\.venv\\Scripts\\python.exe",
+      "args": [
+        "ftp_upload.py"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": false
+    },
+    {
+      "label": "build-remove-social",
+      "type": "shell",
+      "command": "npm",
+      "args": [
+        "run",
+        "build"
+      ],
+      "isBackground": false
+    },
+    {
+      "label": "deploy-footer-fix",
+      "type": "shell",
+      "command": "\\.venv\\Scripts\\python.exe",
+      "args": [
+        "ftp_upload.py"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": false
+    },
+    {
+      "label": "build-center-footer",
+      "type": "shell",
+      "command": "npm",
+      "args": [
+        "run",
+        "build"
+      ],
+      "isBackground": false
+    },
+    {
+      "label": "deploy-center-footer",
+      "type": "shell",
+      "command": "\\.venv\\Scripts\\python.exe",
+      "args": [
+        "ftp_upload.py"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": false
+    },
+    {
+      "label": "build-carousel-fix",
+      "type": "shell",
+      "command": "npm",
+      "args": [
+        "run",
+        "build"
+      ],
+      "isBackground": false
+    },
+    {
+      "label": "deploy-carousel-fix",
+      "type": "shell",
+      "command": "\\.venv\\Scripts\\python.exe",
+      "args": [
+        "ftp_upload.py"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": false
+    }
+  ]
 }

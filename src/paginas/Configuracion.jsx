@@ -4,6 +4,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useFavoritos } from '../hooks/useFavoritos';
 import { useMovieReviews } from '../hooks/useMovieReviews';
+import { hasApiBaseUrl, requestJson } from '../utils/movimoodApi';
 import './Configuracion.css';
 
 const MAX_AVATAR_SIZE = 2 * 1024 * 1024;
@@ -77,6 +78,20 @@ function cropImageByArea(dataUrl, cropPixels, outputType) {
     image.onerror = () => reject(new Error('No se pudo procesar la imagen seleccionada.'));
     image.src = dataUrl;
   });
+}
+
+function normalizeBlockedUser(user) {
+  const id = user?.id ?? user?.user_id ?? user?.blocked_user_id;
+  if (!id) {
+    return null;
+  }
+
+  return {
+    id,
+    name: user?.name || user?.username || `Usuario ${id}`,
+    username: user?.username || '',
+    avatar: user?.avatar || '',
+  };
 }
 
 function loadProfileFavorites(profileId) {
@@ -182,12 +197,18 @@ function Configuracion() {
   const [searchError, setSearchError] = useState('');
   const [favoriteNotice, setFavoriteNotice] = useState('');
   const [favoritesHydrated, setFavoritesHydrated] = useState(false);
+  const [blockedUsers, setBlockedUsers] = useState([]);
+  const [blockedLoading, setBlockedLoading] = useState(false);
+  const [blockedError, setBlockedError] = useState('');
+  const [blockedStatus, setBlockedStatus] = useState('');
+  const [unblockingUserId, setUnblockingUserId] = useState(null);
 
   const tabs = [
-    { id: 'profile', label: 'Profile' },
-    { id: 'auth', label: 'Auth' },
+    { id: 'profile', label: 'Perfil' },
+    { id: 'auth', label: 'Seguridad' },
     { id: 'avatar', label: 'Avatar' },
-    { id: 'notifications', label: 'Notifications' },
+    { id: 'notifications', label: 'Notificaciones' },
+    { id: 'blocked', label: 'Bloqueados' },
   ];
 
   useEffect(() => {
@@ -336,6 +357,58 @@ function Configuracion() {
       window.clearTimeout(timer);
     };
   }, [favoriteQuery]);
+
+  useEffect(() => {
+    if (activeTab !== 'blocked') {
+      return undefined;
+    }
+
+    if (!currentUser?.id) {
+      setBlockedUsers([]);
+      setBlockedLoading(false);
+      setBlockedError('');
+      return undefined;
+    }
+
+    if (!hasApiBaseUrl()) {
+      setBlockedUsers([]);
+      setBlockedLoading(false);
+      setBlockedError('No se puede cargar la lista de bloqueados: falta la URL de API.');
+      return undefined;
+    }
+
+    let cancelled = false;
+    setBlockedLoading(true);
+    setBlockedError('');
+    setBlockedStatus('');
+
+    void requestJson('movimood.php', {
+      params: { resource: 'blocks', user_id: currentUser.id },
+    })
+      .then((response) => {
+        if (cancelled) {
+          return;
+        }
+
+        const blocked = Array.isArray(response?.blocked) ? response.blocked : [];
+        setBlockedUsers(blocked.map(normalizeBlockedUser).filter(Boolean));
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setBlockedUsers([]);
+          setBlockedError('No se pudo cargar la lista de usuarios bloqueados.');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setBlockedLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, currentUser?.id]);
 
   if (!currentUser) {
     return <Navigate to="/login" replace />;
@@ -585,21 +658,84 @@ function Configuracion() {
     }
   }
 
+  async function handleUnblockUser(blockedUserId) {
+    if (!currentUser?.id || !blockedUserId || unblockingUserId) {
+      return;
+    }
+
+    setBlockedError('');
+    setBlockedStatus('');
+    setUnblockingUserId(blockedUserId);
+
+    try {
+      await requestJson('movimood.php', {
+        params: { resource: 'blocks' },
+        method: 'DELETE',
+        body: {
+          user_id: currentUser.id,
+          blocked_user_id: blockedUserId,
+        },
+      });
+
+      setBlockedUsers((prev) => prev.filter((user) => String(user.id) !== String(blockedUserId)));
+      setBlockedStatus('Usuario desbloqueado correctamente.');
+    } catch {
+      setBlockedError('No se pudo desbloquear al usuario. Intenta de nuevo.');
+    } finally {
+      setUnblockingUserId(null);
+    }
+  }
+
   return (
     <div className="pagina-principal config-page">
-      <section className="config-header">
-        <div className="config-header-copy">
-          <p className="config-kicker">Configuracion</p>
-          <h1>Configuracion de cuenta</h1>
-          <p>Ajusta tus datos, seguridad y seleccion de favoritas que veran en tu perfil publico.</p>
+      <section className="config-hero">
+        <div className="config-hero-copy">
+          <p className="config-kicker">Configuración</p>
+          <h1>Configura tu experiencia MoviMood</h1>
+          <p>
+            Ajusta tu perfil, avatar, notificaciones y el bloque de favoritas públicas con una interfaz visual,
+            clara y alineada con el estilo de la web.
+          </p>
         </div>
 
-        <div className="config-header-actions">
-          <p className="config-pro-copy">Tu escaparate publico vive en tu perfil y toma tus favoritas desde aqui.</p>
-          <Link to={`/perfil/${currentUser.id}`} className="config-public-link">
-            Ver perfil publico
-          </Link>
+        <div className="config-hero-aside">
+          <div className="config-user-badge">
+            {currentUser?.avatar ? (
+              <img src={currentUser.avatar} alt={`Avatar de ${currentUser.name || currentUser.username || 'usuario'}`} />
+            ) : (
+              <span>{(currentUser?.name || currentUser?.username || 'MM').slice(0, 2).toUpperCase()}</span>
+            )}
+            <div>
+              <strong>{currentUser?.name || currentUser?.username || 'MoviMood'}</strong>
+              <small>Tu panel personal</small>
+            </div>
+          </div>
+
+          <div className="config-hero-actions">
+            <p className="config-pro-copy">Tu escaparate público vive en tu perfil y toma tus favoritas desde aquí.</p>
+            <Link to={`/perfil/${currentUser.id}`} className="config-public-link">
+              Ver perfil público
+            </Link>
+          </div>
         </div>
+      </section>
+
+      <section className="config-summary-grid">
+        <article className="config-summary-card">
+          <span className="config-summary-label">Estado</span>
+          <strong>Personalización activa</strong>
+          <p>Perfil, avatar y notificaciones listos para editar.</p>
+        </article>
+        <article className="config-summary-card">
+          <span className="config-summary-label">Favoritas públicas</span>
+          <strong>{selectedFavoriteMovies.length}/4</strong>
+          <p>Ordena las 4 películas que se verán en tu perfil.</p>
+        </article>
+        <article className="config-summary-card">
+          <span className="config-summary-label">Cuenta</span>
+          <strong>{currentUser?.email ? 'Sincronizada' : 'Pendiente'}</strong>
+          <p>Datos de acceso y seguridad centralizados.</p>
+        </article>
       </section>
 
       <section className="config-shell">
@@ -621,10 +757,10 @@ function Configuracion() {
         {activeTab === 'profile' && (
           <section className="config-panel config-profile-layout">
             <article className="config-card">
-              <h2>Profile</h2>
+              <h2>Perfil</h2>
               <form onSubmit={saveAccountSettings} className="config-form">
                 <label>
-                  Username
+                  Usuario
                   <input
                     type="text"
                     value={accountDraft.username}
@@ -635,7 +771,7 @@ function Configuracion() {
 
                 <div className="config-split-fields">
                   <label>
-                    Given name
+                    Nombre
                     <input
                       type="text"
                       value={accountDraft.name}
@@ -646,7 +782,7 @@ function Configuracion() {
                   </label>
 
                   <label>
-                    Email address
+                    Correo electrónico
                     <input
                       type="email"
                       value={accountDraft.email}
@@ -665,7 +801,7 @@ function Configuracion() {
 
             <article className="config-card config-card-side">
               <div className="config-favorites-head">
-                <h2>Favorite films</h2>
+                <h2>Películas favoritas</h2>
                 <p>Esto es lo que saldrá en tu perfil público.</p>
               </div>
 
@@ -695,14 +831,14 @@ function Configuracion() {
                   ))}
                 </div>
               ) : (
-                <p className="config-empty">Aun no has fijado favoritas.</p>
+                <p className="config-empty">Aún no has fijado favoritas.</p>
               )}
 
               <div className="config-fav-manage">
                 <p className="config-fav-manage-copy">Elige las 4 que quieres mostrar buscando por nombre.</p>
 
                 <label className="config-search-label">
-                  Buscar pelicula
+                  Buscar película
                   <input
                     type="text"
                     value={favoriteQuery}
@@ -728,7 +864,7 @@ function Configuracion() {
                         onClick={() => toggleFavoriteMovie(movie.id, movie)}
                       >
                         <img src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} alt={movie.title || 'Pelicula'} />
-                        <span>{favoriteMovieIds.includes(movie.id) ? 'Quitar' : 'Anadir'}</span>
+                        <span>{favoriteMovieIds.includes(movie.id) ? 'Quitar' : 'Añadir'}</span>
                       </button>
                     ))}
                   </div>
@@ -743,10 +879,10 @@ function Configuracion() {
         {activeTab === 'auth' && (
           <section className="config-panel config-auth-layout">
             <article className="config-card config-card-narrow">
-              <h2>Change password</h2>
+              <h2>Cambiar contraseña</h2>
               <form onSubmit={savePassword} className="config-form">
                 <label>
-                  Current password
+                  Contraseña actual
                   <input
                     type="password"
                     value={passwordDraft.currentPassword}
@@ -756,7 +892,7 @@ function Configuracion() {
                 </label>
 
                 <label>
-                  New password
+                  Nueva contraseña
                   <input
                     type="password"
                     value={passwordDraft.newPassword}
@@ -766,7 +902,7 @@ function Configuracion() {
                 </label>
 
                 <label>
-                  Confirm new password
+                  Confirmar nueva contraseña
                   <input
                     type="password"
                     value={passwordDraft.confirmPassword}
@@ -778,7 +914,7 @@ function Configuracion() {
                 {passwordError && <p className="config-error">{passwordError}</p>}
                 {passwordStatus && <p className="config-success">{passwordStatus}</p>}
 
-                <button type="submit" className="config-submit">Change</button>
+                <button type="submit" className="config-submit">Cambiar</button>
               </form>
             </article>
 
@@ -805,14 +941,14 @@ function Configuracion() {
                     </div>
                   )}
 
-                  <p className="config-avatar-caption">Vista previa del perfil publico</p>
+                  <p className="config-avatar-caption">Vista previa del perfil público</p>
                   <p className="config-avatar-name">{accountDraft.name || 'Usuario MoviMood'}</p>
                 </div>
 
                 <div className="config-avatar-controls-panel">
                   <h3>Personaliza tu foto</h3>
                   <p className="config-avatar-copy">
-                    Sube una imagen cuadrada en JPG, PNG o WEBP. El tamano maximo permitido es de 2MB.
+                    Sube una imagen cuadrada en JPG, PNG o WEBP. El tamaño máximo permitido es de 2MB.
                   </p>
 
                   <div className="config-avatar-meta-grid">
@@ -821,7 +957,7 @@ function Configuracion() {
                       <strong>JPG, PNG, WEBP</strong>
                     </div>
                     <div className="config-avatar-meta-item">
-                      <span>Tamano maximo</span>
+                      <span>Tamaño máximo</span>
                       <strong>2MB</strong>
                     </div>
                   </div>
@@ -897,7 +1033,7 @@ function Configuracion() {
         {activeTab === 'notifications' && (
           <section className="config-panel config-notifications-layout">
             <article className="config-card config-card-narrow">
-              <h2>Notifications</h2>
+              <h2>Notificaciones</h2>
               <div className="config-notifications config-notifications-panel">
                 <label className="config-check config-check-card">
                   <input
@@ -929,6 +1065,57 @@ function Configuracion() {
                   Guardar notificaciones
                 </button>
               </div>
+            </article>
+          </section>
+        )}
+
+        {activeTab === 'blocked' && (
+          <section className="config-panel config-blocked-layout">
+            <article className="config-card config-blocked-card">
+              <div className="config-favorites-head">
+                <h2>Usuarios bloqueados</h2>
+                <p>Gestiona aquí a quién has bloqueado y desbloquéalo cuando quieras.</p>
+              </div>
+
+              {blockedLoading && <p className="config-empty">Cargando usuarios bloqueados...</p>}
+              {blockedError && <p className="config-error">{blockedError}</p>}
+              {blockedStatus && <p className="config-success">{blockedStatus}</p>}
+
+              {!blockedLoading && !blockedError && blockedUsers.length === 0 && (
+                <p className="config-empty">No tienes usuarios bloqueados.</p>
+              )}
+
+              {!blockedLoading && blockedUsers.length > 0 && (
+                <div className="config-blocked-list" role="list" aria-label="Usuarios bloqueados">
+                  {blockedUsers.map((user) => (
+                    <article key={user.id} className="config-blocked-item" role="listitem">
+                      <div className="config-blocked-user">
+                        {user.avatar ? (
+                          <img src={user.avatar} alt={`Avatar de ${user.name}`} className="config-blocked-avatar" />
+                        ) : (
+                          <span className="config-blocked-avatar config-blocked-avatar-fallback">
+                            {(user.name || 'U').slice(0, 2).toUpperCase()}
+                          </span>
+                        )}
+
+                        <div className="config-blocked-copy">
+                          <strong>{user.name}</strong>
+                          {user.username && <span>@{user.username}</span>}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        className="config-pill-btn secondary config-unblock-btn"
+                        onClick={() => handleUnblockUser(user.id)}
+                        disabled={Boolean(unblockingUserId)}
+                      >
+                        {unblockingUserId === user.id ? 'Desbloqueando...' : 'Desbloquear'}
+                      </button>
+                    </article>
+                  ))}
+                </div>
+              )}
             </article>
           </section>
         )}

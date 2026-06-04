@@ -202,6 +202,116 @@ function MovieGenreLabel({ movie }) {
   );
 }
 
+function StatCard({ onClick, Icon, label, value, ariaLabel, disabled }) {
+  return (
+    <button
+      type="button"
+      className="perfil-v3-card perfil-v3-stat-card perfil-v3-stat-card-interactive"
+      onClick={onClick}
+      aria-label={ariaLabel}
+      disabled={disabled}
+    >
+      <div className="perfil-v3-stat-head">
+        <span className="perfil-v3-stat-icon" aria-hidden="true">
+          {Icon ? <Icon size={18} color="#00e5ff" style={{ filter: 'drop-shadow(0 0 8px rgba(0,229,255,0.20))' }} aria-hidden="true" /> : null}
+        </span>
+        <span>{label}</span>
+      </div>
+      <strong>{value}</strong>
+    </button>
+  );
+}
+
+function ReviewRow({ item, movieGenresCache, likesByReviewId, likedReviewIds, reviewLikes, currentUserId, isOwnProfile, onLikeChange, navigate, location }) {
+  const movie = item.movie || {};
+  const poster = movie.poster_path ? `https://image.tmdb.org/t/p/w92${movie.poster_path}` : null;
+  const likeCount = reviewLikes.counts[String(item.id)] || likesByReviewId.get(item.id) || 0;
+  const year = movie.release_date ? movie.release_date.slice(0, 4) : (movie.first_air_date ? movie.first_air_date.slice(0, 4) : '');
+  const stars = getStarsFromRating(item.rating);
+  const isLiked = likedReviewIds.has(String(item.id));
+  const reviewOwnerId = item.user_id ?? item.userId ?? null;
+  const isOwnReview = Boolean(currentUserId && (String(reviewOwnerId) === String(currentUserId) || isOwnProfile));
+  const canLike = Boolean(currentUserId) && !isOwnReview;
+
+  async function handleToggleLike() {
+    if (!currentUserId) {
+      navigate(`/login?returnTo=${encodeURIComponent(location.pathname + location.search)}`);
+      return;
+    }
+
+    if (!canLike) {
+      return;
+    }
+
+    try {
+      if (isLiked) {
+        await reviewLikes.unlike(item.id);
+        onLikeChange(item.id, false);
+      } else {
+        await reviewLikes.toggleLike(item.id);
+        onLikeChange(item.id, true);
+      }
+    } catch (e) {
+      if (e && e.status === 401) {
+        navigate(`/login?returnTo=${encodeURIComponent(location.pathname + location.search)}`);
+      }
+    }
+  }
+
+  return (
+    <article className="likes-review-row" key={item.id}>
+      {poster ? (
+        <div className="likes-review-poster"><img src={poster} alt={movie.title || movie.name} /></div>
+      ) : (
+        <div className="likes-review-poster poster-placeholder-small">Sin poster</div>
+      )}
+
+      <div className="likes-review-body">
+        <div className="likes-review-header">
+          <div className="likes-review-title-block">
+            <span className="likes-review-movie">{movie.title || movie.name}</span>
+            <div className="likes-review-subline">
+              <span className="likes-review-year">{year}</span>
+              <MovieGenreLabel movie={movie} />
+            </div>
+          </div>
+          <div className="likes-review-meta-top">
+            <span className="likes-review-stars" aria-hidden>
+              {Array(stars.full).fill('★').join('')}{stars.hasHalf ? '½' : ''}{Array(stars.empty).fill('☆').join('')}
+            </span>
+          </div>
+        </div>
+        <p className="likes-review-text">{(item.comment || '').slice(0, REVIEW_PREVIEW_MAX_CHARS)}</p>
+      </div>
+
+      <div className="likes-review-meta">
+        <button
+          type="button"
+          className={`videoteca-review-like-btn${isLiked ? ' liked' : ''}`}
+          aria-label={
+            !currentUserId
+              ? `Inicia sesión para dar like a la reseña de ${movie.title || movie.name}`
+              : isOwnReview
+                ? 'No puedes dar like a tu propia reseña'
+                : isLiked
+                  ? `Quitar like a la reseña de ${movie.title || movie.name}`
+                  : `Dar like a la reseña de ${movie.title || movie.name}`
+          }
+          onClick={handleToggleLike}
+          disabled={isOwnReview}
+        >
+          <span className="videoteca-review-card-heart" aria-hidden>♥</span>
+          <span className="videoteca-review-like-count">{likeCount}</span>
+        </button>
+
+        <div className="likes-review-meta-bottom">
+          <span className="likes-review-date">{formatDate(item.date)}</span>
+        </div>
+      </div>
+    </article>
+  );
+}
+
 function movieKey(movieId) {
   if (movieId === null || movieId === undefined) {
     return '';
@@ -1179,7 +1289,46 @@ function Perfil() {
   const reviewLikes = useReviewLikes();
   const { fetchUserLikedReviews } = reviewLikes;
   const [likesByReviewId, setLikesByReviewId] = useState(() => loadReviewLikesByReviewId());
+  const [likedReviewIds, setLikedReviewIds] = useState(new Set());
   const [profileLikedReviewsCount, setProfileLikedReviewsCount] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadLikedReviews() {
+      if (!currentUser?.id || !hasApiBaseUrl()) {
+        if (!cancelled) {
+          setLikedReviewIds(new Set());
+        }
+        return;
+      }
+
+      try {
+        const items = await fetchUserLikedReviews();
+        if (!cancelled) {
+          setLikedReviewIds(new Set((Array.isArray(items) ? items : []).map((item) => String(item.reviewId))));
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setLikedReviewIds(new Set());
+        }
+      }
+    }
+
+    loadLikedReviews();
+    return () => { cancelled = true; };
+  }, [currentUser?.id, fetchUserLikedReviews]);
+
+  function updateLikedReviewState(reviewId, liked) {
+    setLikedReviewIds((prev) => {
+      const next = new Set(prev);
+      if (liked) {
+        next.add(String(reviewId));
+      } else {
+        next.delete(String(reviewId));
+      }
+      return next;
+    });
+  }
 
   // Keep likesByReviewId in sync with localStorage fallback and reviewLikes.counts
   useEffect(() => {
@@ -1451,9 +1600,7 @@ function Perfil() {
   }
 
   function openMoodActivity(mood) {
-    setActiveTab('actividad');
-    setActivityFilter('vistas');
-    setActivityMoodFilter(mood);
+    navigate(`/videoteca?view=ya-vistas&mood=${encodeURIComponent(mood)}`);
   }
 
   function toggleRadarMood(mood) {
@@ -1574,46 +1721,41 @@ function Perfil() {
 
                 {/* Hero copy positioned like Likes */}
                 <div className="likes-hero-copy" aria-hidden="false">
-                  <h1 className="likes-title">{isOwnProfile ? 'Mi perfil' : viewedUser?.name}</h1>
+                  <div className="perfil-v3-hero-title-row">
+                    <h1 className="likes-title">{isOwnProfile ? 'Mi perfil' : viewedUser?.name}</h1>
+                    {!isOwnProfile && currentUser?.id && (
+                      <div className="perfil-v3-hero-inline-actions" aria-hidden="false">
+                        {!isBlockedProfile && (
+                          <button
+                            type="button"
+                            className={`perfil-v3-follow-btn${isFollowingProfile ? ' is-following' : ''}`}
+                            onClick={handleToggleFollow}
+                            disabled={isFollowSaving}
+                            aria-pressed={isFollowingProfile}
+                          >
+                            {isFollowingProfile ? 'Siguiendo' : 'Seguir'}
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className={`perfil-v3-block-btn${didBlockViewedUser ? ' is-blocked' : ''}`}
+                          onClick={handleToggleBlock}
+                          disabled={isBlockSaving}
+                          aria-pressed={didBlockViewedUser}
+                        >
+                          {didBlockViewedUser ? 'Desbloquear' : 'Bloquear'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
                   {viewedUser?.username && <p className="likes-subtitle">@{viewedUser.username}</p>}
-                  {!isOwnProfile && (
-                    <div className="likes-tabs" role="tablist" aria-label="Secciones">
-                      <button type="button" className={`likes-tab${activeTab === 'general' ? ' active' : ''}`} onClick={() => setActiveTab('general')}>Todo</button>
-                      <button type="button" className={`likes-tab${activeTab === 'colecciones' ? ' active' : ''}`} onClick={() => setActiveTab('colecciones')}>Películas</button>
-                      <button type="button" className={`likes-tab${activeTab === 'actividad' ? ' active' : ''}`} onClick={() => setActiveTab('actividad')}>Reseñas</button>
-                    </div>
-                  )}
+                  {/* Pestañas eliminadas por solicitud (Todo / Películas / Reseñas) */}
                 {!isOwnProfile && (
                   <div className="likes-hero-actions-bottom">
                     <Link to={currentUser?.id ? `/perfil/${encodeURIComponent(currentUser.id)}` : '/perfil'} className="volver-perfil">← Volver al perfil</Link>
                   </div>
                 )}
                 </div>
-
-                {!isOwnProfile && currentUser?.id && (
-                  <div className="perfil-v3-page-cover-actions" aria-hidden="false">
-                    {!isBlockedProfile && (
-                      <button
-                        type="button"
-                        className={`perfil-v3-follow-btn${isFollowingProfile ? ' is-following' : ''}`}
-                        onClick={handleToggleFollow}
-                        disabled={isFollowSaving}
-                        aria-pressed={isFollowingProfile}
-                      >
-                        {isFollowingProfile ? 'Siguiendo' : 'Seguir'}
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      className={`perfil-v3-block-btn${didBlockViewedUser ? ' is-blocked' : ''}`}
-                      onClick={handleToggleBlock}
-                      disabled={isBlockSaving}
-                      aria-pressed={didBlockViewedUser}
-                    >
-                      {didBlockViewedUser ? 'Desbloquear' : 'Bloquear'}
-                    </button>
-                  </div>
-                )}
               </div>
 
               {blockError && (
@@ -1623,71 +1765,15 @@ function Perfil() {
               )}
 
               <section className="perfil-v3-stats-grid">
-                <button
-                  type="button"
-                  className="perfil-v3-card perfil-v3-stat-card perfil-v3-stat-card-interactive"
-                  onClick={() => openMetricDestination('likes')}
-                >
-                  <div className="perfil-v3-stat-head">
-                    <span className="perfil-v3-stat-icon" aria-hidden="true">
-                      <Heart size={18} color="#00e5ff" style={{ filter: 'drop-shadow(0 0 8px rgba(0,229,255,0.20))' }} aria-hidden="true" />
-                    </span>
-                    <span>Likes</span>
-                  </div>
-                  <strong>{likesCount}</strong>
-                </button>
-                <button
-                  type="button"
-                  className="perfil-v3-card perfil-v3-stat-card perfil-v3-stat-card-interactive"
-                  onClick={() => openMetricDestination('seguidos')}
-                >
-                  <div className="perfil-v3-stat-head">
-                    <span className="perfil-v3-stat-icon" aria-hidden="true">
-                      <User size={18} color="#00e5ff" style={{ filter: 'drop-shadow(0 0 8px rgba(0,229,255,0.20))' }} aria-hidden="true" />
-                    </span>
-                    <span>Seguidos</span>
-                  </div>
-                  <strong>{followingCount}</strong>
-                </button>
-                <button
-                  type="button"
-                  className="perfil-v3-card perfil-v3-stat-card perfil-v3-stat-card-interactive"
-                  onClick={() => openMetricDestination('seguidores')}
-                >
-                  <div className="perfil-v3-stat-head">
-                    <span className="perfil-v3-stat-icon" aria-hidden="true">
-                      <Users size={18} color="#00e5ff" style={{ filter: 'drop-shadow(0 0 8px rgba(0,229,255,0.20))' }} aria-hidden="true" />
-                    </span>
-                    <span>Seguidores</span>
-                  </div>
-                  <strong>{followersCount}</strong>
-                </button>
-                <button
-                  type="button"
-                  className="perfil-v3-card perfil-v3-stat-card perfil-v3-stat-card-interactive"
-                  onClick={() => openMetricDestination('vistas')}
-                >
-                  <div className="perfil-v3-stat-head">
-                    <span className="perfil-v3-stat-icon" aria-hidden="true">
-                      <Film size={18} color="#00e5ff" style={{ filter: 'drop-shadow(0 0 8px rgba(0,229,255,0.20))' }} aria-hidden="true" />
-                    </span>
-                    <span>Películas vistas</span>
-                  </div>
-                  <strong>{moviesSeenCount}</strong>
-                </button>
-                <button
-                  type="button"
-                  className="perfil-v3-card perfil-v3-stat-card perfil-v3-stat-card-interactive"
-                  onClick={() => openMetricDestination('resenas')}
-                >
-                  <div className="perfil-v3-stat-head">
-                    <span className="perfil-v3-stat-icon" aria-hidden="true">
-                      <Star size={18} color="#00e5ff" style={{ filter: 'drop-shadow(0 0 8px rgba(0,229,255,0.20))' }} aria-hidden="true" />
-                    </span>
-                    <span>Reseñas</span>
-                  </div>
-                  <strong>{activeReviews.length}</strong>
-                </button>
+                {[
+                  { key: 'likes', label: 'Likes', Icon: Heart, value: likesCount, onClick: () => openMetricDestination('likes') },
+                  { key: 'seguidos', label: 'Seguidos', Icon: User, value: followingCount, onClick: () => openMetricDestination('seguidos') },
+                  { key: 'seguidores', label: 'Seguidores', Icon: Users, value: followersCount, onClick: () => openMetricDestination('seguidores') },
+                  { key: 'vistas', label: 'Películas vistas', Icon: Film, value: moviesSeenCount, onClick: () => openMetricDestination('vistas') },
+                  { key: 'resenas', label: 'Reseñas', Icon: Star, value: activeReviews.length, onClick: () => openMetricDestination('resenas') },
+                ].map((s) => (
+                  <StatCard key={s.key} Icon={s.Icon} label={s.label} value={s.value} onClick={s.onClick} />
+                ))}
               </section>
 
               <section className="perfil-v3-general-grid">
@@ -1799,13 +1885,15 @@ function Perfil() {
                               Ejemplos: {selectedRadarMoodInfo.topTitles.join(', ')}.
                             </p>
                           )}
-                          <button
-                            type="button"
-                            className="perfil-v3-radar-detail-btn"
-                            onClick={() => openMoodActivity(selectedRadarMoodInfo.mood)}
-                          >
-                            Ver películas vistas de este mood
-                          </button>
+                          {isOwnProfile && (
+                            <button
+                              type="button"
+                              className="perfil-v3-radar-detail-btn"
+                              onClick={() => openMoodActivity(selectedRadarMoodInfo.mood)}
+                            >
+                              Ver películas vistas de este mood
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
@@ -1926,9 +2014,6 @@ function Perfil() {
                         </button>
                       ))}
                     </div>
-
-                    {/* Expanded collection view removed to avoid duplicate rendering.
-                        Collections are shown only as summary cards with miniatures above. */}
                   </>
                 )}
               </article>
@@ -2133,81 +2218,21 @@ function Perfil() {
                         )}
                       </div>
                       <div className="likes-reviews-list">
-                        {activityItems.map((item) => {
-                          const movie = item.movie || {};
-                          const poster = movie.poster_path ? `https://image.tmdb.org/t/p/w92${movie.poster_path}` : null;
-                          const likeCount = reviewLikes.counts[String(item.id)] || likesByReviewId.get(item.id) || 0;
-                          // Resolve genres robustly: prefer genre_ids -> map to names, then movie.genres
-                          let genres = [];
-                          if (Array.isArray(movie.genre_ids) && movie.genre_ids.length) {
-                            genres = movie.genre_ids
-                              .map((id) => {
-                                // id may be number or string
-                                return genreIdToName[id] || genreIdToName[Number(id)];
-                              })
-                              .filter(Boolean);
-                          }
-
-                          if (genres.length === 0 && Array.isArray(movie.genres) && movie.genres.length) {
-                            // movie.genres may be array of objects {id,name} or array of strings
-                            genres = movie.genres
-                              .map((g) => (typeof g === 'string' ? g : (g && (g.name || g.title)) || null))
-                              .filter(Boolean);
-                          }
-
-                          // Some APIs return a comma-separated string field
-                          if (genres.length === 0 && movie.genre_names && typeof movie.genre_names === 'string') {
-                            genres = movie.genre_names.split(',').map((s) => s.trim()).filter(Boolean);
-                          }
-
-                          // Last resort: if movie.genres is a string
-                          if (genres.length === 0 && movie.genres && typeof movie.genres === 'string') {
-                            genres = movie.genres.split(',').map((s) => s.trim()).filter(Boolean);
-                          }
-
-                          // Use cached fetched genres if available
-                          if ((genres.length === 0 || !genres) && movie && movie.id && movieGenresCache[movie.id]) {
-                            genres = movieGenresCache[movie.id] || [];
-                          }
-                          const year = movie.release_date ? movie.release_date.slice(0, 4) : (movie.first_air_date ? movie.first_air_date.slice(0, 4) : '');
-                          const stars = getStarsFromRating(item.rating);
-
-                          return (
-                            <article className="likes-review-row" key={item.id}>
-                              {poster ? (
-                                <div className="likes-review-poster"><img src={poster} alt={movie.title || movie.name} /></div>
-                              ) : (
-                                <div className="likes-review-poster poster-placeholder-small">Sin poster</div>
-                              )}
-
-                              <div className="likes-review-body">
-                                <div className="likes-review-header">
-                                  <div className="likes-review-title-block">
-                                    <span className="likes-review-movie">{movie.title || movie.name}</span>
-                                    <div className="likes-review-subline">
-                                      <span className="likes-review-year">{year}</span>
-                                      <MovieGenreLabel movie={movie} />
-                                    </div>
-                                  </div>
-                                  <div className="likes-review-meta-top">
-                                    <span className="likes-review-stars" aria-hidden>
-                                      {Array(stars.full).fill('★').join('')}{stars.hasHalf ? '½' : ''}{Array(stars.empty).fill('☆').join('')}
-                                    </span>
-                                  </div>
-                                </div>
-                                <p className="likes-review-text">{(item.comment || '').slice(0,220)}</p>
-                              </div>
-
-                              <div className="likes-review-meta">
-                                <button type="button" className="videoteca-review-like-btn" aria-label="likes" onClick={async () => { try { await reviewLikes.toggleLike(item.id); } catch (e) { if (e && e.status === 401) { navigate(`/login?returnTo=${encodeURIComponent(location.pathname + location.search)}`); } } }}>
-                                  <span className="videoteca-review-card-heart" aria-hidden>♥</span>
-                                  {likeCount}
-                                </button>
-                                <time className="likes-review-time">{item.date ? formatDate(item.date) : ''}</time>
-                              </div>
-                            </article>
-                          );
-                        })}
+                        {activityItems.map((item) => (
+                          <ReviewRow
+                            key={item.id}
+                            item={item}
+                            movieGenresCache={movieGenresCache}
+                            likesByReviewId={likesByReviewId}
+                            likedReviewIds={likedReviewIds}
+                            reviewLikes={reviewLikes}
+                            currentUserId={currentUser?.id}
+                            isOwnProfile={isOwnProfile}
+                            onLikeChange={updateLikedReviewState}
+                            navigate={navigate}
+                            location={location}
+                          />
+                        ))}
                       </div>
                     </section>
                     </div>

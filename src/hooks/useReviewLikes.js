@@ -36,6 +36,11 @@ export default function useReviewLikes() {
   const [counts, setCounts] = useState(() => parseLocalLikes());
   const pendingRef = useRef(new Set());
   const countsRef = useRef(counts);
+  // Track in-flight fetch promises to coalesce duplicate fetches
+  const inFlightRef = useRef(new Map());
+  // timestamps of last successful fetch per review id (ms)
+  const lastFetchedRef = useRef({});
+  const FETCH_TTL_MS = 30 * 1000; // 30 seconds
 
   useEffect(() => {
     countsRef.current = counts;
@@ -46,16 +51,38 @@ export default function useReviewLikes() {
   }, [counts]);
 
   const fetchCount = useCallback(async (reviewId) => {
+    const key = String(reviewId);
+    // If we recently fetched this review, return cached value
+    const last = lastFetchedRef.current[key];
+    if (last && (Date.now() - last) < FETCH_TTL_MS) {
+      return countsRef.current[key] || 0;
+    }
+    // If a fetch for this review is already in-flight, return the same promise
+    const existing = inFlightRef.current.get(key);
+    if (existing) return existing;
     try {
-      const payload = await requestJson('movimood.php', { params: { resource: 'review-likes', review_id: reviewId } });
-      if (payload && typeof payload.count === 'number') {
-        setCounts((s) => ({ ...s, [String(reviewId)]: payload.count }));
-        return payload.count;
-      }
+      const promise = requestJson('movimood.php', { params: { resource: 'review-likes', review_id: reviewId } })
+        .then((payload) => {
+          if (payload && typeof payload.count === 'number') {
+            lastFetchedRef.current[key] = Date.now();
+            setCounts((s) => ({ ...s, [key]: payload.count }));
+            return payload.count;
+          }
+          return countsRef.current[key] || 0;
+        })
+        .catch(() => {
+          return countsRef.current[key] || 0;
+        })
+        .finally(() => {
+          inFlightRef.current.delete(key);
+        });
+
+      inFlightRef.current.set(key, promise);
+      return promise;
     } catch (e) {
       // ignore network errors, fallback to local
     }
-    return countsRef.current[String(reviewId)] || 0;
+    return countsRef.current[key] || 0;
   }, []);
 
   const toggleLike = useCallback(async (reviewId) => {
@@ -190,9 +217,24 @@ export default function useReviewLikes() {
     }
   }, []);
 
+  const fetchLikers = useCallback(async (reviewId) => {
+    try {
+      const payload = await requestJson('movimood.php', {
+        params: { resource: 'review-likes', review_id: reviewId, include_users: 1 },
+      });
+      if (payload && Array.isArray(payload.users)) {
+        return payload.users;
+      }
+    } catch (e) {
+      // ignore errors and return empty list
+    }
+    return [];
+  }, []);
+
   return {
     counts,
     fetchCount,
+    fetchLikers,
     toggleLike,
     unlike,
     isPending: (reviewId) => pendingRef.current.has(String(reviewId)),

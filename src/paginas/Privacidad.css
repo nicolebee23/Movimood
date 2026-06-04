@@ -27,6 +27,54 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
+/* Grid layout to include a small TOC on wide screens */
+.legal-grid {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 28px;
+  align-items: start;
+}
+
+.legal-header {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.legal-actions .btn {
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: transparent;
+  color: rgba(255,255,255,0.95);
+}
+
+.legal-toc {
+  position: sticky;
+  top: 84px;
+  align-self: start;
+}
+
+.legal-toc nav strong {
+  display: block;
+  color: #e6b3ff;
+  margin-bottom: 10px;
+}
+
+.legal-toc ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.legal-toc li { margin-bottom: 8px; }
+.legal-toc a { color: rgba(255,255,255,0.9); text-decoration: none; font-size: 0.95rem; }
+.legal-toc a:hover { color: #fff; text-decoration: underline; }
+
 .legal-page h1 {
   font-size: 2.5rem;
   color: #fff;
@@ -43,6 +91,8 @@
   color: rgba(255, 255, 255, 0.9);
   line-height: 1.8;
 }
+
+.legal-content h2 { scroll-margin-top: 96px; }
 
 .legal-content section {
   margin-bottom: 35px;
@@ -126,6 +176,11 @@
   .legal-container {
     padding: 25px 15px;
   }
+
+  /* Collapse grid into single column on small screens */
+  .legal-grid { grid-template-columns: 1fr; }
+
+  .legal-toc { position: static; margin-bottom: 18px; }
 
   .legal-page h1 {
     font-size: 1.5rem;

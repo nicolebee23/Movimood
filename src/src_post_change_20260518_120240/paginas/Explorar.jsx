@@ -312,7 +312,7 @@ function Explorar() {
       return;
     }
 
-    setLista(movie.id, list);
+    setLista(movie, null, list);
   };
 
   const handleLoadMore = () => {
@@ -545,7 +545,7 @@ function Explorar() {
                 <div className="explorar-grid">
                   {movies.map((movie) => {
                     const favState = getMovieState(movie.id);
-                    const isSaved = favState?.lista !== undefined;
+                    const isSaved = Boolean(favState?.isInLibrary);
 
                     return (
                       <div
@@ -582,13 +582,15 @@ function Explorar() {
                                 className={`explorar-movie-btn${isSaved ? ' guardado' : ''}`}
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  if (isSaved) {
-                                    setLista(movie.id, null);
-                                  } else {
-                                    handleSaveFavorite(e, movie, LISTAS.VER_LUEGO);
+                                  if (!currentUser) {
+                                    setSelectedMovieForFav(movie);
+                                    setShowLoginModal(true);
+                                    return;
                                   }
+
+                                  setLista(movie, null, LISTAS.VER_LUEGO);
                                 }}
-                                title={isSaved ? 'Quitar de favoritos' : 'Ver más tarde'}
+                                title={isSaved ? 'En tu videoteca' : 'Añadir a Ver más tarde'}
                               >
                                 {isSaved ? '✓ Guardado' : '🕐'}
                               </button>

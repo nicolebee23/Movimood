@@ -277,6 +277,8 @@
 .likes-review-text{color:#cfeef5;margin:0 0 8px 0}
 .likes-review-meta{display:flex;align-items:center;gap:12px}
 .videoteca-review-like-btn{background:transparent;border:none;color:#ff6b6b;display:flex;align-items:center;gap:6px;cursor:pointer}
+.videoteca-review-like-btn.liked{color:#ff2d55;}
+.videoteca-review-like-btn:disabled{opacity:0.5;cursor:not-allowed}
 .likes-review-time{color:#9fdfe9;font-size:13px}
 
 /* Responsive tweaks */

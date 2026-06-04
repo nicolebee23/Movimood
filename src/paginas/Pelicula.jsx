@@ -5,8 +5,47 @@ import { useFavoritos, LISTAS } from '../hooks/useFavoritos';
 import { useMovieReviews } from '../hooks/useMovieReviews';
 import './Pelicula.css';
 import WizardSidebar from '../componentes/WizardSidebar';
+import {
+  SadIcon,
+  NostalgicIcon,
+  RelaxedIcon,
+  AnxiousIcon,
+  HappyIcon,
+  MotivatedIcon,
+  AngryIcon,
+  EmotionalIcon,
+} from '../components/mood-icons/MoodIcons';
 
 const API_BASE_URL = (process.env.REACT_APP_API_BASE_URL || (typeof window !== 'undefined' ? `${window.location.origin}/api` : '/api')).replace(/\/$/, '');
+
+const MOOD_EMOJIS = {
+  Triste: '🙁',
+  Nostalgico: '🏺',
+  Relajado: '☁️',
+  Ansioso: '😰',
+  Feliz: '😄',
+  Motivado: '🔥',
+  Enojado: '😠',
+  Emocionado: '🤩',
+};
+
+const MOOD_COMPONENTS = {
+  Triste: SadIcon,
+  Nostalgico: NostalgicIcon,
+  Relajado: RelaxedIcon,
+  Ansioso: AnxiousIcon,
+  Feliz: HappyIcon,
+  Motivado: MotivatedIcon,
+  Enojado: AngryIcon,
+  Emocionado: EmotionalIcon,
+};
+
+const MOOD_LABELS = {
+  Nostalgico: 'Nostálgico',
+  Enojado: 'Enfadado',
+};
+
+const ALL_MOODS = ['Triste', 'Nostalgico', 'Relajado', 'Ansioso', 'Feliz', 'Motivado', 'Enojado', 'Emocionado'];
 
 function Pelicula() {
   const { id } = useParams();
@@ -22,66 +61,16 @@ function Pelicula() {
   const [watchLater, setWatchLater] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [isRatingDragging, setIsRatingDragging] = useState(false);
-  const [communityReviews, setCommunityReviews] = useState([]);
-  const [communityReviewsLoading, setCommunityReviewsLoading] = useState(false);
+  
   const [reviewDraft, setReviewDraft] = useState({
     author: '',
     rating: 5,
+    mood: '',
     text: '',
     textRich: '',
   });
 
-  // Cargar reseñas de la comunidad con fallback a localStorage
-  function loadCommunityReviews() {
-    if (!id) return;
-    setCommunityReviewsLoading(true);
-
-    // Leer localStorage primero siempre
-    const getLocalReviews = () => {
-      try {
-        const raw = localStorage.getItem('movimood-movie-reviews');
-        const all = raw ? JSON.parse(raw) : [];
-        return Array.isArray(all)
-          ? all.filter((r) => String(r.movieId) === String(id))
-          : [];
-      } catch {
-        return [];
-      }
-    };
-
-    fetch(`${API_BASE_URL}/movimood.php?resource=reviews&movie_id=${id}`, { credentials: 'include' })
-      .then((res) => {
-        if (!res.ok) throw new Error('API error');
-        return res.json();
-      })
-      .then((data) => {
-        const apiReviews = Array.isArray(data?.items) ? data.items : [];
-        const localReviews = getLocalReviews();
-        // Combinar: API + locales que no estén ya en la API
-        const apiIds = new Set(apiReviews.map((r) => r.id));
-        const onlyLocal = localReviews.filter((r) => !apiIds.has(r.id));
-        setCommunityReviews([...apiReviews, ...onlyLocal]);
-      })
-      .catch(() => {
-        setCommunityReviews(getLocalReviews());
-      })
-      .finally(() => setCommunityReviewsLoading(false));
-  }
-
-  useEffect(() => {
-    loadCommunityReviews();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
-
-  useEffect(() => {
-    function syncCommunityReviews() {
-      loadCommunityReviews();
-    }
-
-    window.addEventListener('movimood-reviews-change', syncCommunityReviews);
-    return () => window.removeEventListener('movimood-reviews-change', syncCommunityReviews);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  
 
   // Check favoritos to see if movie is in watch later or ya vista
   useEffect(() => {
@@ -151,7 +140,7 @@ function Pelicula() {
 
     const saveResult = addMovieReview(parseInt(id), {
       movie,
-      mood: null,
+      mood: reviewDraft.mood || null,
       author: reviewDraft.author,
       rating: reviewDraft.rating,
       comment: normalizedText,
@@ -171,7 +160,7 @@ function Pelicula() {
       setWatched(true);
     }
 
-    setReviewDraft({ author: '', rating: 5, text: '', textRich: '' });
+    setReviewDraft({ author: '', rating: 5, mood: '', text: '', textRich: '' });
     setShowReviewForm(false);
     alert('Reseña guardada correctamente');
   };
@@ -183,7 +172,7 @@ function Pelicula() {
     const handleEscape = (e) => {
       if (e.key === 'Escape') {
         setShowReviewForm(false);
-        setReviewDraft({ author: '', rating: 5, text: '', textRich: '' });
+        setReviewDraft({ author: '', rating: 5, mood: '', text: '', textRich: '' });
         setIsRatingDragging(false);
       }
     };
@@ -201,25 +190,27 @@ function Pelicula() {
     return () => window.removeEventListener('mouseup', stopDragging);
   }, [isRatingDragging]);
 
+  const movieDataFromState = location.state?.movieData;
+
   useEffect(() => {
     if (!id) {
       setError('ID de película no especificado');
       return;
     }
 
-    setIsLoading(true);
     setError('');
+
+    // If we have movie data from navigation state, show it immediately
+    // and avoid showing the global loading spinner to prevent a visual
+    // flash when navigating from a list that already has the poster/title.
+    if (movieDataFromState) {
+      setMovie(movieDataFromState);
+    } else {
+      setIsLoading(true);
+    }
 
     async function fetchMovieDetails() {
       try {
-        // Try to get from location state first
-        if (location.state?.movieData) {
-          setMovie(location.state.movieData);
-          setIsLoading(false);
-          return;
-        }
-
-        // Fetch from backend proxy
         const params = new URLSearchParams({
           id: id,
           language: 'es-ES',
@@ -241,7 +232,7 @@ function Pelicula() {
     }
 
     fetchMovieDetails();
-  }, [id, location.state]);
+  }, [id, movieDataFromState]);
 
   if (isLoading) {
     return (
@@ -267,296 +258,329 @@ function Pelicula() {
     );
   }
 
+  const releaseYear = movie.release_date ? movie.release_date.split('-')[0] : '';
+  const genreNames = Array.isArray(movie.genres) && movie.genres.length > 0
+    ? movie.genres.map((genre) => genre.name).filter(Boolean).join(', ')
+    : '';
+  const durationLabel = movie.runtime ? `${Math.floor(movie.runtime / 60)}h ${movie.runtime % 60}m` : '';
+  const releaseDateLong = movie.release_date
+    ? new Date(movie.release_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
+    : '';
+  const languageName = Array.isArray(movie.spoken_languages) && movie.spoken_languages.length > 0
+    ? movie.spoken_languages[0]?.name
+    : (movie.original_language || '');
+  const directorNames = Array.isArray(movie?.credits?.crew)
+    ? movie.credits.crew.filter((crewMember) => crewMember.job === 'Director').map((director) => director.name).filter(Boolean)
+    : [];
+  const directorName = directorNames.length > 0
+    ? directorNames.join(', ')
+    : (movie?.credits?.director || movie?.director || '');
+
+  const movieFacts = [
+    {
+      key: 'duration',
+      label: 'Duración',
+      value: durationLabel,
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.6" />
+          <path d="M12 7V12L15.5 14.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ),
+    },
+    {
+      key: 'director',
+      label: 'Director',
+      value: directorName,
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 11.5C14.4853 11.5 16.5 9.48528 16.5 7C16.5 4.51472 14.4853 2.5 12 2.5C9.51472 2.5 7.5 4.51472 7.5 7C7.5 9.48528 9.51472 11.5 12 11.5Z" stroke="currentColor" strokeWidth="1.6" />
+          <path d="M4.5 21C4.5 16.8579 7.85786 13.5 12 13.5C16.1421 13.5 19.5 16.8579 19.5 21" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+    {
+      key: 'genre',
+      label: 'Género',
+      value: genreNames,
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 21H18" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          <path d="M7 20V10.5C7 9.11929 8.11929 8 9.5 8H14.5C15.8807 8 17 9.11929 17 10.5V20" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          <path d="M7 10H17" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+    {
+      key: 'language',
+      label: 'Idioma',
+      value: languageName,
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 4H20V16H12L8 20V16H4V4Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+          <path d="M7 8H17" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          <path d="M7 12H13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+    {
+      key: 'release',
+      label: 'Estreno',
+      value: releaseDateLong,
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="4" y="5" width="16" height="15" rx="3" stroke="currentColor" strokeWidth="1.6" />
+          <path d="M4 9H20" stroke="currentColor" strokeWidth="1.6" />
+          <path d="M8 3V7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          <path d="M16 3V7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+  ];
+
   return (
     <div className="pelicula-page">
       <WizardSidebar />
       <main className="pelicula-main">
-        <div className="pelicula-hero" style={{
-          backgroundImage: movie.backdrop_path
-            ? `url('https://image.tmdb.org/t/p/w1280${movie.backdrop_path}')`
-            : 'none',
-        }}>
+        <div
+          className="pelicula-hero"
+          style={{
+            backgroundImage: 'none',
+            background: 'linear-gradient(180deg, #070c16 0%, #0b1424 100%)',
+          }}
+        >
           <div className="pelicula-hero-overlay"></div>
         </div>
 
-          <div className="pelicula-content">
-          <button type="button" className="pelicula-back-btn" onClick={() => navigate(-1)}>
+        <button type="button" className="pelicula-back-btn" onClick={() => navigate(-1)}>
           ← Volver
         </button>
 
+        <div className="pelicula-content">
           <div className="pelicula-main-grid">
-          {movie.poster_path && (
-            <img
-              src={`https://image.tmdb.org/t/p/w342${movie.poster_path}`}
-              alt={movie.title || movie.name}
-              className="pelicula-poster"
-            />
-          )}
+            {movie.poster_path && (
+              <div className="pelicula-poster-card">
+                <img
+                  src={`https://image.tmdb.org/t/p/w342${movie.poster_path}`}
+                  alt={movie.title || movie.name}
+                  className="pelicula-poster"
+                />
+                <div className="pelicula-poster-overlay"></div>
+              </div>
+            )}
 
-          <div className="pelicula-info">
-            <h1 className="pelicula-title">{movie.title || movie.name}</h1>
+            <div className="pelicula-info">
+              <div className="pelicula-info-top">
+                <div>
+                  <h1 className="pelicula-title">{movie.title || movie.name}</h1>
+                  {movie.tagline && <p className="pelicula-tagline">{movie.tagline}</p>}
+                </div>
 
-            {/* Géneros y Duración */}
-            <div className="pelicula-header-meta">
-              {movie.genres && movie.genres.length > 0 && (
-                <div className="pelicula-genres">
-                  {movie.genres.map((genre) => (
-                    <span key={genre.id} className="pelicula-genre-tag">
-                      {genre.name}
+                <div className="pelicula-detail-badges">
+                  {movie.vote_average && (
+                    <span className="pelicula-detail-badge pelicula-rating-badge">
+                      <span>★</span>
+                      {movie.vote_average.toFixed(1)}/10
                     </span>
-                  ))}
+                  )}
+                  {genreNames && (
+                    <span className="pelicula-detail-badge pelicula-genre-badge">
+                      {genreNames}
+                    </span>
+                  )}
+                  {releaseYear && (
+                    <span className="pelicula-detail-badge pelicula-year-badge">
+                      {releaseYear}
+                    </span>
+                  )}
                 </div>
-              )}
-              {movie.runtime && (
-                <div className="pelicula-duration">
-                  ⏱️ {movie.runtime} min
-                </div>
-              )}
-            </div>
-
-            {movie.tagline && (
-              <p className="pelicula-tagline">"{movie.tagline}"</p>
-            )}
-
-            {/* Rating y Año */}
-            <div className="pelicula-meta">
-              {movie.vote_average && (
-                <div className="pelicula-rating">
-                  <span className="pelicula-rating-star">⭐</span>
-                  <span className="pelicula-rating-value">{movie.vote_average.toFixed(1)}/10</span>
-                </div>
-              )}
-
-              {movie.release_date && (
-                <div className="pelicula-year">
-                  📅 {movie.release_date.split('-')[0]}
-                </div>
-              )}
-            </div>
-
-            {/* Sinopsis */}
-            {movie.overview && (
-              <div className="pelicula-description">
-                <h2>Sinopsis</h2>
-                <p>{movie.overview}</p>
               </div>
-            )}
 
-            {/* Botones de Acción */}
-            <div className="pelicula-actions">
-              <button
-                type="button"
-                className={`pelicula-action-btn ${watched ? 'active' : ''}`}
-                onClick={handleWatchedToggle}
-              >
-                ✓ {watched ? 'Ya vista' : 'Marcar como vista'}
-              </button>
-              <button
-                type="button"
-                className={`pelicula-action-btn ${watchLater ? 'active' : ''}`}
-                onClick={handleWatchLaterToggle}
-              >
-                🕐 {watchLater ? 'En tu lista' : 'Ver más tarde'}
-              </button>
-              <button
-                type="button"
-                className="pelicula-action-btn pelicula-review-btn"
-                onClick={() => setShowReviewForm(!showReviewForm)}
-              >
-                ✏️ {showReviewForm ? 'Cancelar' : 'Escribir reseña'}
-              </button>
-            </div>
-
-            {/* Review Form */}
-            {showReviewForm && (
-              <div className="pelicula-review-form">
-                <div className="pelicula-review-form-header">
-                  <h3>Tu reseña</h3>
-                  <p>{movie?.title || movie?.name}</p>
+              {movie.overview && (
+                <div className="pelicula-description">
+                  <h2>Sinopsis</h2>
+                  <p>{movie.overview}</p>
                 </div>
+              )}
 
-                <form className="pelicula-review-form-content" onSubmit={handleReviewSubmit}>
-                  {/* Author Name */}
-                  <label className="pelicula-review-form-field">
-                    <span>Nombre (opcional)</span>
-                    <input
-                      type="text"
-                      className="pelicula-review-form-input"
-                      value={reviewDraft.author}
-                      maxLength={24}
-                      placeholder="Tu nombre"
-                      onChange={(e) => setReviewDraft((prev) => ({ ...prev, author: e.target.value }))}
-                    />
-                  </label>
+              <div className="pelicula-actions">
+                <button
+                  type="button"
+                  className={`pelicula-action-btn ${watched ? 'active' : ''}`}
+                  onClick={handleWatchedToggle}
+                >
+                  ▶ {watched ? 'Ya vista' : 'Marcar como vista'}
+                </button>
+                <button
+                  type="button"
+                  className={`pelicula-action-btn ${watchLater ? 'active' : ''}`}
+                  onClick={handleWatchLaterToggle}
+                >
+                  ⏱ {watchLater ? 'En tu lista' : 'Ver más tarde'}
+                </button>
+                <button
+                  type="button"
+                  className="pelicula-action-btn pelicula-review-btn"
+                  onClick={() => setShowReviewForm(!showReviewForm)}
+                >
+                  ✏️ {showReviewForm ? 'Cancelar' : 'Escribir reseña'}
+                </button>
+              </div>
 
-                  {/* Rating */}
-                  <div className="pelicula-review-form-rating">
-                    <div className="pelicula-review-form-rating-head">
-                      <span>Calificación</span>
-                      <strong>{reviewDraft.rating}/10</strong>
-                    </div>
-                    <div className="pelicula-review-form-rating-track" role="radiogroup">
-                      {Array.from({ length: 10 }, (_, i) => i + 1).map((value) => {
-                        const isActive = value <= reviewDraft.rating;
-                        return (
-                          <button
-                            key={value}
-                            type="button"
-                            role="radio"
-                            aria-checked={reviewDraft.rating === value}
-                            className={`pelicula-review-form-rating-dot${isActive ? ' active' : ''}`}
-                            onMouseDown={() => {
-                              setIsRatingDragging(true);
-                              setRatingValue(value);
-                            }}
-                            onMouseEnter={() => {
-                              if (isRatingDragging) {
-                                setRatingValue(value);
-                              }
-                            }}
-                            onClick={() => setRatingValue(value)}
-                          >
-                            {value}
-                          </button>
-                        );
-                      })}
-                    </div>
+              {/* Review Form */}
+              {showReviewForm && (
+                <div className="pelicula-review-form">
+                  <div className="pelicula-review-form-header">
+                    <h3>Tu reseña</h3>
+                    <p>{movie?.title || movie?.name}</p>
                   </div>
 
-                  {/* Texto de la reseña */}
-                  <label className="pelicula-review-form-field">
-                    <span>Reseña (opcional)</span>
-                    <textarea
-                      className="pelicula-review-form-input"
-                      placeholder="Escribe tu reseña..."
-                      value={reviewDraft.text}
-                      rows={4}
-                      style={{ resize: 'vertical', fontFamily: 'inherit', fontSize: '14px', padding: '10px' }}
-                      onChange={(e) => setReviewDraft((prev) => ({ ...prev, text: e.target.value }))}
-                    />
-                  </label>
+                  <form className="pelicula-review-form-content" onSubmit={handleReviewSubmit}>
+                    {/* Author Name */}
+                    <label className="pelicula-review-form-field">
+                      <span>Nombre (opcional)</span>
+                      <input
+                        type="text"
+                        className="pelicula-review-form-input"
+                        value={reviewDraft.author}
+                        maxLength={24}
+                        placeholder="Tu nombre"
+                        onChange={(e) => setReviewDraft((prev) => ({ ...prev, author: e.target.value }))}
+                      />
+                    </label>
 
-                  {/* Actions */}
-                  <div className="pelicula-review-form-actions">
-                    <button
-                      type="button"
-                      className="pelicula-review-form-cancel"
-                      onClick={() => {
-                        setShowReviewForm(false);
-                        setReviewDraft({ author: '', rating: 5, text: '', textRich: '' });
-                      }}
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      type="submit"
-                      className="pelicula-review-form-submit"
-                    >
-                      Guardar reseña
-                    </button>
-                  </div>
-                </form>
-              </div>
-            )}
-
-            {/* Productoras */}
-            {movie.production_companies && movie.production_companies.length > 0 && (
-              <div className="pelicula-production">
-                <h3>Productoras</h3>
-                <div className="pelicula-production-list">
-                  {movie.production_companies.map((company) => (
-                    <p key={company.id}>{company.name}</p>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Community Reviews Section */}
-      <div className="pelicula-reviews-section">
-        <div className="pelicula-reviews-container">
-          <div className="pelicula-reviews-separator"></div>
-          <div className="pelicula-reviews">
-            <h2>Reseñas de la Comunidad</h2>
-
-            {communityReviewsLoading && (
-              <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '14px' }}>Cargando reseñas...</p>
-            )}
-
-            {!communityReviewsLoading && communityReviews.length === 0 && (
-              <p className="pelicula-reviews-placeholder">
-                Sé el primero en escribir una reseña sobre esta película.
-              </p>
-            )}
-
-            {!communityReviewsLoading && communityReviews.length > 0 && (
-              <div className="pelicula-reviews-list">
-                {communityReviews.map((review, index) => {
-                  const displayName = review.authorName || review.author || 'Anónimo';
-                  const initials = displayName
-                    .split(' ')
-                    .slice(0, 2)
-                    .map((w) => w[0]?.toUpperCase())
-                    .join('') || '?';
-                  return (
-                    <div key={review.id || index} className="pelicula-review-card">
-                      <div className="pelicula-review-header">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          {review.authorAvatar ? (
-                            <img
-                              src={review.authorAvatar}
-                              alt={displayName}
-                              style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover' }}
-                            />
-                          ) : (
-                            <div style={{
-                              width: '36px', height: '36px', borderRadius: '50%',
-                              background: 'linear-gradient(135deg, #667eea, #764ba2)',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              fontSize: '13px', fontWeight: '600', color: 'white', flexShrink: 0,
-                            }}>
-                              {initials}
-                            </div>
-                          )}
-                          <div className="pelicula-review-meta">
-                            <strong className="pelicula-review-author">{displayName}</strong>
-                            {review.authorUsername && (
-                              <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', display: 'block' }}>
-                                @{review.authorUsername}
-                              </span>
-                            )}
-                            <div className="pelicula-review-rating">
-                              <span className="pelicula-review-stars">
-                                {'⭐'.repeat(Math.round((review.rating || 5) / 2))}
-                              </span>
-                              <span className="pelicula-review-score">{review.rating || 5}/10</span>
-                            </div>
-                          </div>
-                        </div>
-                        {review.mood && (
-                          <div className="pelicula-review-mood">{review.mood}</div>
-                        )}
+                    {/* Rating */}
+                    <div className="pelicula-review-form-rating">
+                      <div className="pelicula-review-form-rating-head">
+                        <span>Calificación</span>
+                        <strong>{reviewDraft.rating}/10</strong>
                       </div>
-                      {review.comment && (
-                        <div className="pelicula-review-body">
-                          <p>{review.comment}</p>
-                        </div>
-                      )}
-                      {review.createdAt && (
-                        <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', marginTop: '8px' }}>
-                          {new Date(review.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
-                        </div>
-                      )}
+                      <div className="pelicula-review-form-rating-track" role="radiogroup">
+                        {Array.from({ length: 10 }, (_, i) => i + 1).map((value) => {
+                          const isActive = value <= reviewDraft.rating;
+                          return (
+                            <button
+                              key={value}
+                              type="button"
+                              role="radio"
+                              aria-checked={reviewDraft.rating === value}
+                              className={`pelicula-review-form-rating-dot${isActive ? ' active' : ''}`}
+                              onMouseDown={() => {
+                                setIsRatingDragging(true);
+                                setRatingValue(value);
+                              }}
+                              onMouseEnter={() => {
+                                if (isRatingDragging) {
+                                  setRatingValue(value);
+                                }
+                              }}
+                              onClick={() => setRatingValue(value)}
+                            >
+                              {value}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                  );
-                })}
-              </div>
-            )}
+
+                    {/* Mood Selection */}
+                    <div className="pelicula-review-form-mood">
+                      <span className="pelicula-review-form-mood-label">Mood (opcional)</span>
+                      <div className="pelicula-review-form-mood-options" role="radiogroup" aria-label="Seleccionar mood">
+                        {ALL_MOODS.map((mood) => {
+                          const MoodIcon = MOOD_COMPONENTS[mood];
+                          const displayLabel = MOOD_LABELS[mood] || mood;
+
+                          return (
+                            <button
+                              key={mood}
+                              type="button"
+                              role="radio"
+                              aria-checked={reviewDraft.mood === mood}
+                              className={`pelicula-review-form-mood-option${reviewDraft.mood === mood ? ' active' : ''}`}
+                              onClick={() => {
+                                setReviewDraft((prev) => ({
+                                  ...prev,
+                                  mood: prev.mood === mood ? '' : mood,
+                                }));
+                              }}
+                              title={displayLabel}
+                            >
+                              {MoodIcon ? (
+                                <MoodIcon className="pelicula-review-form-mood-icon" aria-hidden="true" />
+                              ) : (
+                                <span className="pelicula-review-form-mood-icon" aria-hidden="true">{MOOD_EMOJIS[mood] || '🎬'}</span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Texto de la reseña */}
+                    <label className="pelicula-review-form-field">
+                      <span>Reseña (opcional)</span>
+                      <textarea
+                        className="pelicula-review-form-input"
+                        placeholder="Escribe tu reseña..."
+                        value={reviewDraft.text}
+                        rows={4}
+                        style={{ resize: 'vertical', fontFamily: 'inherit', fontSize: '14px', padding: '10px' }}
+                        onChange={(e) => setReviewDraft((prev) => ({ ...prev, text: e.target.value }))}
+                      />
+                    </label>
+
+                    {/* Actions */}
+                    <div className="pelicula-review-form-actions">
+                      <button
+                        type="button"
+                        className="pelicula-review-form-cancel"
+                        onClick={() => {
+                          setShowReviewForm(false);
+                          setReviewDraft({ author: '', rating: 5, mood: '', text: '', textRich: '' });
+                        }}
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="submit"
+                        className="pelicula-review-form-submit"
+                      >
+                        Guardar reseña
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              {/* Productoras */}
+              {movie.production_companies && movie.production_companies.length > 0 && (
+                <div className="pelicula-production">
+                  <h3>Productoras</h3>
+                  <div className="pelicula-production-list">
+                    {movie.production_companies.map((company) => (
+                      <p key={company.id}>{company.name}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="pelicula-facts-bar">
+              {movieFacts.map((fact) => (
+                <div key={fact.key} className="pelicula-fact-item">
+                  <span className="pelicula-fact-icon" aria-hidden="true">{fact.icon}</span>
+                  <div className="pelicula-fact-content">
+                    <span className="pelicula-fact-label">{fact.label}</span>
+                    <span className="pelicula-fact-value">{fact.value || '—'}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-        </div>
+
+      {/* Community reviews removed as requested */}
       </main>
     </div>
   );

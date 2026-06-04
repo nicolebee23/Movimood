@@ -1,10 +1,11 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useFavoritos, LISTAS } from '../hooks/useFavoritos';
 import { requestJson } from '../utils/movimoodApi';
 import './Explorar.css';
+import WizardSidebar from '../componentes/WizardSidebar';
 
 const API_BASE_URL = (process.env.REACT_APP_API_BASE_URL || '').replace(/\/$/, '');
 
@@ -56,14 +57,7 @@ const DURATIONS = [
   { label: 'Más de 120 min', min: 121, max: 9999 },
 ];
 
-const menuLinks = [
-  { label: 'Inicio', to: '/', icon: '⌂', active: false },
-  { label: 'Explorar', to: '/explorar', icon: '◎', active: true },
-  { label: 'Cuestionario', to: '/cuestionario', icon: '✦', active: false },
-  { label: 'Mi videoteca', to: '/videoteca', icon: '☰', active: false },
-  { label: 'Mood', to: '/mood', icon: '◌', active: false },
-  { label: 'Perfil', to: '/perfil', icon: '◯', active: false },
-];
+// Sidebar is provided by WizardSidebar component
 
 function FilterDropdown({
   label,
@@ -115,7 +109,7 @@ function Explorar() {
   const { currentUser } = useAuth();
   const { getMovieState, setLista } = useFavoritos();
   const filtersRef = useRef(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
   const [section, setSection] = useState('tendencias');
   const [genre, setGenre] = useState(null);
   const [year, setYear] = useState(null);
@@ -136,17 +130,7 @@ function Explorar() {
   const yearLabel = year ? String(year) : '';
   const durationLabel = duration ? duration.label : '';
   const moodLabel = mood ? `${(MOODS.find((item) => item.id === mood)?.emoji || '')} ${MOODS.find((item) => item.id === mood)?.label || ''}`.trim() : '';
-  const visibleMenuLinks = menuLinks.filter((link) => {
-    if (['Mood'].includes(link.label)) {
-      return false;
-    }
-
-    if (!currentUser && ['Mi videoteca', 'Perfil'].includes(link.label)) {
-      return false;
-    }
-
-    return true;
-  });
+  // no local sidebar links — use WizardSidebar for consistent navigation
 
   useEffect(() => {
     const handleOutsideClick = (event) => {
@@ -264,7 +248,7 @@ function Explorar() {
       return;
     }
 
-    setLista(movie.id, list);
+    setLista(movie, null, list);
   };
 
   const handleLoadMore = () => {
@@ -318,48 +302,7 @@ function Explorar() {
 
   return (
     <div className="explorar-page">
-      <aside className={`explorar-sidebar${isSidebarOpen ? ' open' : ''}`}>
-        <div className="sidebar-shell">
-          <div className="sidebar-top">
-            <div className="explorar-header-row">
-              <div className="sidebar-brand">
-                <div className="brand-mark">M</div>
-                <div>
-                  <p className="brand-title">MoviMood</p>
-                  <p className="brand-subtitle">Tu cine personalizado</p>
-                </div>
-              </div>
-            </div>
-            <button
-              type="button"
-              className="sidebar-toggle"
-              aria-expanded={isSidebarOpen}
-              aria-controls="explorar-sidebar-panel"
-              onClick={() => setIsSidebarOpen((value) => !value)}
-            >
-              <span className="sidebar-toggle-icon" aria-hidden="true">☰</span>
-              <span className="sidebar-toggle-text">Menú</span>
-            </button>
-          </div>
-          <div id="explorar-sidebar-panel" className={`sidebar-panel${isSidebarOpen ? ' open' : ''}`}>
-            <nav className="sidebar-nav" aria-label="Navegación principal">
-              {visibleMenuLinks.map((link) => (
-                <Link
-                  key={link.label}
-                  to={link.to}
-                  className={`sidebar-link${link.active ? ' active' : ''}`}
-                  aria-current={link.active ? 'page' : undefined}
-                  onClick={() => setIsSidebarOpen(false)}
-                >
-                  <span className="sidebar-link-icon" aria-hidden="true">{link.icon}</span>
-                  <span>{link.label}</span>
-                </Link>
-              ))}
-            </nav>
-            {/* sidebar footer removed */}
-          </div>
-        </div>
-      </aside>
+      <WizardSidebar activeLabel="Explorar" sidebarClassName="explorar-sidebar" />
 
       <main className="explorar-main">
         <div className="explorar">
@@ -476,21 +419,43 @@ function Explorar() {
               className={`explorar-section-btn${section === 'tendencias' ? ' activa' : ''}`}
               onClick={() => setSection('tendencias')}
             >
-              📈 Tendencias
+              <span className="explorar-section-icon">
+                <svg className="neon-icon neon-trend" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <polyline points="3 17 8 11 13 15 21 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  <circle cx="3" cy="17" r="1.6" fill="currentColor" />
+                  <circle cx="8" cy="11" r="1.6" fill="currentColor" />
+                  <circle cx="13" cy="15" r="1.6" fill="currentColor" />
+                  <circle cx="21" cy="7" r="1.6" fill="currentColor" />
+                </svg>
+              </span>
+              Tendencias
             </button>
+
             <button
               type="button"
               className={`explorar-section-btn${section === 'novedades' ? ' activa' : ''}`}
               onClick={() => setSection('novedades')}
             >
-              🆕 Novedades
+              <span className="explorar-section-icon">
+                <svg className="neon-icon neon-new" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="3" y="6" width="18" height="12" rx="3" stroke="currentColor" strokeWidth="1.6" />
+                  <text x="12" y="15" textAnchor="middle" fontSize="8" fontWeight="700" fill="currentColor">NEW</text>
+                </svg>
+              </span>
+              Novedades
             </button>
+
             <button
               type="button"
               className={`explorar-section-btn${section === 'mejor_valoradas' ? ' activa' : ''}`}
               onClick={() => setSection('mejor_valoradas')}
             >
-              ⭐ Mejor valoradas
+              <span className="explorar-section-icon">
+                <svg className="neon-icon neon-star" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 17.3l6.18 3.64-1.64-7.03L21 9.24l-7.19-.61L12 2 10.19 8.63 3 9.24l4.46 4.67L5.82 20.94z" stroke="currentColor" strokeWidth="1" fill="currentColor" />
+                </svg>
+              </span>
+              Mejor valoradas
             </button>
           </div>
 
@@ -512,7 +477,7 @@ function Explorar() {
                 <div className="explorar-grid">
                   {movies.map((movie) => {
                     const favState = getMovieState(movie.id);
-                    const isSaved = favState?.lista !== undefined;
+                    const isSaved = Boolean(favState?.isInLibrary);
 
                     return (
                       <div
@@ -549,13 +514,16 @@ function Explorar() {
                                 className={`explorar-movie-btn${isSaved ? ' guardado' : ''}`}
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  if (isSaved) {
-                                    setLista(movie.id, null);
-                                  } else {
-                                    handleSaveFavorite(e, movie, LISTAS.VER_LUEGO);
+                                  if (!currentUser) {
+                                    setSelectedMovieForFav(movie);
+                                    setShowLoginModal(true);
+                                    return;
                                   }
+
+                                  // Always add to "Ver más tarde" when clicked (no toggle)
+                                  setLista(movie, null, LISTAS.VER_LUEGO);
                                 }}
-                                title={isSaved ? 'Quitar de favoritos' : 'Ver más tarde'}
+                                title={isSaved ? 'En tu videoteca' : 'Añadir a Ver más tarde'}
                               >
                                 {isSaved ? '✓ Guardado' : '🕐'}
                               </button>

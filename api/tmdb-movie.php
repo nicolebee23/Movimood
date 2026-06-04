@@ -84,6 +84,9 @@ function buildTmdbMovieUrl(string $apiKey): string
         'language' => $language,
     ];
 
+    // Request credits so the frontend can access director/crew information
+    $params['append_to_response'] = 'credits';
+
     return 'https://api.themoviedb.org/3/movie/' . $movieId . '?' . http_build_query($params);
 }
 

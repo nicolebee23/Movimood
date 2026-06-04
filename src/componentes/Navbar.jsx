@@ -114,6 +114,13 @@ function Navbar() {
     setIsMobileMenuOpen(false);
   }
 
+  function handleLogout() {
+    logout();
+    closeMobileMenu();
+    setIsNotificationsOpen(false);
+    navigate('/');
+  }
+
   function toggleNotificationsPanel() {
     setIsNotificationsOpen((prevState) => !prevState);
   }
@@ -347,7 +354,7 @@ function Navbar() {
 
           {currentUser && (
             <div className="navbar-user-menu">
-              <UserMenu currentUser={currentUser} logout={logout} />
+              <UserMenu currentUser={currentUser} logout={handleLogout} />
             </div>
           )}
         </div>

@@ -122,7 +122,8 @@ body {
   min-height: 100vh;
   margin: 0;
   padding: 0 18px 0 14px;
-  overflow: hidden;
+  /* allow inner carousels and cards to overflow without being clipped */
+  overflow: visible;
   background: url('../assets/hero-bg.png') center center / cover no-repeat;
 }
 
@@ -138,7 +139,7 @@ body {
 
 .hero-copy {
   position: relative;
-  z-index: 1;
+  z-index: 40;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -174,7 +175,7 @@ body {
 
 /* ── NAVBAR ── */
 .home-navbar {
-  position: relative; z-index: 2;
+  position: relative; z-index: 20;
   display: flex; align-items: center; gap: 16px;
   padding: 16px 0 0 0; justify-content: center;
 }
@@ -297,6 +298,13 @@ body {
   border-radius: 0; background: transparent; border: 0; box-shadow: none;
 }
 
+/* Make recommendations carousel sit above hero overlay and avoid being clipped */
+.recommendations-section {
+  overflow: visible;
+  z-index: 3;
+  padding-bottom: 28px;
+}
+
 .section-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; margin-bottom: 12px; }
 .section-header-copy { display: flex; flex-direction: column; gap: 4px; }
 .section-header h2 { margin: 0; font-size: clamp(0.95rem, 1.2vw, 1.15rem); letter-spacing: -0.03em; }
@@ -317,21 +325,48 @@ body {
 .recommendation-carousel {
   display: flex; gap: 14px; overflow-x: auto;
   padding: 0 4px 0 0; background: transparent;
-  border: 0; border-radius: 0; box-shadow: none;
-  scroll-snap-type: x proximity;
+    border: 0; border-radius: 0; box-shadow: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
 }
+
+/* Mobile: show larger, centered cards similar to desktop prominence */
+@media (max-width: 599px) {
+  .recommendation-carousel {
+    gap: 12px;
+    padding-left: 12px;
+    padding-right: 12px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scroll-padding: 12px;
+  }
+
+  .recommendation-card {
+    flex: 0 0 84%;
+    min-height: 200px;
+    border-radius: 12px;
+    scroll-snap-align: center;
+  }
+
+  .recommendation-card:first-child {
+    flex: 0 0 88%;
+  }
+
+.recommendation-image { object-position: center top; }
+}
+.recommendation-carousel { padding-right: 28px; }
 .recommendation-carousel::-webkit-scrollbar { height: 8px; }
 .recommendation-carousel::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 999px; }
 
 .recommendation-card {
-  position: relative; flex: 0 0 124px; min-height: 188px;
-  border-radius: 18px; overflow: hidden;
+  position: relative; flex: 0 0 140px; min-height: 220px;
+  border-radius: 12px; overflow: hidden;
   background-size: cover; background-position: center;
   display: flex; align-items: flex-end;
   scroll-snap-align: start; border: 1px solid rgba(255, 255, 255, 0.06);
   transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
 }
-.recommendation-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.recommendation-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; border-radius: 12px; }
 .recommendation-card:hover { transform: translateY(-4px); border-color: rgba(44, 207, 209, 0.28); box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35); }
 .recommendation-info { display: none; }
 
@@ -959,10 +994,17 @@ body {
 /* ── RESPONSIVE ── */
 @media (max-width: 1120px) {
   .home-page { grid-template-columns: 1fr; }
-  .home-sidebar { position: relative; top: auto; min-height: auto; width: 100%; }
-  .hero-section { min-height: 520px; padding: 0 16px 138px; }
-  .recommendations-section { width: 100%; margin-left: 0; margin-top: 46px; }
-  .recommendation-card { flex-basis: 156px; min-height: 228px; }
+  .home-main { padding: 0 12px; }
+  /* make hero shorter and reduce bottom padding so content below isn't clipped */
+  .hero-section { min-height: 56vh; padding: 18px 14px 60px; border-radius: 0; }
+  .hero-copy { padding-top: 28px; }
+  .home-navbar { gap: 10px; }
+  .recommendations-section { width: 100%; margin-left: 0; margin-top: 28px; padding-bottom: 8px; }
+  .recommendation-carousel { padding-left: 8px; padding-right: 28px; }
+  .recommendation-card { flex-basis: 46%; min-height: 200px; border-radius: 12px; }
+  .recommendation-image { border-radius: 12px; }
+  .navbar-auth { display: flex; gap: 8px; align-items: center; position: relative; right: 0; }
+  .home-navbar { position: relative; z-index: 20; padding-right: 12px; }
 }
 
 @media (max-width: 900px) {
@@ -987,10 +1029,13 @@ body {
 @media (max-width: 768px) {
   .home-page { padding: 12px; }
   .home-sidebar {
+    position: relative;
     padding: 14px 12px;
     border-radius: 24px;
     border-right: 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: visible;
+    z-index: 30;
   }
   .home-sidebar .sidebar-toggle {
     display: inline-flex;
@@ -1000,12 +1045,23 @@ body {
   }
   .home-sidebar .sidebar-panel {
     display: none;
-    padding-top: 10px;
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    top: calc(100% + 10px);
+    padding: 12px;
+    border-radius: 18px;
+    background: rgba(5, 12, 21, 0.98);
+    border: 1px solid rgba(44, 207, 209, 0.16);
+    box-shadow: 0 22px 48px rgba(0, 0, 0, 0.45);
+    z-index: 40;
   }
   .home-sidebar.open .sidebar-panel {
     display: flex;
   }
-  .hero-section { min-height: 490px; padding: 20px 16px 140px; border-radius: 24px; }
+  .hero-section { min-height: 48vh; padding: 16px 12px 80px; border-radius: 0; }
+  /* add extra top padding so hero content sits below navbar */
+  .hero-section { padding-top: 110px; }
   .hero-title { font-size: 1.4rem; }
   .hero-stats { flex-wrap: wrap; gap: 16px 22px; margin-top: 8px; padding-top: 10px; }
   .stat-item { padding-right: 0; }
@@ -1014,8 +1070,14 @@ body {
   .hero-copy { gap: 12px; }
   .section-header { align-items: flex-start; gap: 12px; }
   .view-all { min-height: 38px; padding: 0 12px; font-size: 0.88rem; }
-  .recommendation-carousel { gap: 16px; }
-  .recommendation-card { flex-basis: 148px; min-height: 216px; }
+  .recommendation-carousel { gap: 14px; padding-right: 36px; }
+  .recommendation-card { flex-basis: 72%; min-height: 190px; border-radius: 12px; }
+}
+
+@media (max-width: 420px) {
+  .navbar-auth .btn-auth { padding-left: 10px; padding-right: 10px; min-width: auto; }
+  .home-navbar { padding-right: 8px; }
+  .recommendation-card { border-radius: 10px; }
 }
 
 @media (max-width: 520px) {
@@ -1025,4 +1087,35 @@ body {
   .btn { min-width: 128px; padding: 13px 18px; }
   .home-sidebar .brand-subtitle,
   .home-sidebar .sidebar-footer { font-size: 0.72rem; }
+}
+
+/* Additional strong responsive fixes to avoid overflow and ensure readable layout */
+@media (max-width: 1024px) {
+  .home-page { grid-template-columns: 1fr !important; overflow-x: hidden; }
+  .home-main { padding: 0 14px; }
+  .home-navbar { align-items: center; gap: 10px; }
+  .search-form { flex: 1; min-width: 0; max-width: none; }
+  .navbar-auth { flex-shrink: 0; }
+  .hero-section { padding-bottom: 48px; }
+  .recommendation-carousel { padding-left: 12px; padding-right: 24px; }
+}
+
+@media (max-width: 768px) {
+  /* make nav bar stack for small phones */
+  .home-navbar { flex-direction: column; align-items: stretch; gap: 8px; padding-top: 8px; }
+  .search-form { order: 1; width: 100%; }
+  .navbar-auth { order: 2; display: flex; justify-content: flex-end; gap: 8px; }
+
+  /* carousel: show bigger cards so they are readable and avoid edge clipping */
+  .recommendation-carousel { display: flex; gap: 12px; padding-left: 12px; padding-right: 36px; scroll-snap-type: x mandatory; }
+  .recommendation-card { flex: 0 0 82%; min-height: 180px; margin: 0 auto; border-radius: 10px; }
+  .recommendation-card:first-child { margin-left: 6px; }
+  .recommendation-card:last-child { margin-right: 6px; }
+}
+
+@media (max-width: 420px) {
+  html, body, #root { overflow-x: hidden; }
+  .btn-auth { padding-left: 8px; padding-right: 8px; min-width: auto; }
+  .hero-title { font-size: 1.05rem; }
+  .hero-text { font-size: 0.9rem; }
 }

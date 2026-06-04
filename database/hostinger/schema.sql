@@ -109,4 +109,29 @@ CREATE TABLE IF NOT EXISTS movimood_review_likes (
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS movimood_collections (
+  id VARCHAR(36) NOT NULL,
+  user_id VARCHAR(36) NOT NULL,
+  title VARCHAR(120) NOT NULL,
+  description TEXT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_movimood_collections_user_id (user_id),
+  CONSTRAINT fk_movimood_collections_user
+    FOREIGN KEY (user_id) REFERENCES movimood_users (id)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS movimood_collection_movies (
+  collection_id VARCHAR(36) NOT NULL,
+  movie_id BIGINT UNSIGNED NOT NULL,
+  movie_json JSON NOT NULL,
+  added_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (collection_id, movie_id),
+  KEY idx_movimood_collection_movies_movie_id (movie_id),
+  CONSTRAINT fk_movimood_collection_movies_collection
+    FOREIGN KEY (collection_id) REFERENCES movimood_collections (id)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 SET foreign_key_checks = 1;

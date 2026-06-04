@@ -186,7 +186,7 @@ function Home() {
               <input
                 className="search-input"
                 type="search"
-                placeholder="Buscar películas, actores, géneros..."
+                placeholder="Buscar películas, usuarios, géneros..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 aria-label="Buscar"
@@ -197,7 +197,7 @@ function Home() {
               {!currentUser && (
                 <>
                   <Link to="/login" className="btn-auth btn-auth--login">Iniciar sesión</Link>
-                  <Link to="/register" className="btn-auth btn-auth--register">Registrarse</Link>
+                  <Link to="/registro" className="btn-auth btn-auth--register">Registrarse</Link>
                 </>
               )}
             </div>

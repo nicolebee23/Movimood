@@ -1189,6 +1189,12 @@ switch ($resource) {
     case 'blocks':
         handleBlocks($pdo);
         break;
+    case 'collections':
+        handleCollections($pdo);
+        break;
+    case 'collection-movies':
+        handleCollectionMovies($pdo);
+        break;
     default:
         sendJson(404, ['message' => 'Recurso no encontrado.']);
 }
@@ -1211,6 +1217,19 @@ function handleReviewLikes(PDO $pdo): void
         // If a specific review_id is provided, return count (backwards compatible)
         if ($reviewId !== null && $reviewId !== '') {
             $count = fetchReviewLikeCount($pdo, $reviewId);
+            $includeUsers = isset($_GET['include_users']) && in_array(trim((string) $_GET['include_users']), ['1', 'true', 'yes'], true);
+            if ($includeUsers) {
+                $stmt = $pdo->prepare(
+                    'SELECT u.*
+                     FROM movimood_review_likes rl
+                     INNER JOIN movimood_users u ON u.id = rl.user_id
+                     WHERE rl.review_id = :review_id
+                     ORDER BY rl.created_at ASC'
+                );
+                $stmt->execute(['review_id' => $reviewId]);
+                $users = array_map(static fn(array $row) => userRowToPublicArray($row), $stmt->fetchAll(PDO::FETCH_ASSOC));
+                sendJson(200, ['count' => $count, 'users' => $users]);
+            }
             sendJson(200, ['count' => $count]);
         }
 
@@ -1303,6 +1322,175 @@ function handleReviewLikes(PDO $pdo): void
 
         $count = fetchReviewLikeCount($pdo, $reviewId);
         sendJson(200, ['count' => $count]);
+    }
+
+    sendJson(405, ['message' => 'Method not allowed']);
+}
+
+function uuidv4(): string
+{
+    $data = random_bytes(16);
+    $data[6] = chr((ord($data[6]) & 0x0f) | 0x40);
+    $data[8] = chr((ord($data[8]) & 0x3f) | 0x80);
+    return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+}
+
+function handleCollections(PDO $pdo): void
+{
+    $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+
+    if ($method === 'GET') {
+        $lookupUser = isset($_GET['user_id']) && trim((string)$_GET['user_id']) !== '' ? trim((string)$_GET['user_id']) : currentSessionUserId();
+        if ($lookupUser === null) {
+            sendJson(401, ['message' => 'Debes iniciar sesion para ver colecciones.']);
+        }
+
+        $stmt = $pdo->prepare('SELECT id, user_id, title, description, created_at FROM movimood_collections WHERE user_id = :user_id ORDER BY created_at DESC');
+        $stmt->execute(['user_id' => $lookupUser]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Attach up to 4 posters per collection for preview and compute updated_at
+        $items = [];
+        $posterStmt = $pdo->prepare('SELECT movie_json FROM movimood_collection_movies WHERE collection_id = :collection_id ORDER BY added_at DESC LIMIT 4');
+        $lastMovieStmt = $pdo->prepare('SELECT MAX(added_at) as last_movie FROM movimood_collection_movies WHERE collection_id = :collection_id');
+        $countStmt = $pdo->prepare('SELECT COUNT(*) FROM movimood_collection_movies WHERE collection_id = :collection_id');
+        foreach ($rows as $r) {
+            $posterStmt->execute(['collection_id' => $r['id']]);
+            $posterRows = $posterStmt->fetchAll(PDO::FETCH_ASSOC);
+            $posters = [];
+            foreach ($posterRows as $pr) {
+                $decoded = json_decode($pr['movie_json'], true);
+                if (is_array($decoded)) $posters[] = $decoded;
+            }
+
+            $lastMovieStmt->execute(['collection_id' => $r['id']]);
+            $lastMovie = $lastMovieStmt->fetchColumn();
+            $updatedAt = $r['created_at'];
+            if ($lastMovie && strtotime($lastMovie) > strtotime($updatedAt)) {
+                $updatedAt = $lastMovie;
+            }
+
+            $countStmt->execute(['collection_id' => $r['id']]);
+            $moviesCount = (int) $countStmt->fetchColumn();
+
+            $items[] = array_merge($r, ['posters' => $posters, 'movies_count' => $moviesCount, 'updated_at' => $updatedAt]);
+        }
+
+        sendJson(200, ['items' => $items]);
+    }
+
+    if ($method === 'POST') {
+        $userId = requireSessionUserId();
+        $data = json_decode(file_get_contents('php://input'), true) ?: [];
+        $title = trim((string) ($data['title'] ?? ''));
+        $description = trim((string) ($data['description'] ?? ''));
+
+        if ($title === '') {
+            sendJson(400, ['message' => 'title es requerido']);
+        }
+
+        $id = uuidv4();
+        $stmt = $pdo->prepare('INSERT INTO movimood_collections (id, user_id, title, description, created_at) VALUES (:id, :user_id, :title, :description, :created_at)');
+        $stmt->execute([
+            ':id' => $id,
+            ':user_id' => $userId,
+            ':title' => $title,
+            ':description' => $description,
+            ':created_at' => date('Y-m-d H:i:s'),
+        ]);
+
+        $item = ['id' => $id, 'user_id' => $userId, 'title' => $title, 'description' => $description, 'created_at' => date('Y-m-d H:i:s')];
+        sendJson(201, ['item' => $item]);
+    }
+
+    if ($method === 'DELETE') {
+        $userId = requireSessionUserId();
+        $data = json_decode(file_get_contents('php://input'), true) ?: [];
+        $collectionId = isset($data['collection_id']) ? trim((string)$data['collection_id']) : null;
+        if (!$collectionId) sendJson(400, ['message' => 'collection_id es requerido']);
+
+        // ensure ownership
+        $stmt = $pdo->prepare('SELECT user_id FROM movimood_collections WHERE id = :id LIMIT 1');
+        $stmt->execute(['id' => $collectionId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) sendJson(404, ['message' => 'Colección no encontrada']);
+        if ($row['user_id'] !== $userId) sendJson(403, ['message' => 'No tienes permiso para eliminar esta colección']);
+
+        $del = $pdo->prepare('DELETE FROM movimood_collection_movies WHERE collection_id = :id');
+        $del->execute(['id' => $collectionId]);
+        $del2 = $pdo->prepare('DELETE FROM movimood_collections WHERE id = :id');
+        $del2->execute(['id' => $collectionId]);
+
+        sendJson(200, ['deleted' => true]);
+    }
+
+    sendJson(405, ['message' => 'Method not allowed']);
+}
+
+function handleCollectionMovies(PDO $pdo): void
+{
+    $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+
+    if ($method === 'GET') {
+        $collectionId = isset($_GET['collection_id']) ? trim((string)$_GET['collection_id']) : null;
+        if (!$collectionId) sendJson(400, ['message' => 'collection_id es requerido']);
+        $stmt = $pdo->prepare('SELECT movie_id, movie_json, added_at FROM movimood_collection_movies WHERE collection_id = :collection_id ORDER BY added_at DESC');
+        $stmt->execute(['collection_id' => $collectionId]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $items = array_map(function($r){ return ['movie_id' => (int)$r['movie_id'], 'movie' => json_decode($r['movie_json'], true) ?: null, 'added_at' => $r['added_at']]; }, $rows);
+        sendJson(200, ['items' => $items]);
+    }
+
+    if ($method === 'POST') {
+        $userId = requireSessionUserId();
+        $data = json_decode(file_get_contents('php://input'), true) ?: [];
+        $collectionId = isset($data['collection_id']) ? trim((string)$data['collection_id']) : null;
+        $movie = isset($data['movie']) && is_array($data['movie']) ? $data['movie'] : null;
+        if (!$collectionId || !$movie) sendJson(400, ['message' => 'collection_id y movie son requeridos']);
+
+        // verify ownership of collection
+        $stmt = $pdo->prepare('SELECT user_id FROM movimood_collections WHERE id = :id LIMIT 1');
+        $stmt->execute(['id' => $collectionId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) sendJson(404, ['message' => 'Colección no encontrada']);
+        if ($row['user_id'] !== $userId) sendJson(403, ['message' => 'No tienes permiso para modificar esta colección']);
+
+        $movieId = isset($movie['id']) ? (int)$movie['id'] : null;
+        if (!$movieId) sendJson(400, ['message' => 'movie.id inválido']);
+
+        $stmt = $pdo->prepare('INSERT INTO movimood_collection_movies (collection_id, movie_id, movie_json, added_at) VALUES (:collection_id, :movie_id, :movie_json, :added_at)');
+        try {
+            $stmt->execute([
+                ':collection_id' => $collectionId,
+                ':movie_id' => $movieId,
+                ':movie_json' => json_encode($movie, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                ':added_at' => date('Y-m-d H:i:s'),
+            ]);
+        } catch (PDOException $e) {
+            // ignore duplicates
+        }
+
+        sendJson(201, ['added' => true]);
+    }
+
+    if ($method === 'DELETE') {
+        $userId = requireSessionUserId();
+        $data = json_decode(file_get_contents('php://input'), true) ?: [];
+        $collectionId = isset($data['collection_id']) ? trim((string)$data['collection_id']) : null;
+        $movieId = isset($data['movie_id']) ? (int)$data['movie_id'] : null;
+        if (!$collectionId || !$movieId) sendJson(400, ['message' => 'collection_id y movie_id son requeridos']);
+
+        // verify ownership
+        $stmt = $pdo->prepare('SELECT user_id FROM movimood_collections WHERE id = :id LIMIT 1');
+        $stmt->execute(['id' => $collectionId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) sendJson(404, ['message' => 'Colección no encontrada']);
+        if ($row['user_id'] !== $userId) sendJson(403, ['message' => 'No tienes permiso para modificar esta colección']);
+
+        $del = $pdo->prepare('DELETE FROM movimood_collection_movies WHERE collection_id = :collection_id AND movie_id = :movie_id');
+        $del->execute(['collection_id' => $collectionId, 'movie_id' => $movieId]);
+
+        sendJson(200, ['deleted' => true]);
     }
 
     sendJson(405, ['message' => 'Method not allowed']);

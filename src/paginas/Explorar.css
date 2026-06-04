@@ -402,6 +402,29 @@
   color: var(--text);
 }
 
+/* Neon icon styles for section buttons */
+.explorar-section-btn .explorar-section-icon {
+  display: inline-grid;
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.neon-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+  color: #9bdcff; /* base color, overridden by specific classes */
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.6)) drop-shadow(0 0 8px rgba(0,0,0,0.2));
+}
+.neon-trend { color: #56ced5; }
+.neon-new { color: #ff7b5c; }
+.neon-star { color: #ffd25c; }
+
+/* Make active button icons brighter */
+.explorar-section-btn.activa .neon-icon { filter: drop-shadow(0 6px 18px rgba(0,0,0,0.6)) drop-shadow(0 0 10px currentColor); }
+
 /* Content */
 .explorar-content {
   max-width: 1180px;
