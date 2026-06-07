@@ -9,7 +9,8 @@ HOST = os.getenv('FTP_HOST', '147.93.92.142')
 USER = os.getenv('FTP_USER', 'u538166067')
 PASS = os.getenv('FTP_PASS', '')
 LOCAL_ROOT = 'C:/xampp/htdocs/movimood-frontend'
-REMOTE_ROOT = '/domains/plandecine.com/public_html'
+REMOTE_ROOT = os.getenv('FTP_REMOTE_ROOT', '/movimood')
+# Set FTP_REMOTE_ROOT=/movimood to deploy to the movimood subdomain root.
 
 
 def load_ps1_credentials(path='tmp_deploy_api_update.ps1'):
@@ -33,6 +34,16 @@ if not PASS:
     fallback = load_ps1_credentials()
     if fallback:
         HOST, USER, PASS = fallback
+
+# Also allow tmp_deploy_api_update.ps1 to specify a custom remote root (ftpRemoteRoot)
+try:
+    with open('tmp_deploy_api_update.ps1', 'r', encoding='utf-8', errors='ignore') as f:
+        content = f.read()
+        remote_match = re.search(r'\$ftpRemoteRoot\s*=\s*"([^"]+)"', content)
+        if remote_match:
+            REMOTE_ROOT = remote_match.group(1)
+except Exception:
+    pass
 
 # Optional: only upload files modified since this date (YYYY-MM-DD). Empty = upload all.
 UPLOAD_SINCE = os.getenv('UPLOAD_SINCE', '')

@@ -1647,6 +1647,36 @@
   }
 }
 
+/* Further mobile adjustments for review cards */
+@media (max-width:480px) {
+  .videoteca-reviews-grid { grid-template-columns: 1fr; }
+
+  .videoteca-review-card {
+    grid-template-columns: 1fr; /* stack media above content */
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .videoteca-review-card-media {
+    height: 160px;
+    width: 100%;
+    border-radius: 10px;
+  }
+
+  .videoteca-review-card-body { min-width: 0; }
+
+  .videoteca-review-card-top { flex-direction: column; align-items: flex-start; gap: 8px; }
+
+  .videoteca-review-card-meta-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+
+  .videoteca-review-card-text { 
+  line-clamp: 6;
+  -webkit-line-clamp: 6; 
+}
+
+  .videoteca-review-card-actions { gap: 8px; }
+}
+
 /* ── Review modal ───────────────────────────────── */
 
 .videoteca-review-modal-overlay {

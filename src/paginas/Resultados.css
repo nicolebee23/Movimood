@@ -12,7 +12,8 @@
     radial-gradient(1100px 520px at 14% -10%, rgba(48, 120, 188, 0.18), transparent 54%),
     radial-gradient(900px 500px at 100% 8%, rgba(20, 68, 126, 0.22), transparent 52%),
     linear-gradient(180deg, #060d18 0%, #081121 45%, #070f1b 100%);
-  overflow-x: clip;
+  overflow-x: visible;
+  overflow-y: auto;
 }
 
 /* Remove wizard progress purple line on Resultados page */
@@ -37,7 +38,24 @@
   padding: 0 6px 6px;
 }
 
+.wizard-user-chip-fixed {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 40;
+  pointer-events: none;
+}
 
+.wizard-user-chip-fixed .wizard-user-menu {
+  pointer-events: auto;
+}
+
+@media (max-width: 720px) {
+  .wizard-user-chip-fixed {
+    top: 10px;
+    right: 10px;
+  }
+}
 
 .resultados-page-title {
   margin: 0 0 10px;
@@ -386,6 +404,7 @@
 
 .resultado-lista-wrapper {
   position: relative;
+  overflow: visible;
 }
 
 .resultado-lista-btn {
@@ -403,6 +422,7 @@
   font-weight: 700;
   font-size: 14px;
   transition: color 0.22s ease, background 0.22s ease, border-color 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
+  white-space: normal;
 }
 
 .resultado-lista-btn svg {
@@ -460,8 +480,10 @@
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  min-width: 180px;
-  padding: 6px;
+  min-width: 220px;
+  width: max-content;
+  max-width: min(320px, calc(100vw - 24px));
+  padding: 8px 6px;
   border-radius: 14px;
   border: 1px solid rgba(204, 233, 255, 0.18);
   background: rgba(8, 18, 40, 0.95);
@@ -471,7 +493,8 @@
   flex-direction: column;
   gap: 2px;
   animation: listaMenuIn 0.18s ease;
-  z-index: 1000;
+  z-index: 100000;
+  overflow: visible;
 }
 
 @keyframes listaMenuIn {
@@ -483,16 +506,19 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  padding: 9px 12px;
+  padding: 10px 14px;
   border-radius: 9px;
   border: none;
   background: transparent;
-  color: rgba(220, 238, 255, 0.82);
+  color: rgba(220, 238, 255, 0.92);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   text-align: left;
   transition: background 0.15s ease, color 0.15s ease;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .resultado-lista-opcion svg {
@@ -942,6 +968,7 @@
   gap: 18px;
   align-items: stretch;
   width: 100%;
+  overflow: visible;
 }
 
 .resultados-list::before {
@@ -976,6 +1003,7 @@
   border: 1px solid rgba(179, 213, 248, 0.06);
   box-shadow: 0 12px 26px rgba(2, 6, 18, 0.36);
   flex: 1 1 auto; /* occupy remaining width beside number column */
+  overflow: visible;
 }
 
 .resultado-row-poster-img {
@@ -1035,6 +1063,8 @@
   flex-direction: row;
   gap: 10px;
   align-items: center;
+  position: relative;
+  overflow: visible;
 }
 
 .resultado-cta {
@@ -1128,14 +1158,11 @@
   align-items: stretch;
   min-width: 190px;
   gap: 10px;
-  position: relative;
-  z-index: 3;
 }
 
 .resultado-lista-wrapper {
   width: 100%;
   position: relative;
-  z-index: 4;
 }
 
 .resultado-lista-btn {
@@ -1143,7 +1170,7 @@
 }
 
 .resultado-lista-menu {
-  z-index: 2000;
+  z-index: 100000;
 }
 
 @media (max-width: 900px) {

@@ -27,3 +27,17 @@
   .seguido-card{flex-direction:column;align-items:flex-start}
   .seguido-right{width:100%;display:flex;justify-content:space-between;margin-top:10px}
 }
+
+@media (max-width:480px){
+  .seguido-card{padding:12px}
+  .seguido-avatar{width:48px;height:48px;font-size:18px}
+  .seguido-meta{min-width:0;flex:1 1 auto}
+  .seguido-name{font-size:16px}
+  .seguido-handle{font-size:12px}
+  .seguido-bio{font-size:12px}
+  .seguido-right{flex-direction:column;align-items:flex-start;gap:8px;width:100%;margin-top:8px}
+  .seguido-stats{display:flex;gap:10px;color:#9fdfe9;flex-wrap:wrap;justify-content:flex-start}
+  .seguido-stats div{align-items:flex-start}
+  .seguir-btn{padding:6px 10px}
+  .ver-perfil{width:36px;height:36px}
+}

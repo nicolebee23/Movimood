@@ -361,9 +361,7 @@ function Home() {
               })}
             </div>
 
-            <div className="faq-footer">
-              <button type="button" className="faq-button">Ver todas las preguntas</button>
-            </div>
+           
           </div>
         </section>
 

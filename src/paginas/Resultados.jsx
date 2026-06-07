@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
 import WizardSidebar from '../componentes/WizardSidebar';
-import UserMenu from '../componentes/UserMenu';
 import './Resultados.css';
 import '../App.css';
 import { fetchRecommendedMovies, genreIdToName, getRecommendationReasons } from '../utils/recommendations';
@@ -24,7 +22,6 @@ function getStoredQuestionnaire() {
 function Resultados() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { currentUser, logout } = useAuth();
   const questionnaire = location.state?.questionnaire || getStoredQuestionnaire();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -153,13 +150,6 @@ function Resultados() {
 
       {/* MAIN CONTENT */}
       <main className="cuestionario-main">
-        {/* User profile chip */}
-        {currentUser && (
-          <div className="wizard-user-chip-fixed">
-            <UserMenu currentUser={currentUser} logout={logout} />
-          </div>
-        )}
-
         {/* Main content area */}
         <div className="wizard-contenedor wizard-contenedor--sin-card resultados-contenedor">
           <div className="resultados-header">

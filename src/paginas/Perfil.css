@@ -294,6 +294,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .perfil-v3-stat-icon {
@@ -1795,6 +1796,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .perfil-v3-stat-icon {
@@ -1815,6 +1817,11 @@
   letter-spacing: 0.08em;
   font-size: 11px;
   font-weight: 600;
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .perfil-v3-stat-card strong {
@@ -3295,6 +3302,28 @@
 
   .perfil-v3-favorite-card {
     flex: 0 0 calc(50% - 5px);
+  }
+
+  .perfil-v3-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .perfil-v3-stat-card {
+    min-width: 0;
+  }
+
+  .perfil-v3-stat-head {
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .perfil-v3-stat-head span:last-child {
+    display: block;
+    width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.2;
+    margin-top: 4px;
   }
 }
 

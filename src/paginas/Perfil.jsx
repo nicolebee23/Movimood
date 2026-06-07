@@ -612,16 +612,34 @@ function Perfil() {
   const [posterFallbackByMovieId, setPosterFallbackByMovieId] = useState({});
   const [hasAnimatedRadarData, setHasAnimatedRadarData] = useState(false);
   const [hasAnimatedRadarGhost, setHasAnimatedRadarGhost] = useState(false);
+  const [remoteUser, setRemoteUser] = useState(null);
 
   const resolvedProfileId = routeProfileId || query.get('user_id') || currentUser?.id || null;
-  const viewedUser = resolvedProfileId
-    ? (getUserById(resolvedProfileId) || (currentUser?.id === resolvedProfileId ? currentUser : null))
-    : null;
+const viewedUser = resolvedProfileId
+  ? (getUserById(resolvedProfileId) || remoteUser || (currentUser?.id === resolvedProfileId ? currentUser : null))
+  : null;
   const isOwnProfile = Boolean(currentUser?.id && viewedUser?.id === currentUser.id);
 
   const myReviews = getReviewsByProfile(resolvedProfileId || undefined);
   const storedWatchedFavorites = useMemo(() => (isOwnProfile ? loadWatchedFavoritesFromStorage() : []), [isOwnProfile]);
   const profileStoredReviews = useMemo(() => loadReviewsFromStorage(viewedUser?.id || resolvedProfileId || null), [viewedUser?.id, resolvedProfileId]);
+useEffect(() => {
+  if (!resolvedProfileId || getUserById(resolvedProfileId) || currentUser?.id === resolvedProfileId) {
+    setRemoteUser(null);
+    return;
+  }
+  let cancelled = false;
+  requestJson('movimood.php', {
+    params: { resource: 'profile', user_id: resolvedProfileId }
+  })
+    .then(data => {
+      if (!cancelled) setRemoteUser(data?.user || null);
+    })
+    .catch(() => {
+      if (!cancelled) setRemoteUser(null);
+    });
+  return () => { cancelled = true; };
+}, [resolvedProfileId, currentUser?.id]);
 
   useEffect(() => {
     if (!viewedUser?.id) {
@@ -1698,7 +1716,6 @@ function Perfil() {
               {/* Page hero cover: full-width background image that sits behind the content */}
               <div
                 className="perfil-v3-page-cover likes-hero"
-                aria-hidden="true"
                 style={{
                   backgroundImage: "url('/assets/perfil/perfil-movimood-cover.png')",
                   backgroundRepeat: 'no-repeat',
@@ -1717,7 +1734,7 @@ function Perfil() {
                     aria-hidden="true"
                   />
                 </picture>
-                <div className="perfil-v3-page-cover-shade" />
+                <div className="perfil-v3-page-cover-shade" aria-hidden="true" />
 
                 {/* Hero copy positioned like Likes */}
                 <div className="likes-hero-copy" aria-hidden="false">
@@ -2180,7 +2197,7 @@ function Perfil() {
                       <div className="perfil-v3-page-cover likes-hero" style={{ marginBottom: '18px' }}>
                         <picture>
                           <source srcSet={perfilMovimoodCover} type="image/png" />
-                          <img className="perfil-v3-page-cover-image" src={perfilMovimoodCover} alt="" />
+                          <img className="perfil-v3-page-cover-image" src={perfilMovimoodCover} alt="" aria-hidden="true" />
                         </picture>
                         <div className="perfil-v3-page-cover-shade" aria-hidden="true" />
                         <div className="likes-hero-copy">

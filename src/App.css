@@ -447,8 +447,8 @@ svg {
 
 /* Colores diferentes por paso — siguiendo la paleta de diseño */
 .wizard-progreso.paso-1 .progreso-relleno {
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #667eea 100%);
-  box-shadow: 0 0 24px rgba(118, 75, 162, 0.9), 0 0 12px rgba(102, 126, 234, 0.6), inset 0 1px 2px rgba(255,255,255,0.3);
+  background: linear-gradient(90deg, #8b5cf6 0%, #7c3aed 50%, #8b5cf6 100%);
+  box-shadow: 0 0 24px rgba(139, 92, 246, 0.9), 0 0 12px rgba(124, 58, 237, 0.6), inset 0 1px 2px rgba(255,255,255,0.3);
 }
 
 .wizard-progreso.paso-2 .progreso-relleno {
@@ -461,9 +461,25 @@ svg {
   box-shadow: 0 0 24px rgba(8, 145, 178, 0.9), 0 0 12px rgba(6, 182, 212, 0.6), inset 0 1px 2px rgba(255,255,255,0.3);
 }
 
+.wizard-progreso.paso-3 .progreso-barra {
+  background: rgba(6, 182, 212, 0.14);
+}
+
 .wizard-progreso.paso-4 .progreso-relleno {
-  background: linear-gradient(90deg, #06b6d4 0%, #0891b2 50%, #06b6d4 100%);
-  box-shadow: 0 0 24px rgba(8, 145, 178, 0.9), 0 0 12px rgba(6, 182, 212, 0.6), inset 0 1px 2px rgba(255,255,255,0.3);
+  background: linear-gradient(90deg, #ea580c 0%, #f97316 50%, #ea580c 100%);
+  box-shadow: 0 0 24px rgba(234, 88, 12, 0.9), 0 0 12px rgba(249, 115, 22, 0.6), inset 0 1px 2px rgba(255,255,255,0.3);
+}
+
+.wizard-progreso.paso-4 .progreso-barra {
+  background: rgba(249, 115, 22, 0.14);
+}
+
+.wizard-progreso.paso-1 .progreso-barra {
+  background: rgba(139, 92, 246, 0.14);
+}
+
+.wizard-progreso.paso-2 .progreso-barra {
+  background: rgba(59, 130, 246, 0.14);
 }
 
 .progreso-texto {

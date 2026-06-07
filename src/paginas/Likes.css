@@ -294,6 +294,37 @@
   .likes-title{font-size:22px}
 }
 
+/* Small-screen: stack review rows for readability */
+@media (max-width:480px) {
+  .likes-review-row {
+    grid-template-columns: 56px 1fr; /* small poster + content */
+    gap: 12px;
+    padding: 12px;
+    align-items: start;
+  }
+
+  .likes-review-poster img {
+    width: 56px;
+    height: 84px;
+    object-fit: cover;
+    border-radius: 6px;
+  }
+
+  .likes-review-row .likes-review-meta {
+    flex: 0 0 auto;
+    align-items: flex-start;
+    justify-self: start;
+    margin-top: 6px;
+  }
+
+  .likes-review-row .likes-review-content { min-width: 0; }
+  .likes-review-row .likes-review-title h4 { font-size: 15px; }
+  .likes-review-row .likes-review-text { font-size: 13px; line-height: 1.35; }
+
+  /* Reduce hero copy spacing on very small devices */
+  .likes-hero-copy { top: 88px; left: 12px; padding: 14px; max-width: calc(100% - 28px); }
+}
+
 /* Do not override `.perfil-v3-content` padding; Perfil's rules apply for exact parity. */
 
 /* Move only the hero image crop upward on Likes so a different area is visible. */
