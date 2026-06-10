@@ -8,6 +8,7 @@ import { genreIdToName } from '../utils/recommendations';
 import './Videoteca.css';
 import useReviewLikes from '../hooks/useReviewLikes';
 import './Home.css';
+import { normalizeMoodName, getQuestionnaireMoods } from '../utils/moods';
 import WizardSidebar from '../componentes/WizardSidebar';
 import {
   SadIcon,
@@ -292,7 +293,7 @@ function Videoteca() {
   const myReviews = getReviewsByProfile();
   const favoritosByMovieId = new Map(favoritos.map((fav) => [fav.movie.id, fav]));
   const reviewsByMovieId = new Map(myReviews.map((review) => [review.movieId, review]));
-  const getMoodForReview = (review) => review?.mood || favoritosByMovieId.get(review?.movieId)?.questionnaire?.moods?.[0] || 'Sin mood';
+  const getMoodForReview = (review) => normalizeMoodName(review?.mood) || normalizeMoodName(favoritosByMovieId.get(review?.movieId)?.questionnaire?.moods?.[0]) || 'Sin mood';
   const uniqueMoodsRated = new Set(myReviews.map((review) => review.mood).filter(Boolean)).size;
   /* eslint-disable-next-line no-unused-vars */
   const moodCoveragePercent = Math.round((uniqueMoodsRated / Object.keys(MOOD_EMOJIS).length) * 100);
@@ -326,10 +327,10 @@ function Videoteca() {
             // Check if there's a review for this movie
             const review = reviewsByMovieId.get(fav.movie.id);
             if (review?.mood) {
-              return [review.mood];
+              return [normalizeMoodName(review.mood) || UNASSIGNED_MOOD];
             }
             // Otherwise use questionnaire moods
-            const moods = Array.from(new Set((fav.questionnaire?.moods || []).filter(Boolean)));
+            const moods = getQuestionnaireMoods(fav.questionnaire);
             return moods.length > 0 ? moods : [UNASSIGNED_MOOD];
           })
         )
@@ -346,10 +347,11 @@ function Videoteca() {
         // Check if there's a review for this movie
         const review = reviewsByMovieId.get(fav.movie.id);
         if (review?.mood) {
-          acc[review.mood] = (acc[review.mood] || 0) + 1;
+          const m = normalizeMoodName(review.mood) || UNASSIGNED_MOOD;
+          if (m !== UNASSIGNED_MOOD) acc[m] = (acc[m] || 0) + 1;
         } else {
           // Otherwise use questionnaire moods
-          const uniqueMoods = Array.from(new Set((fav.questionnaire?.moods || []).filter(Boolean)));
+          const uniqueMoods = getQuestionnaireMoods(fav.questionnaire);
           if (uniqueMoods.length === 0) {
             acc[UNASSIGNED_MOOD] = (acc[UNASSIGNED_MOOD] || 0) + 1;
           } else {
@@ -380,13 +382,13 @@ function Videoteca() {
       // Check if there's a review for this movie
       const review = reviewsByMovieId.get(fav.movie.id);
       if (review?.mood) {
-        return review.mood === activeMood;
+        return normalizeMoodName(review.mood) === activeMood;
       }
       // Otherwise use questionnaire moods
       if (activeMood === UNASSIGNED_MOOD) {
         return !(fav.questionnaire?.moods || []).some(Boolean);
       }
-      return (fav.questionnaire?.moods || []).includes(activeMood);
+      return getQuestionnaireMoods(fav.questionnaire).includes(activeMood);
     })
     .filter((fav) => {
       const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -1005,6 +1007,24 @@ function Videoteca() {
                         <h4 className="videoteca-hcard-title">{movie.title}</h4>
                         <p className="videoteca-hcard-genres">{genres.join(', ') || 'Sin género'}</p>
                         <p className="videoteca-hcard-year">{movie.release_date?.slice(0, 4) || '----'}</p>
+                        {activeTab === LISTAS.VER_LUEGO && (
+                          <div className="videoteca-quick-actions videoteca-quick-actions--compact" role="group" aria-label="Acciones rápidas de la película">
+                            <button
+                              type="button"
+                              className="videoteca-quick-action"
+                              onClick={() => handleToggleSeen(movie, questionnaire)}
+                            >
+                              Ya vista
+                            </button>
+                            <button
+                              type="button"
+                              className="videoteca-quick-action videoteca-quick-action--primary"
+                              onClick={() => handleToggleEssential(movie, questionnaire)}
+                            >
+                              Imprescindible
+                            </button>
+                          </div>
+                        )}
                         {activeTab === LISTAS.YA_VISTA && (
                           <button
                             type="button"
@@ -1132,6 +1152,25 @@ function Videoteca() {
                           Tráiler ↗
                         </a>
                       </div>
+
+                      {activeTab === LISTAS.VER_LUEGO && (
+                        <div className="videoteca-quick-actions" role="group" aria-label="Acciones rápidas de la película">
+                          <button
+                            type="button"
+                            className="videoteca-quick-action"
+                            onClick={() => handleToggleSeen(movie, questionnaire)}
+                          >
+                            Ya vista
+                          </button>
+                          <button
+                            type="button"
+                            className="videoteca-quick-action videoteca-quick-action--primary"
+                            onClick={() => handleToggleEssential(movie, questionnaire)}
+                          >
+                            Imprescindible
+                          </button>
+                        </div>
+                      )}
 
                       <button
                         type="button"

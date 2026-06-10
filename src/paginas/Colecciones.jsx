@@ -6,7 +6,7 @@ import { useEffect, useState, useRef } from 'react';
 import { requestJson } from '../utils/movimoodApi';
 
 function Colecciones() {
-  const { currentUser } = useAuth();
+  const { currentUser, logout } = useAuth();
   const [collections, setCollections] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
@@ -35,7 +35,21 @@ function Colecciones() {
     let mounted = true;
 
     async function loadCollections() {
-      // Try server first
+      // If user is not logged, skip server request (avoids 401 logs) and use localStorage
+      if (!currentUser) {
+        try {
+          const raw = localStorage.getItem(storageKey);
+          const parsed = raw ? JSON.parse(raw) : [];
+          if (!mounted) return;
+          setCollections(Array.isArray(parsed) ? parsed : []);
+        } catch (e) {
+          if (!mounted) return;
+          setCollections([]);
+        }
+        return;
+      }
+
+      // Try server first for logged-in users
       try {
         const resp = await requestJson('movimood.php', { params: { resource: 'collections' } });
         if (!mounted) return;
@@ -44,7 +58,11 @@ function Colecciones() {
         try { localStorage.setItem(storageKey, JSON.stringify(items)); } catch {}
         return;
       } catch (err) {
-        // fallback to localStorage
+        if (err?.isAuthError || err?.status === 401) {
+          logout();
+          return;
+        }
+        // fallback to localStorage below
       }
 
       try {
@@ -95,7 +113,7 @@ function Colecciones() {
 
     loadCollections();
     return () => { mounted = false; };
-  }, [storageKey]);
+  }, [storageKey, currentUser, logout]);
 
   async function refreshCollectionsFromServer() {
     if (!currentUser) return;
@@ -106,6 +124,9 @@ function Colecciones() {
       try { localStorage.setItem(storageKey, JSON.stringify(items)); } catch {}
       return items;
     } catch (err) {
+      if (err?.isAuthError || err?.status === 401) {
+        logout();
+      }
       return null;
     }
   }

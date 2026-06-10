@@ -5,6 +5,52 @@ import { requestJson } from '../utils/movimoodApi';
 import WizardSidebar from '../componentes/WizardSidebar';
 import './Seguidores.css';
 
+function normalizeFavoriteListName(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/_/g, '-')
+    .replace(/\s+/g, '-');
+}
+
+function countUniqueFavoriteMovies(favorites, acceptedLists = null) {
+  const uniqueMovieIds = new Set();
+
+  for (const favorite of Array.isArray(favorites) ? favorites : []) {
+    if (!favorite) continue;
+
+    const listName = normalizeFavoriteListName(favorite.lista || favorite.listType || favorite.list_type);
+    if (listName === 'no-interesa') continue;
+    if (acceptedLists && !acceptedLists.includes(listName)) continue;
+
+    const movieId = favorite.movie?.id ?? favorite.movie_id ?? favorite.movieId ?? favorite.id;
+    if (movieId !== undefined && movieId !== null && movieId !== '') {
+      uniqueMovieIds.add(String(movieId));
+    }
+  }
+
+  return uniqueMovieIds.size;
+}
+
+function countEssentialFavorites(favorites) {
+  return (Array.isArray(favorites) ? favorites : []).filter((favorite) => Boolean(favorite?.flags?.imprescindible)).length;
+}
+
+async function sumReviewLikes(reviews) {
+  const totals = await Promise.all(
+    (Array.isArray(reviews) ? reviews : []).map(async (review) => {
+      try {
+        const countResp = await requestJson('movimood.php', { params: { resource: 'review-likes', review_id: review.id } });
+        return Number(countResp?.count || 0);
+      } catch {
+        return 0;
+      }
+    })
+  );
+
+  return totals.reduce((sum, value) => sum + value, 0);
+}
+
 function getUserLabel(user) {
   return user?.name || user?.username || 'Usuario';
 }
@@ -39,26 +85,27 @@ export default function Seguidores() {
         followers.forEach((user) => {
           (async (follower) => {
             try {
-              const [favResp, revResp, rlikesResp] = await Promise.all([
+              const [favResp, revResp, likedResp] = await Promise.all([
                 requestJson('movimood.php', { params: { resource: 'favorites', user_id: follower.id } }),
                 requestJson('movimood.php', { params: { resource: 'reviews', user_id: follower.id } }),
                 requestJson('movimood.php', { params: { resource: 'review-likes', user_id: follower.id } }),
               ]);
 
               const favorites = Array.isArray(favResp?.items) ? favResp.items : [];
-              const imprescindibleCount = favorites.filter((favorite) => Boolean(favorite.flags?.imprescindible) && favorite.lista !== undefined).length;
-              const yaVistas = favorites.filter((favorite) => favorite.lista === 'YA_VISTA' || favorite.lista === 'ya_vista' || favorite.lista === 2).length;
               const reviews = Array.isArray(revResp?.items) ? revResp.items : [];
-              const likedReviews = Array.isArray(rlikesResp?.items) ? rlikesResp.items : [];
+              const likedReviews = Array.isArray(likedResp?.items) ? likedResp.items : [];
+              const likesCount = countEssentialFavorites(favorites) + likedReviews.length;
+              const moviesCount = countUniqueFavoriteMovies(favorites, ['ya-vista', 'ya-vistas', 'vistas', 'seen']);
+              const reviewsCount = reviews.length;
 
               setList((prev) => prev.map((entry) => (
                 entry.id === follower.id
                   ? {
                       ...entry,
-                      likesCount: imprescindibleCount,
-                      moviesCount: yaVistas,
-                      reviewsCount: reviews.length,
-                      likedReviewsCount: likedReviews.length,
+                      likesCount,
+                      moviesCount,
+                      reviewsCount,
+                      likedReviewsCount: reviewsCount,
                     }
                   : entry
               )));
@@ -124,9 +171,8 @@ export default function Seguidores() {
               <div className="seguido-right">
                 <div className="seguido-stats">
                   <div><strong>{user.likesCount || 0}</strong><span>Likes</span></div>
-                  <div><strong>{user.moviesCount || 0}</strong><span>Películas</span></div>
-                  <div><strong>{user.reviewsCount || 0}</strong><span>Reseñas</span></div>
-                  <div><strong>{user.likedReviewsCount || 0}</strong><span>Likes recibidos</span></div>
+                  <div><strong>{user.moviesCount || 0}</strong><span>Vistas</span></div>
+                  <div><strong>{user.reviewsCount || 0}</strong><span>Reseñas que ha escrito</span></div>
                 </div>
                 <div className="seguido-actions">
                   <button type="button" className="seguir-btn">Seguidor</button>

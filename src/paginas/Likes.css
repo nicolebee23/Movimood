@@ -2,6 +2,34 @@
    Avoid overriding `.perfil-v3-page-cover`, `.perfil-v3-page-cover-image`,
    `.perfil-v3-page-cover-shade` or ` .perfil-v3-content` here. */
 
+/* ==========================================================================
+   1. ESTRUCTURA GLOBAL Y BLINDAJE DE ALTURA (Evita que el menú colapse)
+   ========================================================================== */
+.likes-page.home-page {
+  display: flex !important;
+  flex-direction: row !important;
+  min-height: 100vh !important;
+  width: 100%;
+  background-color: #060a12;
+}
+
+.likes-page.home-main {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 100vh !important;
+  position: relative !important;
+  box-sizing: border-box;
+  padding-left: 20px; /* small offset from the sidebar */
+}
+
+@media (max-width: 800px) {
+  .likes-page.home-main { padding-left: 12px; }
+}
+
+/* ==========================================================================
+   2. CABECERA / HERO DE LA PÁGINA
+   ========================================================================== */
 .likes-hero-copy{
   position: absolute;
   top: 125px; /* adjusted to 125px per latest request */
@@ -28,6 +56,9 @@
   opacity: 0.9;
 }
 
+/* ==========================================================================
+   3. PESTAÑAS (TABS)
+   ========================================================================== */
 .likes-tabs{
   display: flex;
   gap: 10px;
@@ -55,6 +86,9 @@
   margin-top:12px;
 }
 
+/* ==========================================================================
+   4. ENLACES Y SECCIONES
+   ========================================================================== */
 .volver-perfil{
   display:inline-block;
   padding:8px 12px;
@@ -91,7 +125,9 @@
   font-size:14px;
 }
 
-/* Movies row */
+/* ==========================================================================
+   5. TARJETAS DE PELÍCULAS (MOVIES ROW)
+   ========================================================================== */
 .likes-movies-row{
   display:flex;
   gap:14px;
@@ -136,18 +172,10 @@
 .likes-movie-title{font-size:14px;margin:0 0 6px 0;color:#e7fbff}
 .likes-movie-meta{font-size:12px;color:#9fdfe9}
 
-/* Reviews list */
+/* ==========================================================================
+   6. MAQUETACIÓN DE RESEÑAS (REVIEWS LIST)
+   ========================================================================== */
 .likes-reviews-list{display:flex;flex-direction:column;gap:12px}
-
-.likes-review-row{
-  display:flex;
-  gap:12px;
-  padding:12px;
-  border-radius:10px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));
-  box-shadow: 0 6px 18px rgba(0,0,0,0.6);
-  align-items:center;
-}
 
 /* Compact row layout for reviews (poster | content | meta) */
 .likes-review-row {
@@ -247,16 +275,8 @@
   color: #e6eef3;
   font-size: 16px;
 }
-.likes-review-year {
-  color: #9fd7dd;
-  font-size: 13px;
-}
-.likes-review-genres {
-  color: #7fbfc9;
-  font-size: 13px;
-}
 
-/* Small poster shown in review rows (instead of circular avatar) */
+/* Small poster shown in review rows */
 .likes-review-poster{ width:64px; height:92px; border-radius:6px; overflow:hidden; background:#071015; flex:0 0 64px; display:flex; align-items:center; justify-content:center }
 .likes-review-poster img{ width:100%; height:100%; object-fit:cover; display:block }
 .poster-placeholder-small{ width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:#9fdfe9; font-size:12px }
@@ -281,89 +301,55 @@
 .videoteca-review-like-btn:disabled{opacity:0.5;cursor:not-allowed}
 .likes-review-time{color:#9fdfe9;font-size:13px}
 
-/* Responsive tweaks */
+/* ==========================================================================
+   7. RESPONSIVE / ADAPTACIÓN DE PANTALLA
+   ========================================================================== */
 @media (max-width:800px){
-  /* keep Perfil responsive hero rules; only adjust likes-specific copy */
-
-  .likes-hero-copy{
-    padding: 18px 18px;
-  }
-
+  .likes-hero-copy{ padding: 18px 18px; }
   .likes-movie-card{min-width:120px;width:120px}
   .likes-movie-poster{height:180px}
   .likes-title{font-size:22px}
 }
 
-/* Small-screen: stack review rows for readability */
 @media (max-width:480px) {
   .likes-review-row {
-    grid-template-columns: 56px 1fr; /* small poster + content */
+    grid-template-columns: 56px 1fr;
     gap: 12px;
     padding: 12px;
     align-items: start;
   }
-
-  .likes-review-poster img {
-    width: 56px;
-    height: 84px;
-    object-fit: cover;
-    border-radius: 6px;
-  }
-
-  .likes-review-row .likes-review-meta {
-    flex: 0 0 auto;
-    align-items: flex-start;
-    justify-self: start;
-    margin-top: 6px;
-  }
-
+  .likes-review-poster img { width: 56px; height: 84px; }
+  .likes-review-row .likes-review-meta { flex: 0 0 auto; align-items: flex-start; justify-self: start; margin-top: 6px; }
   .likes-review-row .likes-review-content { min-width: 0; }
   .likes-review-row .likes-review-title h4 { font-size: 15px; }
   .likes-review-row .likes-review-text { font-size: 13px; line-height: 1.35; }
-
-  /* Reduce hero copy spacing on very small devices */
   .likes-hero-copy { top: 88px; left: 12px; padding: 14px; max-width: calc(100% - 28px); }
 }
 
-/* Do not override `.perfil-v3-content` padding; Perfil's rules apply for exact parity. */
+/* Image cover alignments */
+.likes-page .perfil-v3-page-cover-image{ object-position: center 36%; }
+.likes-page.perfil-v3-page-cover { background-position: center 36% !important; }
 
-/* Move only the hero image crop upward on Likes so a different area is visible. */
-.likes-page .perfil-v3-page-cover-image{
-  object-position: center 36%;
-}
-
-/* Also enforce background-position on the cover in case a fallback background-image is used */
-.likes-page.perfil-v3-page-cover {
-  background-position: center 36% !important;
-}
-
-/* Hide scroll bar but keep scrolling */
 .likes-movies-row::-webkit-scrollbar{height:8px}
 .likes-movies-row::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.06);border-radius:999px}
 
-/* Apply soft left-side shade on the existing shade layer so it is visible
-   above the image and below the copy (reliable stacking). */
 .likes-page .perfil-v3-page-cover-shade{
   pointer-events: none;
   z-index: 1;
   background:
-    /* narrower left-side darkening: strong until ~25% then fade out */
     linear-gradient(90deg, rgba(6,10,18,0.96) 0%, rgba(6,10,18,0.72) 29%, rgba(6,10,18,0) 100%),
     radial-gradient(920px 320px at 54% -2%, rgba(43, 211, 255, 0.18), transparent 60%),
     linear-gradient(180deg, rgba(6, 10, 18, 0.02) 0%, rgba(6, 10, 18, 0.42) 72%, rgba(6, 10, 18, 0.7) 100%);
 }
 
-/* On the Likes page push the main content further down so tabs and sections
-   appear lower under the hero. Adds 40px extra spacing to Perfil's clamp(). */
 .likes-page.perfil-v3-content{
   padding-top: calc(clamp(360px, 56vh, 720px) + 40px);
 }
 
-/* Ensure volver-perfil is visible inside perfil heroes (force position over shade) */
 .perfil-v3-page-cover .volver-perfil {
   position: absolute;
   left: 28px;
-  top: 160px; /* aligns near likes-hero-copy */
+  top: 160px;
   z-index: 40;
   display: inline-block;
   padding: 8px 12px;
@@ -373,7 +359,6 @@
   .perfil-v3-page-cover .volver-perfil { left: 16px; top: 120px; }
 }
 
-/* When the volver link is inside the hero copy, render it inline under the subtitle */
 .likes-hero-copy .volver-perfil {
   position: static;
   left: auto;
@@ -383,12 +368,21 @@
   margin-top: 12px;
 }
 
-/* Add a small left margin so content isn't flush against the sidebar */
-.likes-page.home-main {
-  padding-left: 20px; /* small offset from the sidebar */
+/* ==========================================================================
+   8. CORRECCIÓN ESTADO VACÍO (Fuerza la altura si no hay tarjetas)
+   ========================================================================== */
+.likes-page .videoteca-empty {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 220px !important; 
+  margin: 40px 28px !important;
+  padding: 20px !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+  border: 1px solid rgba(255, 255, 255, 0.04) !important;
+  border-radius: 10px !important;
+  color: #9fdfe9 !important;
+  font-size: 15px !important;
+  text-align: center !important;
+  box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.2) !important;
 }
-
-@media (max-width: 800px) {
-  .likes-page.home-main { padding-left: 12px; }
-}
-

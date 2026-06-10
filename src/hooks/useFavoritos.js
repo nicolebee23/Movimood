@@ -117,7 +117,7 @@ function mergeFavorites(remoteFavorites, localFavorites) {
 export function useFavoritos() {
   const { currentUser } = useAuth();
   const [favoritos, setFavoritos] = useState(getStored);
-  const profileId = currentUser?.id || getSessionProfileId();
+  const profileId = currentUser?.id || getSessionProfileId() || localStorage.getItem('movimood-local-profile-id');
 
   useEffect(() => {
     if (!profileId || !hasApiBaseUrl()) {

@@ -28,9 +28,13 @@ export default function Likes() {
   const [profileFavorites, setProfileFavorites] = useState(null);
   const [, setLoadingProfileFavorites] = useState(false);
   const [profileLikedReviews, setProfileLikedReviews] = useState(null);
+  const [refreshLikes, setRefreshLikes] = useState(0);
 
   const activeFavoritesForCounts = profileFavorites !== null ? profileFavorites : favoritos;
-  const yaVistasCount = Array.isArray(activeFavoritesForCounts) ? activeFavoritesForCounts.filter((f) => f && String(f.lista) === String(LISTAS.YA_VISTA)).length : 0;
+  // Filtramos por imprescindibles en lugar de por la lista YA_VISTA
+  const yaVistasCount = Array.isArray(activeFavoritesForCounts) 
+    ? activeFavoritesForCounts.filter((f) => f && Boolean(f.flags?.imprescindible) && f.lista !== LISTAS.NO_INTERESA).length 
+    : 0;
 
   useEffect(() => {
     let cancelled = false;
@@ -44,7 +48,7 @@ export default function Likes() {
     })();
 
     return () => { cancelled = true; };
-  }, [fetchUserLikedReviews]);
+  }, [fetchUserLikedReviews, refreshLikes]);
 
   useEffect(() => {
     let cancelled = false;
@@ -131,8 +135,6 @@ export default function Likes() {
           </div>
         </div>
 
-        {/* tabs moved into hero copy for precise vertical placement */}
-
         { (tab === 'todo' || tab === 'peliculas') && (
           <section className="likes-section">
             <div className="section-header">
@@ -175,23 +177,37 @@ export default function Likes() {
                 <div className="videoteca-empty">No hay reseñas con like aún.</div>
               ) : (profileUserId ? (profileLikedReviews || []) : likedReviews).map((item) => {
                 const reviewObj = item.review || null;
+                
+                // Extraemos de forma segura el nombre del autor inspeccionando múltiples variantes comunes de claves de bases de datos
+                const authorName = reviewObj?.username || reviewObj?.author || reviewObj?.usuario || reviewObj?.user_name || 'Usuario';
+                const avatarLetter = authorName.charAt(0).toUpperCase();
+
                 const title = reviewObj?.movie?.title || `Reseña ${item.reviewId}`;
-                const likeCount = reviewLikes.counts[String(reviewObj?.id || item.reviewId)] || 0;
+                const likeCount = reviewLikes.counts[String(reviewObj?.id || item.reviewId)] ?? (reviewObj?.likesCount || 0);
+                
                 return (
                   <article className="likes-review-row" key={item.reviewId}>
-                    <div className="likes-review-avatar">{(reviewObj?.author && reviewObj.author[0]) || 'U'}</div>
+                    <div className="likes-review-avatar">{avatarLetter}</div>
                     <div className="likes-review-body">
                       <div className="likes-review-header">
-                        <strong className="likes-review-author">{reviewObj?.author || 'Usuario'}</strong>
+                        <strong className="likes-review-author">{authorName}</strong>
                         <span className="likes-review-movie">{title}</span>
                         <span className="likes-review-rating">{reviewObj?.rating ? `${(Number(reviewObj.rating)||0)/2} ★` : ''}</span>
                       </div>
                       <p className="likes-review-text">{reviewObj?.comment || 'Sin comentario'}</p>
                       <div className="likes-review-meta">
-                        <button type="button" className="videoteca-review-like-btn" aria-label="likes">
-                          <span className="videoteca-review-card-heart" aria-hidden>♥</span>
-                          {likeCount}
-                        </button>
+                        <button
+  type="button"
+  className="videoteca-review-like-btn"
+  aria-label="likes"
+  onClick={async () => {
+    await reviewLikes.toggleLike(reviewObj?.id || item.reviewId);
+    setRefreshLikes((r) => r + 1);
+  }}
+>
+  <span className="videoteca-review-card-heart" aria-hidden>♥</span>
+  {reviewLikes.counts[String(reviewObj?.id || item.reviewId)] ?? (reviewObj?.likesCount || 0)}
+</button>
                         <time className="likes-review-time">{item.likedAt ? formatReviewDate(item.likedAt) : (reviewObj?.updatedAt ? formatReviewDate(reviewObj.updatedAt) : '')}</time>
                       </div>
                     </div>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Footer from './componentes/Footer';
 import CookieBanner from './componentes/CookieBanner';
 import UserMenu from './componentes/UserMenu';
@@ -28,6 +28,9 @@ import './App.css';
 
 function AppContent({ currentUser, logout }) {
   const [isScrolled, setIsScrolled] = useState(false);
+  const location = useLocation();
+  const isPerfilRoute =
+    location.pathname === '/perfil' || location.pathname.startsWith('/perfil/');
 
   useEffect(() => {
     function handleScroll() {
@@ -45,7 +48,9 @@ function AppContent({ currentUser, logout }) {
   return (
     <>
       {currentUser && (
-        <div className={`app-user-menu-floating${isScrolled ? ' hidden-on-scroll' : ''}`}>
+        <div
+          className={`app-user-menu-floating${isScrolled ? ' hidden-on-scroll' : ''}${isPerfilRoute ? ' perfil-route' : ''}`}
+        >
           <UserMenu currentUser={currentUser} logout={logout} />
         </div>
       )}

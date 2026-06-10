@@ -211,16 +211,7 @@
 
 /* Keep sidebar spacing unchanged globally; apply specific fix only when viewing another user's reviews */
 
-/* Specific fix for other-user profile reviews (actividad) only: keep other pages unchanged */
-.home-page.perfil-page.perfil-v3-page .home-sidebar.perfil-activity-sidebar {
-  /* explicitly set to 60px as requested: affects only other-user reseñas view */
-  padding-top: 60px !important;
-}
 
-/* Also apply the same adjustment for the Likes page when showing another user's reseñas */
-.home-page .home-sidebar.perfil-activity-sidebar {
-  padding-top: 60px !important;
-}
 
 .perfil-link-primario {
   background: linear-gradient(135deg, #f1c082 0%, #e68f5b 56%, #69c9c3 100%);
@@ -1291,13 +1282,15 @@
 
 .perfil-v3-link-main,
 .perfil-v3-link-ghost {
-  min-height: 36px;
+  min-height: 42px;
+  padding: 10px 16px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
   text-decoration: none;
   font-weight: 700;
+  line-height: 1.05;
 }
 
 .perfil-v3-link-main {
@@ -2333,6 +2326,11 @@
   margin-top: 14px;
   display: flex;
   justify-content: flex-start;
+}
+
+.perfil-v3-radar-callout-actions .perfil-v3-link-main {
+  padding-inline: 18px;
+  min-height: 44px;
 }
 
 .perfil-v3-radar-legend {
@@ -3376,9 +3374,12 @@
   height: 3px !important;
   border-radius: 3px !important;
 }
+.perfil-page.home-page {
+  margin-top: 0;
+  padding-top: 0;
+  align-items: start;
+}
 
-/* Fix: move home-sidebar up to match Home page vertical alignment */
-.perfil-page .home-sidebar {
-  margin-top: -120px;
-  padding-top: 14px; /* keep same inner spacing as home */
+.perfil-page .home-main {
+  padding-top: 94px;
 }

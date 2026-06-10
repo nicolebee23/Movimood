@@ -623,9 +623,19 @@ svg {
 
 .app-user-menu-floating {
   position: fixed;
-  top: 20px;
-  right: 24px;
+  top: 16px;
+  right: 18px;
   z-index: 100000;
+}
+
+.app-user-menu-floating.perfil-route {
+  top: 16px;
+  right: 18px;
+}
+
+@media (max-width: 600px) {
+  .app-user-menu-floating { top: 12px; right: 14px; }
+  .app-user-menu-floating.perfil-route { top: 12px !important; right: 14px !important; }
 }
 
 .app-user-menu-floating.hidden-on-scroll {
@@ -1383,6 +1393,144 @@ svg {
   border-right: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Make the sidebar width consistent across pages that include `home-sidebar` */
+.home-sidebar {
+  box-sizing: border-box;
+  width: 210px;
+  min-width: 210px;
+  max-width: 210px;
+  flex: 0 0 210px;
+}
+
+/* Global mobile-friendly sidebar layout for all pages that use WizardSidebar */
+@media (max-width: 1120px) {
+  .home-page {
+    grid-template-columns: minmax(160px, 190px) minmax(0, 1fr);
+  }
+
+  .home-sidebar {
+    width: auto;
+    min-width: 0;
+    max-width: 190px;
+    flex: 0 0 190px;
+  }
+}
+
+@media (max-width: 768px) {
+  .home-page {
+    grid-template-columns: 1fr !important;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  .home-sidebar {
+    position: relative;
+    min-height: auto;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 12px 16px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .home-sidebar .sidebar-toggle {
+    display: inline-flex;
+  }
+
+  .home-sidebar .sidebar-brand {
+    margin-bottom: 0;
+    padding-top: 0;
+  }
+
+  .home-sidebar .sidebar-panel,
+  .cuestionario-sidebar .sidebar-panel,
+  .explorar-sidebar .sidebar-panel,
+  .perfil-activity-sidebar .sidebar-panel {
+    display: none;
+    width: 100%;
+  }
+
+  .home-sidebar .sidebar-nav,
+  .home-sidebar .sidebar-footer,
+  .cuestionario-sidebar .sidebar-nav,
+  .cuestionario-sidebar .sidebar-footer,
+  .explorar-sidebar .sidebar-nav,
+  .explorar-sidebar .sidebar-footer,
+  .perfil-activity-sidebar .sidebar-nav,
+  .perfil-activity-sidebar .sidebar-footer {
+    display: none;
+  }
+
+  .home-sidebar.open,
+  .cuestionario-sidebar.open,
+  .explorar-sidebar.open,
+  .perfil-activity-sidebar.open {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .home-sidebar.open .sidebar-panel,
+  .cuestionario-sidebar.open .sidebar-panel,
+  .explorar-sidebar.open .sidebar-panel,
+  .perfil-activity-sidebar.open .sidebar-panel {
+    display: flex !important;
+  }
+
+  .home-sidebar.open .sidebar-nav,
+  .cuestionario-sidebar.open .sidebar-nav,
+  .explorar-sidebar.open .sidebar-nav,
+  .perfil-activity-sidebar.open .sidebar-nav {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    padding-top: 14px !important;
+    justify-content: center !important;
+  }
+
+  .home-sidebar.open .sidebar-link,
+  .cuestionario-sidebar.open .sidebar-link,
+  .explorar-sidebar.open .sidebar-link,
+  .perfil-activity-sidebar.open .sidebar-link {
+    flex: 1 1 minmax(115px, 1fr) !important;
+    justify-content: center !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    min-width: 0;
+    width: auto !important;
+    max-width: none !important;
+  }
+
+  .home-sidebar .sidebar-toggle,
+  .cuestionario-sidebar .sidebar-toggle,
+  .explorar-sidebar .sidebar-toggle,
+  .perfil-activity-sidebar .sidebar-toggle {
+    display: inline-flex !important;
+  }
+
+  .app-user-menu-floating {
+    position: fixed !important;
+    top: 12px !important;
+    right: 14px !important;
+    left: auto !important;
+    width: auto !important;
+    display: inline-flex !important;
+    justify-content: flex-end !important;
+    margin: 0 !important;
+    z-index: 100000 !important;
+  }
+
+  .app-user-menu-floating.perfil-route {
+    top: 12px !important;
+    right: 14px !important;
+  }
+}
+
 .sidebar-shell {
   display: flex;
   flex-direction: column;
@@ -1395,6 +1543,56 @@ svg {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+
+/* Prevent title from overlapping the menu button on small viewports */
+.sidebar-top {
+  min-height: 56px;
+}
+
+.sidebar-brand {
+  flex: 1 1 auto;
+  min-width: 0; /* allow truncation */
+  z-index: 2;
+}
+
+.sidebar-brand .brand-title {
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-toggle {
+  z-index: 3;
+  flex: 0 0 auto;
+}
+
+/* On narrow screens, pin the menu button to the right and give the brand room */
+@media (max-width: 600px) {
+  .sidebar-top {
+    position: relative;
+  }
+
+  .sidebar-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: auto !important;
+    max-width: 140px !important;
+    justify-content: center;
+  }
+
+  .sidebar-brand {
+    padding-right: 140px; /* reserve space for the floating menu */
+  }
+
+  .sidebar-brand .brand-title {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+  }
 }
 
 .sidebar-toggle {
@@ -1633,6 +1831,22 @@ svg {
 
   .cuestionario-sidebar.open .sidebar-panel {
     display: flex;
+  }
+
+  .cuestionario-sidebar.open .sidebar-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-top: 14px;
+    justify-content: center;
+  }
+
+  .cuestionario-sidebar.open .sidebar-link {
+    flex: 1 1 minmax(115px, 1fr);
+    justify-content: center;
+    text-align: center;
+    white-space: nowrap;
+    min-width: 0;
   }
 
   .cuestionario-main {

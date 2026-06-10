@@ -863,6 +863,38 @@
     display: flex;
   }
 
+  .explorar-sidebar.open .sidebar-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-top: 14px;
+    justify-content: center;
+  }
+
+  .explorar-sidebar.open .sidebar-link {
+    flex: 1 1 minmax(115px, 1fr);
+    justify-content: center;
+    text-align: center;
+    white-space: nowrap;
+    min-width: 0;
+  }
+
+  .explorar-sidebar {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .explorar-sidebar .sidebar-top {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+  }
+
   .explorar-sidebar .sidebar-brand {
     margin-bottom: 0;
     padding-top: 0;
@@ -870,8 +902,20 @@
     flex: 1;
   }
 
-  .explorar-sidebar .sidebar-nav {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .explorar-sidebar.open .sidebar-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-top: 14px;
+    justify-content: center;
+  }
+
+  .explorar-sidebar.open .sidebar-link {
+    flex: 1 1 minmax(115px, 1fr);
+    justify-content: center;
+    text-align: center;
+    white-space: nowrap;
+    min-width: 0;
   }
 
   .explorar {

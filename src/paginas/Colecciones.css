@@ -85,7 +85,23 @@
 .coleccion-detail-modal { background:#041014; padding:18px; border-radius:12px; width:880px; max-width:95%; color:#e6f8ff; border:1px solid rgba(255,255,255,0.04); max-height: 84vh; overflow-y: auto; overflow-x: hidden; }
 .coleccion-detail-body { display:flex; gap:18px; margin-top:12px; }
 .coleccion-posters-grid { display:grid; grid-template-columns: repeat(4,1fr); gap:12px; flex:1; max-height: 52vh; overflow: auto; padding-right: 6px; }
-.movie-thumb { background:#021213; border-radius:8px; padding:6px; display:flex; flex-direction:column; gap:6px; align-items:center; }
+.movie-thumb { background:#021213; border-radius:8px; padding:6px; display:flex; flex-direction:column; gap:6px; align-items:center; overflow:hidden; position:relative; }
+
+.movie-thumb .btn-danger {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  border-radius: 0 0 8px 8px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  margin-top: 0;
+}
+
+.movie-thumb:hover .btn-danger {
+  opacity: 1;
+}
 .movie-thumb img { width:100%; border-radius:6px; display:block; }
 .movie-thumb img { order: 0; }
 .movie-thumb .btn { order: 1; margin-top:8px; width:100%; }

@@ -565,6 +565,7 @@ function useAuthState() {
         persistUsers(mergedUsers);
         setUsers(mergedUsers);
         persistSession(backendUser);
+        localStorage.removeItem('movimood-local-profile-id');
         setCurrentUser(backendUser);
         currentPasswordRef.current = password; // Guardar contraseña en memoria
 

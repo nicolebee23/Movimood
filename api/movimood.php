@@ -117,13 +117,19 @@ function moviePayload(array $movieJson, ?array $questionnaireJson, array $row): 
 
 function reviewPayload(array $row): array
 {
+    // Si la columna 'author' está vacía o no existe, intentamos usar 'username' o 'name' que vienen del JOIN
+    $resolvedAuthor = trim((string) ($row['author'] ?? ''));
+    if ($resolvedAuthor === '') {
+        $resolvedAuthor = trim((string) ($row['username'] ?? $row['name'] ?? ''));
+    }
+
     return [
         'id' => $row['id'],
         'movieId' => (int) $row['movie_id'],
         'profileId' => $row['user_id'],
         'movie' => decodeJsonField($row['movie_json']),
         'mood' => $row['mood'],
-        'author' => $row['author'],
+        'author' => $resolvedAuthor !== '' ? $resolvedAuthor : 'Usuario', 
         'rating' => (int) $row['rating'],
         'comment' => $row['comment'],
         'createdAt' => $row['created_at'],
@@ -1244,12 +1250,16 @@ function handleReviewLikes(PDO $pdo): void
             }
         }
 
+        // MODIFICADO: Añadimos las columnas del creador de la reseña haciendo LEFT JOIN con movimood_users
         $stmt = $pdo->prepare(
             'SELECT rl.review_id AS review_id, rl.created_at AS liked_at,
                     r.id AS id, r.user_id AS user_id, r.movie_id AS movie_id, r.movie_json AS movie_json,
-                    r.mood AS mood, r.author AS author, r.rating AS rating, r.comment AS comment, r.created_at AS review_created_at, r.updated_at AS review_updated_at
+                    r.mood AS mood, r.author AS author, r.rating AS rating, r.comment AS comment, 
+                    r.created_at AS review_created_at, r.updated_at AS review_updated_at,
+                    u.username, u.name AS user_real_name, u.avatar_url
              FROM movimood_review_likes rl
              LEFT JOIN movimood_movie_reviews r ON r.id = rl.review_id
+             LEFT JOIN movimood_users u ON u.id = r.user_id
              WHERE rl.user_id = :user_id
              ORDER BY rl.created_at DESC'
         );
@@ -1263,21 +1273,27 @@ function handleReviewLikes(PDO $pdo): void
                 if (is_array($decoded)) $movie = $decoded;
             }
 
+            // MODIFICADO: Construimos el payload inyectando los datos del autor de la reseña para React
+            $reviewPayload = $row['id'] ? [
+                'id' => $row['id'],
+                'userId' => $row['user_id'],
+                'movieId' => $row['movie_id'],
+                'movie' => $movie,
+                'mood' => $row['mood'],
+                'author' => $row['author'],
+                'rating' => $row['rating'],
+                'comment' => $row['comment'],
+                'createdAt' => $row['review_created_at'],
+                'updatedAt' => $row['review_updated_at'],
+                'authorUsername' => $row['username'] ?? null,
+                'authorName' => $row['user_real_name'] ?? null,
+                'authorAvatar' => $row['avatar_url'] ?? null
+            ] : null;
+
             return [
                 'reviewId' => $row['review_id'],
                 'likedAt' => $row['liked_at'],
-                'review' => $row['id'] ? [
-                    'id' => $row['id'],
-                    'userId' => $row['user_id'],
-                    'movieId' => $row['movie_id'],
-                    'movie' => $movie,
-                    'mood' => $row['mood'],
-                    'author' => $row['author'],
-                    'rating' => $row['rating'],
-                    'comment' => $row['comment'],
-                    'createdAt' => $row['review_created_at'],
-                    'updatedAt' => $row['review_updated_at'],
-                ] : null,
+                'review' => $reviewPayload,
             ];
         }, $rows);
 
@@ -1294,7 +1310,7 @@ function handleReviewLikes(PDO $pdo): void
         }
 
         try {
-            $stmt = $pdo->prepare('INSERT INTO movimood_review_likes (review_id, user_id, created_at) VALUES (:review_id, :user_id, :created_at)');
+            $stmt = $pdo->prepare('INSERT IGNORE INTO movimood_review_likes (review_id, user_id, created_at) VALUES (:review_id, :user_id, :created_at)');
             $stmt->execute([
                 ':review_id' => $reviewId,
                 ':user_id' => $userId,

@@ -2,6 +2,7 @@ import pako from 'pako';
 
 const DEFAULT_API_BASE_URL = typeof window !== 'undefined' ? `${window.location.origin}/api` : '/api';
 const API_BASE_URL = (process.env.REACT_APP_API_BASE_URL || DEFAULT_API_BASE_URL).replace(/\/$/, '');
+const AUTH_CHANGE_EVENT = 'movimood-auth-change';
 
 const LOCAL_KEYS = {
   users: 'movimood-users',
@@ -9,6 +10,19 @@ const LOCAL_KEYS = {
   favorites: 'movimood-favoritos',
   reviews: 'movimood-movie-reviews',
 };
+
+function notifyAuthExpired() {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    window.localStorage.removeItem(LOCAL_KEYS.sessionUser);
+    window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
+  } catch {
+    // ignore failures in older browsers or restricted environments
+  }
+}
 
 function hasApiBaseUrl() {
   return API_BASE_URL !== '';
@@ -157,7 +171,13 @@ async function requestJson(endpoint, { method = 'GET', params = {}, body = null,
     const message = payload?.message || `Request failed with status ${response.status}`;
     const error = new Error(message);
     error.status = response.status;
+    error.isAuthError = response.status === 401;
     error.payload = payload;
+
+    if (response.status === 401) {
+      notifyAuthExpired();
+    }
+
     throw error;
   }
 

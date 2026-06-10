@@ -119,6 +119,7 @@ export default function useReviewLikes() {
       }
 
       const payload = await requestJson('movimood.php', { method: 'POST', params: { resource: 'review-likes' }, body });
+      console.log('like response:', payload);
       if (payload && typeof payload.count === 'number') {
         setCounts((s) => ({ ...s, [key]: payload.count }));
       }
@@ -199,11 +200,13 @@ export default function useReviewLikes() {
         // ignore parsing errors
       }
 
-      const payload = await requestJson('movimood.php', { params });
-      if (payload && Array.isArray(payload.items)) {
-        return payload.items;
-      }
-    } catch (e) {
+     console.log('liked reviews params:', params);
+const payload = await requestJson('movimood.php', { params });
+console.log('liked reviews response:', payload);
+if (payload && Array.isArray(payload.items)) {
+  return payload.items;
+}
+} catch (e) {
       // fall through to local fallback
     }
 

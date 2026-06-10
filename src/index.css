@@ -50,3 +50,159 @@ body {
     padding: 0;
   }
 }
+
+/* ── Global responsive helpers for all pages ── */
+* {
+  min-width: 0;
+}
+
+html,
+body,
+#root,
+main,
+section,
+article,
+aside,
+header,
+footer {
+  width: 100%;
+  max-width: 100%;
+}
+
+button,
+input,
+textarea,
+select,
+fieldset {
+  min-width: 0;
+  max-width: 100%;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.home-page,
+.pagina-principal,
+.home-main,
+.explorar-main,
+.colecciones-main,
+.perfil-v3-content,
+.videoteca-main,
+.likes-page,
+.vistas-page {
+  width: 100%;
+  max-width: 100%;
+  padding-inline: clamp(12px, 4vw, 20px);
+  box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+  .home-page,
+  .pagina-principal,
+  .home-main,
+  .explorar-main,
+  .colecciones-main,
+  .perfil-v3-content,
+  .videoteca-main,
+  .likes-page,
+  .vistas-page {
+    padding-inline: 16px;
+  }
+
+  .home-sidebar,
+  .perfil-v3-page-cover,
+  .perfil-v3-stats-grid,
+  .perfil-v3-general-grid,
+  .perfil-v3-activity-grid,
+  .colecciones-grid,
+  .explorar-grid,
+  .likes-movies-row,
+  .videoteca-grid,
+  .videoteca-hscroll,
+  .likes-reviews-list,
+  .colecciones-stats,
+  .likes-section,
+  .likes-hero-copy {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .home-page,
+  .pagina-principal,
+  .home-main,
+  .explorar-main,
+  .colecciones-main,
+  .perfil-v3-content,
+  .videoteca-main,
+  .likes-page,
+  .vistas-page {
+    padding-inline: 12px;
+  }
+
+  .home-page,
+  .explorar-page,
+  .colecciones-page,
+  .perfil-page,
+  .videoteca-page,
+  .likes-page,
+  .vistas-page {
+    min-width: 0;
+  }
+
+  .home-sidebar,
+  .sidebar-nav,
+  .sidebar-footer,
+  .perfil-activity-sidebar,
+  .explorar-filters,
+  .colecciones-controls,
+  .likes-tabs,
+  .perfil-v3-filter-pill,
+  .perfil-v3-filter-select,
+  .perfil-v3-filter-input,
+  .explorar-filter-group,
+  .campo-busqueda,
+  .search-form {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .home-page,
+  .pagina-principal,
+  .home-main,
+  .explorar-main,
+  .colecciones-main,
+  .perfil-v3-content,
+  .videoteca-main,
+  .likes-page,
+  .vistas-page {
+    padding-inline: 10px;
+  }
+
+  .video-card,
+  .explorar-movie-card,
+  .perfil-v3-favorite-card,
+  .coleccion-card,
+  .likes-movie-card,
+  .perfil-v3-activity-card,
+  .likes-review-row,
+  .colecciones-modal,
+  .explorar-movie-actions,
+  .perfil-v3-radar-legend,
+  .perfil-v3-collection-posters,
+  .videoteca-hcard,
+  .videoteca-card {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+}

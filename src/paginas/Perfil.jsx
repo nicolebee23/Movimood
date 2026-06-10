@@ -11,6 +11,7 @@ import './Likes.css';
 import WizardSidebar from '../componentes/WizardSidebar';
 import perfilMovimoodCover from '../assets/perfil-movimood-cover.png';
 import { Heart, User, Users, Film, Star } from 'lucide-react';
+import { normalizeMoodName, getQuestionnaireMoods, getMoodDisplayName, getUniqueMoods } from '../utils/moods';
 
 const PROFILE_FAVORITES_KEY = 'movimood-profile-favorites';
 const REVIEW_LIKES_KEY = 'movimood-review-likes';
@@ -38,21 +39,6 @@ const MOOD_GLOW_COLORS = {
   Motivado: '#ff7c52',
   Enojado: '#ff5b8b',
   Emocionado: '#b58cff',
-};
-
-const MOOD_NORMALIZATION_MAP = {
-  triste: 'Triste',
-  nostalgico: 'Nostalgico',
-  relajado: 'Relajado',
-  ansioso: 'Ansioso',
-  feliz: 'Feliz',
-  motivado: 'Motivado',
-  enojado: 'Enojado',
-  emocionado: 'Emocionado',
-};
-
-const MOOD_DISPLAY_NAMES = {
-  Enojado: 'Enfadado',
 };
 
 function normalizeMovie(movie) {
@@ -319,33 +305,7 @@ function movieKey(movieId) {
   return String(movieId);
 }
 
-function getUniqueMoods(moods) {
-  return Array.from(new Set((Array.isArray(moods) ? moods : []).filter(Boolean)));
-}
-
-function normalizeMoodName(mood) {
-  if (!mood) {
-    return null;
-  }
-
-  const normalized = String(mood)
-    .normalize('NFD')
-    .replace(/\p{Diacritic}/gu, '')
-    .trim()
-    .toLowerCase();
-
-  return MOOD_NORMALIZATION_MAP[normalized] || null;
-}
-
-function getMoodDisplayName(mood) {
-  return MOOD_DISPLAY_NAMES[mood] || mood;
-}
-
-function getQuestionnaireMoods(questionnaire) {
-  return getUniqueMoods(questionnaire?.moods)
-    .map(normalizeMoodName)
-    .filter(Boolean);
-}
+// Use shared mood utilities from ../utils/moods
 
 function formatDate(isoString) {
   try {
@@ -577,7 +537,7 @@ function loadReviewsFromStorage(profileId) {
 
 function Perfil() {
   const { id: routeProfileId } = useParams();
-  const { currentUser, getUserById } = useAuth();
+  const { currentUser, getUserById, updateCurrentUser } = useAuth();
   const location = useLocation();
   const query = new URLSearchParams(location.search);
   const { favoritos } = useFavoritos();
@@ -599,6 +559,7 @@ function Perfil() {
   const [profileReviews, setProfileReviews] = useState([]);
   const [isFollowingProfile, setIsFollowingProfile] = useState(false);
   const [isFollowSaving, setIsFollowSaving] = useState(false);
+  const [isFollowLoading, setIsFollowLoading] = useState(true);
   const [isBlockedProfile, setIsBlockedProfile] = useState(false);
   const [didBlockViewedUser, setDidBlockViewedUser] = useState(false);
   const [isBlockedByViewedUser, setIsBlockedByViewedUser] = useState(false);
@@ -621,7 +582,6 @@ const viewedUser = resolvedProfileId
   const isOwnProfile = Boolean(currentUser?.id && viewedUser?.id === currentUser.id);
 
   const myReviews = getReviewsByProfile(resolvedProfileId || undefined);
-  const storedWatchedFavorites = useMemo(() => (isOwnProfile ? loadWatchedFavoritesFromStorage() : []), [isOwnProfile]);
   const profileStoredReviews = useMemo(() => loadReviewsFromStorage(viewedUser?.id || resolvedProfileId || null), [viewedUser?.id, resolvedProfileId]);
 useEffect(() => {
   if (!resolvedProfileId || getUserById(resolvedProfileId) || currentUser?.id === resolvedProfileId) {
@@ -724,8 +684,9 @@ useEffect(() => {
   }, [viewedUser?.id]);
 
   useEffect(() => {
-    if (!currentUser?.id || !viewedUser?.id || isOwnProfile) {
+   if (!currentUser?.id || !viewedUser?.id || isOwnProfile) {
       setIsFollowingProfile(false);
+      setIsFollowLoading(false);
       return undefined;
     }
 
@@ -739,12 +700,14 @@ useEffect(() => {
           return;
         }
 
-        const following = Array.isArray(response?.following) ? response.following : [];
+      const following = Array.isArray(response?.following) ? response.following : [];
         setIsFollowingProfile(following.some((user) => String(user?.id) === String(viewedUser.id)));
+        setIsFollowLoading(false);
       })
       .catch(() => {
         if (!cancelled) {
           setIsFollowingProfile(false);
+          setIsFollowLoading(false);
         }
       });
 
@@ -803,9 +766,34 @@ useEffect(() => {
     setIsFollowSaving(true);
     const previousFollowing = isFollowingProfile;
     const previousFollowersCount = Number(profileFollowersCount ?? followersCount);
+    const previousFollowingCount = Number(
+      currentUser?.followingCount ?? currentUser?.seguidosCount ?? currentUser?.following?.length ?? 0
+    );
+    const nextFollowingCount = previousFollowing ? Math.max(0, previousFollowingCount - 1) : previousFollowingCount + 1;
 
     setIsFollowingProfile(!previousFollowing);
     setProfileFollowersCount(previousFollowing ? Math.max(0, previousFollowersCount - 1) : previousFollowersCount + 1);
+
+    if (currentUser) {
+      const currentFollowing = Array.isArray(currentUser.following) ? currentUser.following : [];
+      const nextFollowing = previousFollowing
+        ? currentFollowing.filter((user) => String(user?.id) !== String(viewedUser.id))
+        : [
+            ...currentFollowing,
+            {
+              id: viewedUser.id,
+              username: viewedUser.username || viewedUser.name || 'usuario',
+              name: viewedUser.name || viewedUser.username || 'Usuario',
+              avatar: viewedUser.avatar || '',
+            },
+          ];
+
+      updateCurrentUser({
+        followingCount: nextFollowingCount,
+        seguidosCount: nextFollowingCount,
+        following: nextFollowing,
+      });
+    }
 
     try {
       await requestJson('movimood.php', {
@@ -819,7 +807,15 @@ useEffect(() => {
     } catch (error) {
       setIsFollowingProfile(previousFollowing);
       setProfileFollowersCount(previousFollowersCount);
-      
+
+      if (currentUser) {
+        updateCurrentUser({
+          followingCount: previousFollowingCount,
+          seguidosCount: previousFollowingCount,
+          following: Array.isArray(currentUser.following) ? currentUser.following : [],
+        });
+      }
+
       // Si es error de bloqueo, actualizar el estado
       if (error?.status === 422 && error?.payload?.message?.includes('bloqueo')) {
         console.warn('No puedes seguir a este usuario porque existe un bloqueo.');
@@ -875,6 +871,7 @@ useEffect(() => {
     setSelectedRadarMood(null);
     setSelectedCollectionMood(null);
     setExpandedReviews({});
+    
   }, [resolvedProfileId]);
 
   useEffect(() => {
@@ -1055,7 +1052,7 @@ useEffect(() => {
     const uniqueMovies = new Map();
     const counts = new Map();
 
-    [...activeFavorites, ...storedWatchedFavorites]
+    activeFavorites
       .filter((fav) => fav.lista === LISTAS.YA_VISTA)
       .forEach((fav) => {
         if (fav.movie?.id && !uniqueMovies.has(fav.movie.id)) {
@@ -1076,49 +1073,63 @@ useEffect(() => {
     return Array.from(counts.entries())
       .map(([name, count]) => ({ name, count }))
       .sort((left, right) => right.count - left.count || left.name.localeCompare(right.name));
-  }, [activeFavorites, storedWatchedFavorites]);
+  }, [activeFavorites]);
 
   const watchedFavorites = useMemo(
-    () => [...activeFavorites, ...storedWatchedFavorites].filter((fav) => fav.lista === LISTAS.YA_VISTA && fav.movie?.id),
-    [activeFavorites, storedWatchedFavorites]
+    () => activeFavorites.filter((fav) => fav.lista === LISTAS.YA_VISTA && fav.movie?.id),
+    [activeFavorites]
   );
 
-  // Count moods only from movies marked as "YA_VISTA" (watched favorites)
+  // Count moods from movies marked as "YA_VISTA" (watched favorites)
+  // Use SAME LOGIC as Videoteca: prefer review mood, then questionnaire mood
   const moodStats = useMemo(() => {
     const moodKeys = Object.keys(MOOD_EMOJIS);
     const counts = moodKeys.reduce((accumulator, mood) => {
       accumulator[mood] = 0;
       return accumulator;
     }, {});
-    const countedMoodPairs = new Set();
 
-    function addMoodCount(movieId, moods) {
-      const uniqueMoods = getUniqueMoods(moods)
-        .map(normalizeMoodName)
-        .filter(Boolean);
-
-      uniqueMoods.forEach((mood) => {
-        if (!(mood in counts)) {
-          return;
+    // Build maps for quick lookup
+    const reviewsByMovieId = new Map();
+    if (Array.isArray(activeReviews)) {
+      activeReviews.forEach((review) => {
+        if (review?.movieId) {
+          reviewsByMovieId.set(review.movieId, review);
         }
-
-        const pairKey = `${movieKey(movieId)}::${mood}`;
-        if (countedMoodPairs.has(pairKey)) {
-          return;
-        }
-
-        countedMoodPairs.add(pairKey);
-        counts[mood] += 1;
       });
     }
 
+    // Count each watched favorite exactly once
     watchedFavorites.forEach((fav) => {
       const movieId = fav?.movie?.id;
-      addMoodCount(movieId, getQuestionnaireMoods(fav?.questionnaire));
+      if (!movieId) {
+        return;
+      }
+
+      // Try to get mood from review first
+      const review = reviewsByMovieId.get(movieId);
+      if (review && review.mood) {
+        const normalizedReviewMood = normalizeMoodName(review.mood);
+        if (normalizedReviewMood && normalizedReviewMood in counts) {
+          counts[normalizedReviewMood] += 1;
+          return;
+        }
+      }
+
+      // If no review mood, use questionnaire mood (getQuestionnaireMoods already normalizes)
+      const questionnaireMoods = getQuestionnaireMoods(fav?.questionnaire);
+      if (questionnaireMoods.length > 0) {
+        // Count ALL moods from questionnaire (same logic as Videoteca)
+        questionnaireMoods.forEach((mood) => {
+          if (mood in counts) {
+            counts[mood] += 1;
+          }
+        });
+      }
     });
 
     return counts;
-  }, [watchedFavorites]);
+  }, [watchedFavorites, activeReviews]);
 
   const moodRadarData = useMemo(() => {
     const moods = Object.keys(MOOD_EMOJIS);
@@ -1747,7 +1758,7 @@ useEffect(() => {
                             type="button"
                             className={`perfil-v3-follow-btn${isFollowingProfile ? ' is-following' : ''}`}
                             onClick={handleToggleFollow}
-                            disabled={isFollowSaving}
+                            disabled={isFollowSaving || isFollowLoading}
                             aria-pressed={isFollowingProfile}
                           >
                             {isFollowingProfile ? 'Siguiendo' : 'Seguir'}
